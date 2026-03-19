@@ -1,14 +1,5 @@
-mod day;
-mod hour;
-mod interval;
-mod millisecond;
-mod minute;
-mod month;
-mod second;
-mod year;
 use chrono::{TimeZone, Utc};
-
-use crate::interval::TimeInterval;
+use time::TimeInterval;
 
 fn main() {
     // println!(
