@@ -167,7 +167,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trace"
+name = "time"
 version = "0.1.0"
 dependencies = [
  "chrono",
