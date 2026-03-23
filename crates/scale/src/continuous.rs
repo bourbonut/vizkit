@@ -2,6 +2,7 @@ use std::f32::consts;
 
 use crate::linear::Linear;
 use crate::log::{Ln, Log, Log2, Log10};
+use crate::pow::{Power, Sqrt};
 
 enum Normalizer {
     Constant { value: f32 },
@@ -206,6 +207,32 @@ impl Scale<Log> {
         Self {
             transformer: Log { base },
             domain: [1.0, base],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
+    }
+}
+
+impl Scale<Power> {
+    pub fn pow(exponent: f32) -> Self {
+        Self {
+            transformer: Power { exponent },
+            domain: [0.0, 1.0],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
+    }
+}
+
+impl Scale<Sqrt> {
+    pub fn sqrt() -> Self {
+        Self {
+            transformer: Sqrt,
+            domain: [0.0, 1.0],
             range: [0.0, 1.0],
             input: BiMap::default(),
             output: BiMap::default(),
