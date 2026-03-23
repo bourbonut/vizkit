@@ -1,7 +1,7 @@
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::hash::Hash;
 
+#[derive(Default)]
 struct ScaleOrdinal<D, R>
 where
     D: Hash + Eq,
@@ -17,12 +17,12 @@ where
 {
     fn domain(self, domain: Vec<D>) -> Self
     where
-        D: for<'a> Borrow<&'a D> + Clone,
+        D: Clone,
     {
         let mut index = HashMap::new();
         let mut next_domain = Vec::new();
         for value in domain.iter() {
-            if index.contains_key(&value) {
+            if index.contains_key(value) {
                 continue;
             }
             next_domain.push(value.clone());
@@ -66,6 +66,31 @@ where
                 }
                 let index = i % length;
                 return self.range.get(index);
+            }
+        }
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ordinal() {
+        let mut s = ScaleOrdinal::<&str, &str>::default()
+            .domain(vec!["a", "b", "c"])
+            .range(vec!["red", "green", "blue"]);
+        for c in "abcdefgh".split("") {
+            match c {
+                "a" => assert_eq!(s.apply(c), Some("red").as_ref()),
+                "b" => assert_eq!(s.apply(c), Some("green").as_ref()),
+                "c" => assert_eq!(s.apply(c), Some("blue").as_ref()),
+                "d" => assert_eq!(s.apply(c), Some("red").as_ref()),
+                "e" => assert_eq!(s.apply(c), Some("green").as_ref()),
+                "f" => assert_eq!(s.apply(c), Some("blue").as_ref()),
+                "g" => assert_eq!(s.apply(c), Some("red").as_ref()),
+                "h" => assert_eq!(s.apply(c), Some("green").as_ref()),
+                "" => (),
+                x => unreachable!("char {} should not exist", x),
             }
         }
     }
