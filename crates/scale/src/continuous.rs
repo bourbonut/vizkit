@@ -1,3 +1,8 @@
+use std::f32::consts;
+
+use crate::linear::Linear;
+use crate::log::{Ln, Log, Log2, Log10};
+
 enum Normalizer {
     Constant { value: f32 },
     Linear { a: f32, b: f32 },
@@ -90,17 +95,6 @@ pub trait Transformer {
     fn untransform(&self, y: f32) -> f32;
 }
 
-pub struct Linear;
-impl Transformer for Linear {
-    fn transform(&self, x: f32) -> f32 {
-        x
-    }
-
-    fn untransform(&self, y: f32) -> f32 {
-        y
-    }
-}
-
 pub struct Scale<T: Transformer> {
     transformer: T,
     domain: [f32; 2],
@@ -108,19 +102,6 @@ pub struct Scale<T: Transformer> {
     output: BiMap,
     input: BiMap,
     clamper: Clamper,
-}
-
-impl Scale<Linear> {
-    pub fn linear() -> Self {
-        Self {
-            transformer: Linear,
-            domain: [0.0, 1.0],
-            range: [0.0, 1.0],
-            input: BiMap::default(),
-            output: BiMap::default(),
-            clamper: Clamper::Identity,
-        }
-    }
 }
 
 impl<T: Transformer> Scale<T> {
@@ -165,5 +146,70 @@ impl<T: Transformer> Scale<T> {
     pub fn invert(&self, y: f32) -> f32 {
         self.clamper
             .clamp(self.transformer.untransform(self.input.apply(y)))
+    }
+}
+
+impl Scale<Linear> {
+    pub fn linear() -> Self {
+        Self {
+            transformer: Linear,
+            domain: [0.0, 1.0],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
+    }
+}
+
+impl Scale<Log10> {
+    pub fn log10() -> Self {
+        Self {
+            transformer: Log10,
+            domain: [1.0, 10.],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
+    }
+}
+
+impl Scale<Log2> {
+    pub fn log2() -> Self {
+        Self {
+            transformer: Log2,
+            domain: [1.0, 2.],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
+    }
+}
+
+impl Scale<Ln> {
+    pub fn ln() -> Self {
+        Self {
+            transformer: Ln,
+            domain: [1.0, consts::E],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
+    }
+}
+
+impl Scale<Log> {
+    pub fn log(base: f32) -> Self {
+        Self {
+            transformer: Log { base },
+            domain: [1.0, base],
+            range: [0.0, 1.0],
+            input: BiMap::default(),
+            output: BiMap::default(),
+            clamper: Clamper::Identity,
+        }
     }
 }
