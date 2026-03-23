@@ -1,4 +1,5 @@
 mod continuous;
+mod discrete;
 mod linear;
 mod log;
 mod pow;
