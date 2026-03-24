@@ -108,35 +108,24 @@ pub struct Scale<T: Transformer> {
 impl<T: Transformer> Scale<T> {
     pub fn domain(self, domain: [f32; 2]) -> Self {
         Self {
-            transformer: self.transformer,
             domain,
-            range: self.range,
             input: BiMap::new(&self.range, &domain),
             output: BiMap::new(&domain, &self.range),
-            clamper: self.clamper,
+            ..self
         }
     }
 
     pub fn range(self, range: [f32; 2]) -> Self {
         Self {
-            transformer: self.transformer,
-            domain: self.domain,
             range,
             input: BiMap::new(&range, &self.domain),
             output: BiMap::new(&self.domain, &range),
-            clamper: self.clamper,
+            ..self
         }
     }
 
     pub fn clamper(self, clamper: Clamper) -> Self {
-        Self {
-            transformer: self.transformer,
-            domain: self.domain,
-            range: self.range,
-            input: self.input,
-            output: self.output,
-            clamper,
-        }
+        Self { clamper, ..self }
     }
 
     pub fn apply(&self, x: f32) -> f32 {
