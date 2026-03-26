@@ -83,6 +83,7 @@ macro_rules! impl_tick {
             fn ticks(&self, domain: &[f32; 2], count: usize) -> Vec<f32> {
                 let &[mut u, mut v] = domain;
                 let reverse = v < u;
+
                 if reverse {
                     swap(&mut u, &mut v);
                 }
@@ -132,6 +133,7 @@ macro_rules! impl_tick {
                         .map(|y| self.untransform(y))
                         .collect();
                 }
+
                 if reverse {
                     z.reverse();
                 }
@@ -139,19 +141,23 @@ macro_rules! impl_tick {
             }
 
             fn nice(&self, domain: &[f32; 2], _: usize) -> [f32; 2] {
-                let &[x0, x1] = domain;
-                [
-                    if x0 == 0. {
-                        x0
-                    } else {
-                        self.untransform(self.transform(x0).floor())
-                    },
-                    if x1 == 0. {
-                        x1
-                    } else {
-                        self.untransform(self.transform(x1).ceil())
-                    },
-                ]
+                let &[mut x0, mut x1] = domain;
+                let reverse = x1 < x0;
+                if reverse {
+                    swap(&mut x0, &mut x1);
+                }
+
+                x0 = if x0 == 0. {
+                    x0
+                } else {
+                    self.untransform(self.transform(x0).floor())
+                };
+                x1 = if x1 == 0. {
+                    x1
+                } else {
+                    self.untransform(self.transform(x1).ceil())
+                };
+                if reverse { [x1, x0] } else { [x0, x1] }
             }
         }
     };

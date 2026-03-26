@@ -110,8 +110,8 @@ impl<T: Transformer + Tick> Scale<T> {
     pub fn domain(self, domain: [f32; 2]) -> Self {
         Self {
             domain,
-            input: BiMap::new(&self.range, &domain),
-            output: BiMap::new(&domain, &self.range),
+            input: BiMap::new(&self.range, &domain.map(|x| self.transformer.transform(x))),
+            output: BiMap::new(&domain.map(|x| self.transformer.transform(x)), &self.range),
             ..self
         }
     }
@@ -119,8 +119,8 @@ impl<T: Transformer + Tick> Scale<T> {
     pub fn range(self, range: [f32; 2]) -> Self {
         Self {
             range,
-            input: BiMap::new(&range, &self.domain),
-            output: BiMap::new(&self.domain, &range),
+            input: BiMap::new(&range, &self.domain.map(|x| self.transformer.transform(x))),
+            output: BiMap::new(&self.domain.map(|x| self.transformer.transform(x)), &range),
             ..self
         }
     }
@@ -144,10 +144,8 @@ impl<T: Transformer + Tick> Scale<T> {
     }
 
     pub fn nice(self, count: Option<usize>) -> Self {
-        Self {
-            domain: self.transformer.nice(&self.domain, count.unwrap_or(10)),
-            ..self
-        }
+        let domain = self.transformer.nice(&self.domain, count.unwrap_or(10));
+        self.domain(domain)
     }
 }
 
@@ -166,12 +164,14 @@ impl Scale<Linear> {
 
 impl Scale<Log10> {
     pub fn log10() -> Self {
+        let domain = [1., 10.];
+        let range = [0., 1.];
         Self {
             transformer: Log10,
-            domain: [1.0, 10.],
-            range: [0.0, 1.0],
-            input: BiMap::default(),
-            output: BiMap::default(),
+            domain,
+            range,
+            input: BiMap::new(&range, &domain),
+            output: BiMap::new(&domain, &range),
             clamper: Clamper::Identity,
         }
     }
@@ -179,12 +179,14 @@ impl Scale<Log10> {
 
 impl Scale<Log2> {
     pub fn log2() -> Self {
+        let domain = [1., 2.];
+        let range = [0., 1.];
         Self {
             transformer: Log2,
-            domain: [1.0, 2.],
-            range: [0.0, 1.0],
-            input: BiMap::default(),
-            output: BiMap::default(),
+            domain,
+            range,
+            input: BiMap::new(&range, &domain),
+            output: BiMap::new(&domain, &range),
             clamper: Clamper::Identity,
         }
     }
@@ -192,12 +194,14 @@ impl Scale<Log2> {
 
 impl Scale<Ln> {
     pub fn ln() -> Self {
+        let domain = [1., consts::E];
+        let range = [0., 1.];
         Self {
             transformer: Ln,
-            domain: [1.0, consts::E],
-            range: [0.0, 1.0],
-            input: BiMap::default(),
-            output: BiMap::default(),
+            domain,
+            range,
+            input: BiMap::new(&range, &domain),
+            output: BiMap::new(&domain, &range),
             clamper: Clamper::Identity,
         }
     }
@@ -205,12 +209,14 @@ impl Scale<Ln> {
 
 impl Scale<Log> {
     pub fn log(base: f32) -> Self {
+        let domain = [1., base];
+        let range = [0., 1.];
         Self {
             transformer: Log { base },
-            domain: [1.0, base],
-            range: [0.0, 1.0],
-            input: BiMap::default(),
-            output: BiMap::default(),
+            domain,
+            range,
+            input: BiMap::new(&range, &domain),
+            output: BiMap::new(&domain, &range),
             clamper: Clamper::Identity,
         }
     }
@@ -324,5 +330,29 @@ mod tests {
         assert_eq!(s.ticks(Some(3)), reverse(vec![-100., -50., 0., 50., 100.]));
         assert_eq!(s.ticks(Some(2)), reverse(vec![-100., 0., 100.]));
         assert_eq!(s.ticks(Some(1)), vec![0.]);
+    }
+
+    #[rustfmt::skip]
+    #[test]
+    fn test_scale_log_nice() {
+        assert_eq!(super::Scale::log10().domain([1.1, 10.9]).nice(None).domain, [1., 100.]);
+        assert_eq!(super::Scale::log10().domain([10.9, 1.1]).nice(None).domain, [100., 1.]);
+        assert_eq!(super::Scale::log10().domain([0.7, 11.001]).nice(None).domain, [0.1, 100.]);
+        assert_eq!(super::Scale::log10().domain([123.1, 6.7]).nice(None).domain, [1000., 1.]);
+        assert_eq!(super::Scale::log10().domain([0.01, 0.49]).nice(None).domain, [0.01, 1.]);
+
+        let x = super::Scale::log10().domain([1.5, 50.]).nice(None);
+        assert_eq!(x.domain, [1., 100.]);
+        assert_eq!(x.range, [0., 1.]);
+        assert_eq!(x.apply(1.), 0.);
+        assert_eq!(x.apply(100.), 1.);
+
+        let x = super::Scale::log10().domain([0., 0.]).nice(None);
+        assert_eq!(x.domain, [0., 0.]);
+        assert_eq!(x.domain([0.5, 0.5]).nice(None).domain, [0.1, 1.]);
+
+        let x = super::Scale::log10().domain([1.1, 10.9]).nice(None);
+        assert_eq!(x.domain, [1., 100.]);
+        // assert_eq!(x.domain([-123.1, -0.5]).nice(None).domain, [-1000., -0.1])
     }
 }
