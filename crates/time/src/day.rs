@@ -1,8 +1,8 @@
-use crate::interval::TimeType;
+use crate::interval::Timing;
 use chrono::{DateTime, Datelike, TimeDelta, Timelike, Utc};
 
 pub struct Day;
-impl TimeType for Day {
+impl Timing for Day {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         date.with_hour(0)
             .and_then(|date| date.with_minute(0))

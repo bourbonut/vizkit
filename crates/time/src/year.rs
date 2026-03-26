@@ -1,8 +1,8 @@
-use crate::interval::TimeType;
+use crate::interval::Timing;
 use chrono::{DateTime, Datelike, TimeDelta, Timelike, Utc};
 
 pub struct Year;
-impl TimeType for Year {
+impl Timing for Year {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         date.with_month(1)
             .and_then(|date| date.with_day(1))

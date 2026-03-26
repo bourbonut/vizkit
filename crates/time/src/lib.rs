@@ -7,4 +7,4 @@ mod month;
 mod second;
 mod year;
 
-pub use crate::interval::{TimeInterval, TimeType};
+pub use crate::interval::{TimeInterval, Timing};

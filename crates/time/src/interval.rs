@@ -4,19 +4,19 @@ use crate::{
 };
 use chrono::{DateTime, Local, TimeDelta, Utc};
 
-pub trait TimeType {
+pub trait Timing {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>>;
     fn offset(&self, date: DateTime<Utc>, step: i64) -> DateTime<Utc>;
     fn count(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> i64;
     fn field(&self, date: DateTime<Utc>) -> u32;
 }
 
-pub struct Every<T: TimeType> {
+pub struct Every<T: Timing> {
     time_type: T,
     step: u32,
 }
 
-impl<T: TimeType> TimeType for Every<T> {
+impl<T: Timing> Timing for Every<T> {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         let mut date = self.time_type.floor(date)?;
         while self.time_type.field(date) % self.step != 0 {
@@ -58,11 +58,11 @@ impl<T: TimeType> TimeType for Every<T> {
     }
 }
 
-pub struct TimeInterval<T: TimeType> {
+pub struct TimeInterval<T: Timing> {
     time_type: T,
 }
 
-impl<T: TimeType> TimeInterval<T> {
+impl<T: Timing> TimeInterval<T> {
     pub fn interval(&self, date: Option<DateTime<Utc>>) -> Option<DateTime<Utc>> {
         self.time_type.floor(date.unwrap_or(Local::now().to_utc()))
     }

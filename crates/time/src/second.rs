@@ -1,8 +1,8 @@
-use crate::interval::TimeType;
+use crate::interval::Timing;
 use chrono::{DateTime, TimeDelta, Timelike, Utc};
 
 pub struct Second;
-impl TimeType for Second {
+impl Timing for Second {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         date.with_nanosecond(0)
     }

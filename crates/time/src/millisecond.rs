@@ -1,8 +1,8 @@
-use crate::interval::TimeType;
+use crate::interval::Timing;
 use chrono::{DateTime, TimeDelta, Timelike, Utc};
 
 pub struct Millisecond;
-impl TimeType for Millisecond {
+impl Timing for Millisecond {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         date.with_nanosecond((date.nanosecond() / 1_000_000) * 1_000_000)
     }
