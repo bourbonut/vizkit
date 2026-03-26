@@ -1,3 +1,5 @@
+use std::mem::swap;
+
 use crate::continuous::Transformer;
 use crate::ticks::{Tick, tick_increment, ticks};
 
@@ -18,27 +20,36 @@ impl Tick for Linear {
     }
 
     fn nice(&self, domain: &[f32; 2], count: usize) -> [f32; 2] {
-        let mut start = domain[0];
-        let mut stop = domain[1];
-
+        let &[mut start, mut stop] = domain;
         let mut prestep = None;
+
+        let reverse = stop < start;
+        if reverse {
+            swap(&mut start, &mut stop);
+        }
 
         let mut max_iter = 10;
         while max_iter > 0 {
             let step = tick_increment(start, stop, count);
             if Some(step) == prestep {
+                if reverse {
+                    swap(&mut start, &mut stop);
+                }
                 return [start, stop];
             } else if step > 0. {
                 start = (start / step).floor() * step;
                 stop = (stop / step).ceil() * step;
             } else if step < 0. {
-                start = (start / step).ceil() * step;
-                stop = (stop / step).floor() * step;
+                start = (start * step).ceil() / step;
+                stop = (stop * step).floor() / step;
             } else {
                 break;
             }
             prestep = Some(step);
             max_iter -= 1;
+        }
+        if reverse {
+            swap(&mut start, &mut stop);
         }
         [start, stop]
     }

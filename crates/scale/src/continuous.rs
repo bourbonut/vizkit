@@ -241,3 +241,88 @@ impl Scale<Sqrt> {
         }
     }
 }
+
+mod tests {
+
+    #[rustfmt::skip]
+    #[test]
+    fn test_scale_linear_nice() {
+        assert_eq!(super::Scale::linear().domain([0., 0.96]).nice(None).domain, [0., 1.]);
+        assert_eq!(super::Scale::linear().domain([0., 96.]).nice(None).domain, [0., 100.]);
+        assert_eq!(super::Scale::linear().domain([0., 0.96]).nice(Some(10)).domain, [0., 1.]);
+        assert_eq!(super::Scale::linear().domain([0., 96.]).nice(Some(10)).domain, [0., 100.]);
+        assert_eq!(super::Scale::linear().domain([0.96, 0.]).nice(Some(10)).domain, [1., 0.]);
+        assert_eq!(super::Scale::linear().domain([96., 0.]).nice(Some(10)).domain, [100., 0.]);
+        assert_eq!(super::Scale::linear().domain([0., -0.96]).nice(Some(10)).domain, [0., -1.]);
+        assert_eq!(super::Scale::linear().domain([0., -96.]).nice(Some(10)).domain, [0., -100.]);
+        assert_eq!(super::Scale::linear().domain([-0.96, 0.]).nice(Some(10)).domain, [-1., 0.]);
+        assert_eq!(super::Scale::linear().domain([-96., 0.]).nice(Some(10)).domain, [-100., 0.]);
+        assert_eq!(super::Scale::linear().domain([-0.1, 51.1]).nice(Some(8)).domain, [-10., 60.]);
+        assert_eq!(super::Scale::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
+        assert_eq!(super::Scale::linear().domain([10.9, 1.1]).nice(Some(10)).domain, [11., 1.]);
+        assert_eq!(super::Scale::linear().domain([0.7, 11.001]).nice(Some(10)).domain, [0., 12.]);
+        assert_eq!(super::Scale::linear().domain([123.1, 6.7]).nice(Some(10)).domain, [130., 0.]);
+        assert_eq!(super::Scale::linear().domain([0., 0.49]).nice(Some(10)).domain, [0., 0.5]);
+        assert_eq!(super::Scale::linear().domain([0., 14.1]).nice(Some(5)).domain, [0., 20.]);
+        assert_eq!(super::Scale::linear().domain([0., 15.]).nice(Some(5)).domain, [0., 20.]);
+        assert_eq!(super::Scale::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
+        assert_eq!(super::Scale::linear().domain([123.1, -0.9]).nice(Some(10)).domain, [130., -10.]);
+        assert_eq!(super::Scale::linear().domain([12., 87.]).nice(Some(5)).domain, [0., 100.]);
+        assert_eq!(super::Scale::linear().domain([12., 87.]).nice(Some(10)).domain, [10., 90.]);
+        assert_eq!(super::Scale::linear().domain([12., 87.]).nice(Some(100)).domain, [12., 87.]);
+    }
+
+    #[rustfmt::skip]
+    #[test]
+    fn test_scale_linear_ticks() {
+        let s = super::Scale::linear();
+        let round_epsilon = |vec: Vec<f32>| vec.iter().map(|x| (x * 1e12).round() / 1e12).collect::<Vec<f32>>();
+        let reverse = |arr: Vec<f32>| arr.into_iter().rev().collect::<Vec<f32>>();
+        assert_eq!(round_epsilon(s.ticks(Some(10))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(9))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(8))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(7))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(6))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(5))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(4))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(3))), [0.0, 0.5, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(2))), [0.0, 0.5, 1.0]);
+        assert_eq!(round_epsilon(s.ticks(Some(1))), [0.0, 1.0]);
+
+        let s = s.domain([-100., 100.]);
+        assert_eq!(s.ticks(Some(10)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
+        assert_eq!(s.ticks(Some(9)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
+        assert_eq!(s.ticks(Some(8)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
+        assert_eq!(s.ticks(Some(7)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
+        assert_eq!(s.ticks(Some(6)), [-100., -50., 0., 50., 100.]);
+        assert_eq!(s.ticks(Some(5)), [-100., -50., 0., 50., 100.]);
+        assert_eq!(s.ticks(Some(4)), [-100., -50., 0., 50., 100.]);
+        assert_eq!(s.ticks(Some(3)), [-100., -50., 0., 50., 100.]);
+        assert_eq!(s.ticks(Some(2)), [-100., 0., 100.]);
+        assert_eq!(s.ticks(Some(1)), [0.]);
+
+        let s = super::Scale::linear().domain([1., 0.]);
+        assert_eq!(round_epsilon(s.ticks(Some(10))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(9))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(8))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(7))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(6))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(5))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(4))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(3))), reverse(vec![0.0, 0.5, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(2))), reverse(vec![0.0, 0.5, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(Some(1))), reverse(vec![0.0, 1.0]));
+
+        let s = s.domain([100., -100.]);
+        assert_eq!(s.ticks(Some(10)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
+        assert_eq!(s.ticks(Some(9)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
+        assert_eq!(s.ticks(Some(8)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
+        assert_eq!(s.ticks(Some(7)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
+        assert_eq!(s.ticks(Some(6)), reverse(vec![-100., -50., 0., 50., 100.]));
+        assert_eq!(s.ticks(Some(5)), reverse(vec![-100., -50., 0., 50., 100.]));
+        assert_eq!(s.ticks(Some(4)), reverse(vec![-100., -50., 0., 50., 100.]));
+        assert_eq!(s.ticks(Some(3)), reverse(vec![-100., -50., 0., 50., 100.]));
+        assert_eq!(s.ticks(Some(2)), reverse(vec![-100., 0., 100.]));
+        assert_eq!(s.ticks(Some(1)), vec![0.]);
+    }
+}
