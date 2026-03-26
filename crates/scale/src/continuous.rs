@@ -3,6 +3,7 @@ use std::f32::consts;
 use crate::linear::Linear;
 use crate::log::{Ln, Log, Log2, Log10};
 use crate::pow::{Power, Sqrt};
+use crate::ticks::Tick;
 
 enum Normalizer {
     Constant { value: f32 },
@@ -96,7 +97,7 @@ pub trait Transformer {
     fn untransform(&self, y: f32) -> f32;
 }
 
-pub struct Scale<T: Transformer> {
+pub struct Scale<T: Transformer + Tick> {
     transformer: T,
     domain: [f32; 2],
     range: [f32; 2],
@@ -105,7 +106,7 @@ pub struct Scale<T: Transformer> {
     clamper: Clamper,
 }
 
-impl<T: Transformer> Scale<T> {
+impl<T: Transformer + Tick> Scale<T> {
     pub fn domain(self, domain: [f32; 2]) -> Self {
         Self {
             domain,
@@ -136,6 +137,17 @@ impl<T: Transformer> Scale<T> {
     pub fn invert(&self, y: f32) -> f32 {
         self.clamper
             .clamp(self.transformer.untransform(self.input.apply(y)))
+    }
+
+    pub fn ticks(&self, count: Option<usize>) -> Vec<f32> {
+        self.transformer.ticks(&self.domain, count.unwrap_or(10))
+    }
+
+    pub fn nice(self, count: Option<usize>) -> Self {
+        Self {
+            domain: self.transformer.nice(&self.domain, count.unwrap_or(10)),
+            ..self
+        }
     }
 }
 
