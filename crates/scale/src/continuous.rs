@@ -353,6 +353,72 @@ mod tests {
 
         let x = super::Scale::log10().domain([1.1, 10.9]).nice(None);
         assert_eq!(x.domain, [1., 100.]);
-        // assert_eq!(x.domain([-123.1, -0.5]).nice(None).domain, [-1000., -0.1])
+        assert_eq!(x.domain([-123.1, -0.5]).nice(None).domain, [-1000., -0.1])
+    }
+
+    #[rustfmt::skip]
+    #[test]
+    fn test_scale_log_ticks() {
+        let round = |vec: Vec<f32>| vec.iter().map(|x| (x * 10.).round() / 10.).collect::<Vec<f32>>();
+        let reverse = |arr: Vec<f32>| arr.into_iter().rev().collect::<Vec<f32>>();
+        assert_eq!(super::Scale::log10().domain([0.15, 0.68]).ticks(None), [0.2, 0.3, 0.4, 0.5, 0.6]);
+        assert_eq!(super::Scale::log10().domain([0.68, 0.15]).ticks(None), [0.6, 0.5, 0.4, 0.3, 0.2]);
+        assert_eq!(super::Scale::log10().domain([-0.15, -0.68]).ticks(None), [-0.2, -0.3, -0.4, -0.5, -0.6]);
+        assert_eq!(super::Scale::log10().domain([-0.68, -0.15]).ticks(None), [-0.6, -0.5, -0.4, -0.3, -0.2]);
+
+        assert_eq!(
+            round(super::Scale::log10().domain([1e-1, 1e1]).ticks(None)),
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
+        );
+        assert_eq!(
+            round(super::Scale::log10().domain([1e-1, 1e0]).ticks(None)),
+            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
+        );
+        assert_eq!(
+            round(super::Scale::log10().domain([-1e0, -1e-1]).ticks(None)),
+            [-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1]
+        );
+
+        assert_eq!(
+            round(super::Scale::log10().domain([-1e-1, -1e1]).ticks(None)),
+            reverse(vec![-10., -9., -8., -7., -6., -5., -4., -3., -2., -1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
+        );
+        assert_eq!(
+            round(super::Scale::log10().domain([-1e-1, -1e0]).ticks(None)),
+            reverse(vec![-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
+        );
+        assert_eq!(
+            round(super::Scale::log10().domain([1e0, 1e-1]).ticks(None)),
+            reverse(vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
+        );
+
+        assert_eq!(super::Scale::log10().domain([1., 5.]).ticks(None), [1., 2., 3., 4., 5.]);
+        assert_eq!(super::Scale::log10().domain([5., 1.]).ticks(None), [5., 4., 3., 2., 1.]);
+        assert_eq!(super::Scale::log10().domain([-1., -5.]).ticks(None), [-1., -2., -3., -4., -5.]);
+        assert_eq!(super::Scale::log10().domain([-5., -1.]).ticks(None), [-5., -4., -3., -2., -1.]);
+        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(1)), [300.]);
+        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(2)), [300.]);
+        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(3)), [300., 320.]);
+        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(4)), [290., 300., 310., 320.]);
+        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(None), [290., 295., 300., 305., 310., 315., 320., 325.]);
+
+        assert_eq!(
+            super::Scale::log10().domain([41., 42.]).ticks(None),
+            [41., 41.1, 41.2, 41.3, 41.4, 41.5, 41.6, 41.7, 41.8, 41.9, 42.]
+        );
+        assert_eq!(
+            super::Scale::log10().domain([42., 41.]).ticks(None),
+            [42., 41.9, 41.8, 41.7, 41.6, 41.5, 41.4, 41.3, 41.2, 41.1, 41.]
+        );
+        assert_eq!(
+            super::Scale::log10().domain([1600., 1400.]).ticks(None),
+            [1600., 1580., 1560., 1540., 1520., 1500., 1480., 1460., 1440., 1420., 1400.]
+        );
+
+        let round = |vec: Vec<f32>| vec.iter().map(|x| (x * 1e12).round() * 1e-12).collect::<Vec<f32>>();
+        assert_eq!(
+            round(super::Scale::ln().domain([0.1, 100.]).ticks(None)),
+            [0.135335283237, 0.367879441171, 1., 2.718281828459, 7.389056098931, 20.085536923188, 54.598150033144]
+        );
     }
 }

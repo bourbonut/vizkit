@@ -88,19 +88,36 @@ macro_rules! impl_tick {
                     swap(&mut u, &mut v);
                 }
 
-                let i = self.transform(u);
-                let j = self.transform(v);
+                // TODO: Make a structure or enum to avoid Box
+                let transform: Box<dyn Fn(f32) -> f32> = if u > 0. {
+                    Box::new(|x: f32| self.transform(x))
+                } else {
+                    Box::new(|x: f32| -self.transform(-x))
+                };
+
+                let untransform: Box<dyn Fn(f32) -> f32> = if u > 0. {
+                    Box::new(|x: f32| self.untransform(x))
+                } else {
+                    Box::new(|x: f32| -self.untransform(-x))
+                };
+
+                let i = transform(u);
+                let j = transform(v);
                 let n = count;
                 let mut z = Vec::new();
                 let base = self.base();
-                if self.base() % 1. != 0. && j - i < n as f32 {
+                if self.base() % 1. == 0. && j - i < n as f32 {
                     let base = base as usize;
-                    let start = i.floor() as usize;
-                    let end = j.ceil() as usize;
+                    let start = i.floor() as i32;
+                    let end = j.ceil() as i32;
                     if u > 0. {
                         for i in start..end + 1 {
                             for k in 1..base {
-                                let t = k as f32 * self.untransform(i as f32);
+                                let t = if i < 0 {
+                                    k as f32 / untransform(-(i as f32))
+                                } else {
+                                    k as f32 * untransform(i as f32)
+                                };
                                 if t < u {
                                     continue;
                                 }
@@ -113,7 +130,11 @@ macro_rules! impl_tick {
                     } else {
                         for i in start..end + 1 {
                             for k in (1..base).rev() {
-                                let t = k as f32 * self.untransform(i as f32);
+                                let t = if i > 0 {
+                                    k as f32 / untransform(-(i as f32))
+                                } else {
+                                    k as f32 * untransform(i as f32)
+                                };
                                 if t < u {
                                     continue;
                                 }
@@ -149,13 +170,17 @@ macro_rules! impl_tick {
 
                 x0 = if x0 == 0. {
                     x0
-                } else {
+                } else if x0 > 0. {
                     self.untransform(self.transform(x0).floor())
+                } else {
+                    -self.untransform(-(-self.transform(-x0)).floor())
                 };
                 x1 = if x1 == 0. {
                     x1
-                } else {
+                } else if x1 > 0. {
                     self.untransform(self.transform(x1).ceil())
+                } else {
+                    -self.untransform(-(-self.transform(-x1)).ceil())
                 };
                 if reverse { [x1, x0] } else { [x0, x1] }
             }
