@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
-members = [ "crates/scale",
+members = [
+  "crates/chromatic",
+  "crates/scale",
   "crates/time",
 ]
 
