@@ -7,6 +7,16 @@ const E: f32 = 1.97294;
 pub struct Color(pub [f32; 3]);
 pub struct Cubehelix(pub [f32; 3]);
 
+impl From<&str> for Color {
+    fn from(string: &str) -> Self {
+        Color([
+            u8::from_str_radix(&string[0..2], 16).unwrap_or_default() as f32 / 255.,
+            u8::from_str_radix(&string[2..4], 16).unwrap_or_default() as f32 / 255.,
+            u8::from_str_radix(&string[4..6], 16).unwrap_or_default() as f32 / 255.,
+        ])
+    }
+}
+
 impl From<Color> for String {
     fn from(color: Color) -> String {
         let [r, g, b] = color.0;
