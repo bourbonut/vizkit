@@ -1,0 +1,21 @@
+use crate::color::Color;
+
+pub fn cividis<T>(t: f32) -> T
+where
+    Color: Into<T>,
+{
+    let t = t.clamp(0., 1.);
+    let r = (-4.54 - t * (35.34 - t * (2381.73 - t * (6402.7 - t * (7024.72 - t * 2710.57)))))
+        .round()
+        .clamp(0., 255.);
+
+    let g = (32.49 + t * (170.73 + t * (52.82 - t * (131.46 - t * (176.58 - t * 67.37)))))
+        .round()
+        .clamp(0., 255.);
+
+    let b = (32.49 + t * (170.73 + t * (52.82 - t * (131.46 - t * (176.58 - t * 67.37)))))
+        .round()
+        .clamp(0., 255.);
+
+    Color([r / 255., g / 255., b / 255.]).into()
+}

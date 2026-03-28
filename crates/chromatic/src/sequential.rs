@@ -7,6 +7,18 @@ pub enum Sequential {
     Oranges,
     Purples,
     Reds,
+    BuGn,
+    BuPu,
+    GnBu,
+    OrRd,
+    PuBu,
+    PuBuGn,
+    PuRd,
+    RdPu,
+    YlGn,
+    YlGnBu,
+    YlOrBr,
+    YlOrRd,
 }
 
 impl Sequential {
@@ -18,6 +30,18 @@ impl Sequential {
             Self::Oranges => "fff5ebfee6cefdd0a2fdae6bfd8d3cf16913d94801a636037f2704",
             Self::Purples => "fcfbfdefedf5dadaebbcbddc9e9ac8807dba6a51a354278f3f007d",
             Self::Reds => "fff5f0fee0d2fcbba1fc9272fb6a4aef3b2ccb181da50f1567000d",
+            Self::BuGn => "f7fcfde5f5f9ccece699d8c966c2a441ae76238b45006d2c00441b",
+            Self::BuPu => "f7fcfde0ecf4bfd3e69ebcda8c96c68c6bb188419d810f7c4d004b",
+            Self::GnBu => "f7fcf0e0f3dbccebc5a8ddb57bccc44eb3d32b8cbe0868ac084081",
+            Self::OrRd => "fff7ecfee8c8fdd49efdbb84fc8d59ef6548d7301fb300007f0000",
+            Self::PuBu => "fff7fbece7f2d0d1e6a6bddb74a9cf3690c00570b0045a8d023858",
+            Self::PuBuGn => "fff7fbece2f0d0d1e6a6bddb67a9cf3690c002818a016c59014636",
+            Self::PuRd => "f7f4f9e7e1efd4b9dac994c7df65b0e7298ace125698004367001f",
+            Self::RdPu => "fff7f3fde0ddfcc5c0fa9fb5f768a1dd3497ae017e7a017749006a",
+            Self::YlGn => "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443006837004529",
+            Self::YlGnBu => "ffffd9edf8b1c7e9b47fcdbb41b6c41d91c0225ea8253494081d58",
+            Self::YlOrBr => "ffffe5fff7bcfee391fec44ffe9929ec7014cc4c02993404662506",
+            Self::YlOrRd => "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026",
         })
     }
 
