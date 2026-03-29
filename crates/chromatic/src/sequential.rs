@@ -1,6 +1,6 @@
-use crate::common::{RGBInterpolator, split_colors};
+use crate::common::{RGBInterpolator, Scheme, split_colors};
 
-pub enum Sequential {
+pub enum SequentialSpace {
     Blues,
     Greens,
     Greys,
@@ -21,8 +21,8 @@ pub enum Sequential {
     YlOrRd,
 }
 
-impl Sequential {
-    pub fn scheme(&self) -> Vec<&str> {
+impl Scheme for SequentialSpace {
+    fn scheme(&self) -> Vec<&str> {
         split_colors(match self {
             Self::Blues => "f7fbffdeebf7c6dbef9ecae16baed64292c62171b508519c08306b",
             Self::Greens => "f7fcf5e5f5e0c7e9c0a1d99b74c47641ab5d238b45006d2c00441b",
@@ -44,7 +44,9 @@ impl Sequential {
             Self::YlOrRd => "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026",
         })
     }
+}
 
+impl SequentialSpace {
     pub fn interpolator(&self) -> RGBInterpolator {
         RGBInterpolator::new(self.scheme())
     }

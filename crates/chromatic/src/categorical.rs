@@ -1,6 +1,6 @@
-use crate::common::split_colors;
+use crate::common::{Scheme, split_colors};
 
-pub enum Categorical {
+pub enum CategoricalSpace {
     Accent,
     Category10,
     Dark2,
@@ -14,8 +14,8 @@ pub enum Categorical {
     Tableau10,
 }
 
-impl Categorical {
-    pub fn scheme(&self) -> Vec<&str> {
+impl Scheme for CategoricalSpace {
+    fn scheme(&self) -> Vec<&str> {
         split_colors(match self {
             Self::Accent => "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
             Self::Category10 => "1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf",

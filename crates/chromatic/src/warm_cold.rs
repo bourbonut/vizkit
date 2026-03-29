@@ -1,18 +1,18 @@
 use crate::color::{Color, Cubehelix, Interpolator, color};
 
-pub struct WarmCold {
+pub struct CubehelixInterpolator {
     gamma: f32,
     h: Interpolator,
     s: Interpolator,
     l: Interpolator,
 }
 
-impl WarmCold {
-    pub fn gamma(self, gamma: f32) -> Self {
+impl CubehelixInterpolator {
+    pub(crate) fn gamma(self, gamma: f32) -> Self {
         Self { gamma, ..self }
     }
 
-    pub fn interpolate<T>(&self, t: f32) -> T
+    pub(crate) fn interpolate<T>(&self, t: f32) -> T
     where
         Color: Into<T>,
     {
@@ -24,7 +24,7 @@ impl WarmCold {
         .into()
     }
 
-    pub fn warm() -> Self {
+    pub(crate) fn warm() -> Self {
         let [sh, ss, sl] = [-100., 0.75, 0.35];
         let [eh, es, el] = [80., 1.50, 0.8];
         let h = color(sh, eh);
@@ -33,7 +33,7 @@ impl WarmCold {
         Self { gamma: 1., h, s, l }
     }
 
-    pub fn cold() -> Self {
+    pub(crate) fn cold() -> Self {
         let [sh, ss, sl] = [260., 0.75, 0.35];
         let [eh, es, el] = [80., 1.50, 0.8];
         let h = color(sh, eh);
@@ -43,7 +43,7 @@ impl WarmCold {
     }
 }
 
-impl Default for WarmCold {
+impl Default for CubehelixInterpolator {
     fn default() -> Self {
         let [sh, ss, sl] = [300., 0.5, 0.0];
         let [eh, es, el] = [-240., 0.5, 1.0];

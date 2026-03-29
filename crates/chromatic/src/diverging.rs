@@ -1,6 +1,6 @@
-use crate::common::{RGBInterpolator, split_colors};
+use crate::common::{RGBInterpolator, Scheme, split_colors};
 
-pub enum Diverging {
+pub enum DivergingSpace {
     BrBg,
     PiYg,
     PrGn,
@@ -12,8 +12,8 @@ pub enum Diverging {
     Spectral,
 }
 
-impl Diverging {
-    pub fn scheme(&self) -> Vec<&str> {
+impl Scheme for DivergingSpace {
+    fn scheme(&self) -> Vec<&str> {
         split_colors(match self {
             Self::BrBg => "5430058c510abf812ddfc27df6e8c3f5f5f5c7eae580cdc135978f01665e003c30",
             Self::PiYg => "8e0152c51b7dde77aef1b6dafde0eff7f7f7e6f5d0b8e1867fbc414d9221276419",
@@ -26,7 +26,9 @@ impl Diverging {
             Self::Spectral => "9e0142d53e4ff46d43fdae61fee08bffffbfe6f598abdda466c2a53288bd5e4fa2",
         })
     }
+}
 
+impl DivergingSpace {
     pub fn interpolator(&self) -> RGBInterpolator {
         RGBInterpolator::new(self.scheme())
     }
