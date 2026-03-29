@@ -50,7 +50,7 @@ impl Clamper {
     fn clamp(&self, x: f32) -> f32 {
         match self {
             Self::Identity => x,
-            Self::Linear { a, b } => a.max(b.min(x)),
+            Self::Linear { a, b } => x.clamp(*a, *b),
         }
     }
 }
