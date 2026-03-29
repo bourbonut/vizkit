@@ -19,3 +19,16 @@ where
 
     Color([r / 255., g / 255., b / 255.]).into()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::cividis;
+
+    #[test]
+    fn test_cividis() {
+        let step = 100;
+        let _: Vec<String> = (0..=step)
+            .map(|i| cividis(i as f32 / step as f32))
+            .collect();
+    }
+}

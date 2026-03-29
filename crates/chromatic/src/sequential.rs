@@ -51,3 +51,39 @@ impl SequentialSpace {
         RGBInterpolator::new(self.scheme())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::SequentialSpace;
+
+    #[test]
+    fn test_sequential() {
+        let step = 100;
+        let variants = [
+            SequentialSpace::Blues,
+            SequentialSpace::Greens,
+            SequentialSpace::Greys,
+            SequentialSpace::Oranges,
+            SequentialSpace::Purples,
+            SequentialSpace::Reds,
+            SequentialSpace::BuGn,
+            SequentialSpace::BuPu,
+            SequentialSpace::GnBu,
+            SequentialSpace::OrRd,
+            SequentialSpace::PuBu,
+            SequentialSpace::PuBuGn,
+            SequentialSpace::PuRd,
+            SequentialSpace::RdPu,
+            SequentialSpace::YlGn,
+            SequentialSpace::YlGnBu,
+            SequentialSpace::YlOrBr,
+            SequentialSpace::YlOrRd,
+        ];
+        for space in variants {
+            let interpolator = space.interpolator();
+            let _: Vec<String> = (0..=step)
+                .map(|i| interpolator.interpolate(i as f32 / step as f32))
+                .collect();
+        }
+    }
+}

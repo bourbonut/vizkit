@@ -45,29 +45,31 @@ impl Scheme for ViridisSpace {
     }
 }
 
+#[cfg(test)]
 mod tests {
+    use super::{Scheme, ViridisInterpolator, ViridisSpace};
 
-    // #[test]
-    // fn test_viridis() {
-    //     let step = 100;
-    //     let viridis = super::Viridis::viridis();
-    //     let _: Vec<String> = (0..=step)
-    //         .map(|i| viridis.interpolate(i as f32 / step as f32))
-    //         .collect();
-    //
-    //     let inferno = super::Viridis::inferno();
-    //     let _: Vec<String> = (0..=step)
-    //         .map(|i| inferno.interpolate(i as f32 / step as f32))
-    //         .collect();
-    //
-    //     let magma = super::Viridis::magma();
-    //     let _: Vec<String> = (0..=step)
-    //         .map(|i| magma.interpolate(i as f32 / step as f32))
-    //         .collect();
-    //
-    //     let plasma = super::Viridis::plasma();
-    //     let _: Vec<String> = (0..=step)
-    //         .map(|i| plasma.interpolate(i as f32 / step as f32))
-    //         .collect();
-    // }
+    #[test]
+    fn test_viridis() {
+        let step = 100;
+        let viridis = ViridisInterpolator::new(ViridisSpace::Viridis.scheme());
+        let _: Vec<String> = (0..=step)
+            .map(|i| viridis.interpolate(i as f32 / step as f32))
+            .collect();
+
+        let inferno = ViridisInterpolator::new(ViridisSpace::Inferno.scheme());
+        let _: Vec<String> = (0..=step)
+            .map(|i| inferno.interpolate(i as f32 / step as f32))
+            .collect();
+
+        let magma = ViridisInterpolator::new(ViridisSpace::Magma.scheme());
+        let _: Vec<String> = (0..=step)
+            .map(|i| magma.interpolate(i as f32 / step as f32))
+            .collect();
+
+        let plasma = ViridisInterpolator::new(ViridisSpace::Plasma.scheme());
+        let _: Vec<String> = (0..=step)
+            .map(|i| plasma.interpolate(i as f32 / step as f32))
+            .collect();
+    }
 }

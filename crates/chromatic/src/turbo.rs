@@ -20,3 +20,14 @@ where
 
     Color([r / 255., g / 255., b / 255.]).into()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::turbo;
+
+    #[test]
+    fn test_turbo() {
+        let step = 100;
+        let _: Vec<String> = (0..=step).map(|i| turbo(i as f32 / step as f32)).collect();
+    }
+}

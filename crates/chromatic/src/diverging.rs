@@ -33,3 +33,30 @@ impl DivergingSpace {
         RGBInterpolator::new(self.scheme())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::DivergingSpace;
+
+    #[test]
+    fn test_sequential() {
+        let step = 100;
+        let variants = [
+            DivergingSpace::BrBg,
+            DivergingSpace::PiYg,
+            DivergingSpace::PrGn,
+            DivergingSpace::PuOr,
+            DivergingSpace::RdBu,
+            DivergingSpace::RdGy,
+            DivergingSpace::RdYlBu,
+            DivergingSpace::RdYlGn,
+            DivergingSpace::Spectral,
+        ];
+        for space in variants {
+            let interpolator = space.interpolator();
+            let _: Vec<String> = (0..=step)
+                .map(|i| interpolator.interpolate(i as f32 / step as f32))
+                .collect();
+        }
+    }
+}

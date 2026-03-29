@@ -35,3 +35,28 @@ impl Scheme for CategoricalSpace {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{CategoricalSpace, Scheme};
+
+    #[test]
+    fn test_categorical() {
+        let variants = [
+            CategoricalSpace::Accent,
+            CategoricalSpace::Category10,
+            CategoricalSpace::Dark2,
+            CategoricalSpace::Observable10,
+            CategoricalSpace::Paired,
+            CategoricalSpace::Pastel1,
+            CategoricalSpace::Pastel2,
+            CategoricalSpace::Set1,
+            CategoricalSpace::Set2,
+            CategoricalSpace::Set3,
+            CategoricalSpace::Tableau10,
+        ];
+        for space in variants {
+            let _ = space.scheme();
+        }
+    }
+}

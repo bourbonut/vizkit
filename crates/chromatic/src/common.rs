@@ -25,7 +25,7 @@ impl InterpolateBasis {
     }
 
     fn interpolate(&self, t: f32) -> f32 {
-        let n = self.channel_values.len();
+        let n = self.channel_values.len() - 1;
         let i = if t <= 0. {
             0
         } else if t >= 1. {
