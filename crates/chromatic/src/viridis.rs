@@ -45,29 +45,35 @@ impl Scheme for ViridisSpace {
     }
 }
 
+impl ViridisSpace {
+    pub fn interpolator(&self) -> ViridisInterpolator<'_> {
+        ViridisInterpolator::new(self.scheme())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Scheme, ViridisInterpolator, ViridisSpace};
+    use super::ViridisSpace;
 
     #[test]
     fn test_viridis() {
         let step = 100;
-        let viridis = ViridisInterpolator::new(ViridisSpace::Viridis.scheme());
+        let viridis = ViridisSpace::Viridis.interpolator();
         let _: Vec<String> = (0..=step)
             .map(|i| viridis.interpolate(i as f32 / step as f32))
             .collect();
 
-        let inferno = ViridisInterpolator::new(ViridisSpace::Inferno.scheme());
+        let inferno = ViridisSpace::Inferno.interpolator();
         let _: Vec<String> = (0..=step)
             .map(|i| inferno.interpolate(i as f32 / step as f32))
             .collect();
 
-        let magma = ViridisInterpolator::new(ViridisSpace::Magma.scheme());
+        let magma = ViridisSpace::Magma.interpolator();
         let _: Vec<String> = (0..=step)
             .map(|i| magma.interpolate(i as f32 / step as f32))
             .collect();
 
-        let plasma = ViridisInterpolator::new(ViridisSpace::Plasma.scheme());
+        let plasma = ViridisSpace::Plasma.interpolator();
         let _: Vec<String> = (0..=step)
             .map(|i| plasma.interpolate(i as f32 / step as f32))
             .collect();

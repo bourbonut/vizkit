@@ -66,7 +66,7 @@ pub struct Viridis<'a> {
 impl<'a> Viridis<'a> {
     pub fn new(space: &'a ViridisSpace) -> Self {
         Self {
-            interpolator: ViridisInterpolator::new(space.scheme()),
+            interpolator: space.interpolator(),
         }
     }
 }
