@@ -78,6 +78,7 @@ pub fn tick_increment(start: f32, stop: f32, count: usize) -> f32 {
     tick_spec(start, stop, count)[2]
 }
 
+#[cfg(test)]
 mod tests {
 
     #[rustfmt::skip]

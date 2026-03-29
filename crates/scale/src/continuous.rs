@@ -248,6 +248,7 @@ impl Scale<Sqrt> {
     }
 }
 
+#[cfg(test)]
 mod tests {
 
     #[rustfmt::skip]
