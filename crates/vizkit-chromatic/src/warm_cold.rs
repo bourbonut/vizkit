@@ -1,5 +1,6 @@
 use crate::color::{Color, Cubehelix, Interpolator, color};
 
+#[derive(Clone)]
 pub struct CubehelixInterpolator {
     gamma: f32,
     h: Interpolator,

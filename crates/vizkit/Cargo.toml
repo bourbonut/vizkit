@@ -1,0 +1,9 @@
+[package]
+name = "vizkit"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+vizkit-chromatic.workspace = true
+vizkit-scale.workspace = true
+vizkit-time.workspace = true

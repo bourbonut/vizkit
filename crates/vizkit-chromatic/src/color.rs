@@ -54,6 +54,7 @@ impl From<Cubehelix> for Color {
     }
 }
 
+#[derive(Clone)]
 pub enum Interpolator {
     Linear { a: f32, d: f32 },
     Constant { value: f32 },

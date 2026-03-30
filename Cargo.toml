@@ -1,9 +1,11 @@
 [workspace]
 resolver = "3"
 members = [
-  "crates/chromatic",
-  "crates/scale",
-  "crates/time",
+  "crates/vizkit-chromatic",
+  "crates/vizkit-scale",
+  "crates/vizkit-time",
+  "crates/vizkit",
+  "examples/*",
 ]
 
 [workspace.package]
@@ -11,7 +13,9 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
-time = { path = "crates/time" }
-chromatic = { path = "crates/chromatic" }
+vizkit-time = { path = "crates/vizkit-time" }
+vizkit-chromatic = { path = "crates/vizkit-chromatic" }
+vizkit-scale = { path = "crates/vizkit-scale" }
+vizkit = { path = "crates/vizkit" }
 
 chrono = "0.4.44"

@@ -4,7 +4,7 @@ use crate::{
     log::{Ln, Log, Log2, Log10},
     pow::{Power, Sqrt},
 };
-use chromatic::{Color, ColorMap};
+use vizkit_chromatic::{Color, ColorMap};
 
 pub struct ScaleColor<T: Transformer, C: ColorMap> {
     transformer: T,

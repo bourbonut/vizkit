@@ -1,5 +1,5 @@
 use chrono::{TimeZone, Utc};
-use time::TimeInterval;
+use vizkit_time::TimeInterval;
 
 fn main() {
     // println!(

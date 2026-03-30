@@ -23,11 +23,13 @@ use crate::{
     viridis::ViridisInterpolator, warm_cold::CubehelixInterpolator,
 };
 
+#[derive(Clone)]
 pub enum WarmColdSpace {
     Warm,
     Cold,
 }
 
+#[derive(Clone)]
 pub struct WarmCold {
     interpolator: CubehelixInterpolator,
 }
@@ -59,6 +61,7 @@ impl ColorMap for WarmCold {
     }
 }
 
+#[derive(Clone)]
 pub struct Viridis<'a> {
     interpolator: ViridisInterpolator<'a>,
 }
@@ -80,6 +83,7 @@ impl<'a> ColorMap for Viridis<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct Sequential {
     interpolator: RGBInterpolator,
 }
@@ -101,6 +105,7 @@ impl ColorMap for Sequential {
     }
 }
 
+#[derive(Clone)]
 pub struct Diverging {
     interpolator: RGBInterpolator,
 }
@@ -124,7 +129,7 @@ impl ColorMap for Diverging {
 
 macro_rules! empty_color_map {
     ($name:ident, $function:path) => {
-        #[derive(Default)]
+        #[derive(Default, Clone)]
         pub struct $name;
 
         impl ColorMap for $name {

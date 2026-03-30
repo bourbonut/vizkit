@@ -1,6 +1,7 @@
 use crate::color::Color;
 use crate::common::{Scheme, split_colors};
 
+#[derive(Clone)]
 pub struct ViridisInterpolator<'a> {
     colors: Vec<&'a str>,
 }

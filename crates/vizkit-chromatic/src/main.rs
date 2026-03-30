@@ -1,4 +1,4 @@
-use chromatic::{ColorMap, Rainbow};
+use vizkit_chromatic::{ColorMap, Rainbow};
 
 fn main() {
     let step = 100;

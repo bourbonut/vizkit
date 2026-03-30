@@ -15,6 +15,7 @@ pub(crate) fn split_colors(string: &str) -> Vec<&str> {
     (0..n).map(|i| &string[i * 6..(i + 1) * 6]).collect()
 }
 
+#[derive(Clone)]
 struct InterpolateBasis {
     channel_values: Vec<f32>,
 }
@@ -59,6 +60,7 @@ impl InterpolateBasis {
     }
 }
 
+#[derive(Clone)]
 pub struct RGBInterpolator {
     r_channel: InterpolateBasis,
     g_channel: InterpolateBasis,

@@ -1,0 +1,8 @@
+[package]
+name = "colormaps"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+iced = { version = "0.14.0", features = ["canvas"] }
+vizkit.workspace = true
