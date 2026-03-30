@@ -47,7 +47,7 @@ pub enum Clamper {
 }
 
 impl Clamper {
-    fn clamp(&self, x: f32) -> f32 {
+    pub fn clamp(&self, x: f32) -> f32 {
         match self {
             Self::Identity => x,
             Self::Linear { a, b } => x.clamp(*a, *b),

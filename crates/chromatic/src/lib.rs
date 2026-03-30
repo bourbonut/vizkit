@@ -12,14 +12,15 @@ mod warm_cold;
 
 pub use crate::{
     categorical::CategoricalSpace,
+    color::Color,
     common::{ColorMap, Scheme},
     diverging::DivergingSpace,
     sequential::SequentialSpace,
     viridis::ViridisSpace,
 };
 use crate::{
-    cividis::cividis, color::Color, common::RGBInterpolator, rainbow::rainbow, sinebow::sinebow,
-    turbo::turbo, viridis::ViridisInterpolator, warm_cold::CubehelixInterpolator,
+    cividis::cividis, common::RGBInterpolator, rainbow::rainbow, sinebow::sinebow, turbo::turbo,
+    viridis::ViridisInterpolator, warm_cold::CubehelixInterpolator,
 };
 
 pub enum WarmColdSpace {

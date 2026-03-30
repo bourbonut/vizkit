@@ -1,3 +1,4 @@
+mod color;
 mod continuous;
 mod discrete;
 mod linear;

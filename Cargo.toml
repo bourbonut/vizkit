@@ -12,5 +12,6 @@ edition = "2024"
 
 [workspace.dependencies]
 time = { path = "crates/time" }
+chromatic = { path = "crates/chromatic" }
 
 chrono = "0.4.44"
