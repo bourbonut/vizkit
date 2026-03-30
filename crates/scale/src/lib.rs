@@ -6,5 +6,6 @@ mod log;
 mod pow;
 mod ticks;
 
-pub use crate::continuous::{Clamper, Scale, Transformer};
+pub use crate::color::ScaleColor;
+pub use crate::continuous::{Clamper, ScaleContinuous, Transformer};
 pub use crate::discrete::{ScaleBand, ScaleOrdinal};

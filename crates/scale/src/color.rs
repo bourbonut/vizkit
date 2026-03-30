@@ -6,12 +6,10 @@ use crate::{
 };
 use chromatic::{Color, ColorMap};
 
-struct ScaleColor<T: Transformer, C: ColorMap> {
+pub struct ScaleColor<T: Transformer, C: ColorMap> {
     transformer: T,
     color_map: C,
-    domain: [f32; 2],
     t0: f32,
-    t1: f32,
     factor: f32,
     clamp: bool,
 }
@@ -24,8 +22,6 @@ impl<T: Transformer, C: ColorMap> ScaleColor<T, C> {
             transformer,
             color_map,
             t0,
-            t1,
-            domain: [0., 1.],
             factor: if t0 == t1 { 0. } else { 1. / (t1 - t0) },
             clamp: false,
         }
@@ -36,9 +32,7 @@ impl<T: Transformer, C: ColorMap> ScaleColor<T, C> {
         let t0 = self.transformer.transform(x0);
         let t1 = self.transformer.transform(x1);
         Self {
-            domain,
             t0,
-            t1,
             factor: if t0 == t1 { 0. } else { 1. / (t1 - t0) },
             ..self
         }

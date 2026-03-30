@@ -97,7 +97,7 @@ pub trait Transformer {
     fn untransform(&self, y: f32) -> f32;
 }
 
-pub struct Scale<T: Transformer + Tick> {
+pub struct ScaleContinuous<T: Transformer + Tick> {
     transformer: T,
     domain: [f32; 2],
     range: [f32; 2],
@@ -106,7 +106,7 @@ pub struct Scale<T: Transformer + Tick> {
     clamper: Clamper,
 }
 
-impl<T: Transformer + Tick> Scale<T> {
+impl<T: Transformer + Tick> ScaleContinuous<T> {
     pub fn domain(self, domain: [f32; 2]) -> Self {
         Self {
             domain,
@@ -149,7 +149,7 @@ impl<T: Transformer + Tick> Scale<T> {
     }
 }
 
-impl Scale<Linear> {
+impl ScaleContinuous<Linear> {
     pub fn linear() -> Self {
         Self {
             transformer: Linear,
@@ -162,7 +162,7 @@ impl Scale<Linear> {
     }
 }
 
-impl Scale<Log10> {
+impl ScaleContinuous<Log10> {
     pub fn log10() -> Self {
         let domain = [1., 10.];
         let range = [0., 1.];
@@ -177,7 +177,7 @@ impl Scale<Log10> {
     }
 }
 
-impl Scale<Log2> {
+impl ScaleContinuous<Log2> {
     pub fn log2() -> Self {
         let domain = [1., 2.];
         let range = [0., 1.];
@@ -192,7 +192,7 @@ impl Scale<Log2> {
     }
 }
 
-impl Scale<Ln> {
+impl ScaleContinuous<Ln> {
     pub fn ln() -> Self {
         let domain = [1., consts::E];
         let range = [0., 1.];
@@ -207,7 +207,7 @@ impl Scale<Ln> {
     }
 }
 
-impl Scale<Log> {
+impl ScaleContinuous<Log> {
     pub fn log(base: f32) -> Self {
         let domain = [1., base];
         let range = [0., 1.];
@@ -222,7 +222,7 @@ impl Scale<Log> {
     }
 }
 
-impl Scale<Power> {
+impl ScaleContinuous<Power> {
     pub fn pow(exponent: f32) -> Self {
         Self {
             transformer: Power { exponent },
@@ -235,7 +235,7 @@ impl Scale<Power> {
     }
 }
 
-impl Scale<Sqrt> {
+impl ScaleContinuous<Sqrt> {
     pub fn sqrt() -> Self {
         Self {
             transformer: Sqrt,
@@ -250,39 +250,40 @@ impl Scale<Sqrt> {
 
 #[cfg(test)]
 mod tests {
+    use super::ScaleContinuous;
 
     #[rustfmt::skip]
     #[test]
     fn test_scale_linear_nice() {
-        assert_eq!(super::Scale::linear().domain([0., 0.96]).nice(None).domain, [0., 1.]);
-        assert_eq!(super::Scale::linear().domain([0., 96.]).nice(None).domain, [0., 100.]);
-        assert_eq!(super::Scale::linear().domain([0., 0.96]).nice(Some(10)).domain, [0., 1.]);
-        assert_eq!(super::Scale::linear().domain([0., 96.]).nice(Some(10)).domain, [0., 100.]);
-        assert_eq!(super::Scale::linear().domain([0.96, 0.]).nice(Some(10)).domain, [1., 0.]);
-        assert_eq!(super::Scale::linear().domain([96., 0.]).nice(Some(10)).domain, [100., 0.]);
-        assert_eq!(super::Scale::linear().domain([0., -0.96]).nice(Some(10)).domain, [0., -1.]);
-        assert_eq!(super::Scale::linear().domain([0., -96.]).nice(Some(10)).domain, [0., -100.]);
-        assert_eq!(super::Scale::linear().domain([-0.96, 0.]).nice(Some(10)).domain, [-1., 0.]);
-        assert_eq!(super::Scale::linear().domain([-96., 0.]).nice(Some(10)).domain, [-100., 0.]);
-        assert_eq!(super::Scale::linear().domain([-0.1, 51.1]).nice(Some(8)).domain, [-10., 60.]);
-        assert_eq!(super::Scale::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
-        assert_eq!(super::Scale::linear().domain([10.9, 1.1]).nice(Some(10)).domain, [11., 1.]);
-        assert_eq!(super::Scale::linear().domain([0.7, 11.001]).nice(Some(10)).domain, [0., 12.]);
-        assert_eq!(super::Scale::linear().domain([123.1, 6.7]).nice(Some(10)).domain, [130., 0.]);
-        assert_eq!(super::Scale::linear().domain([0., 0.49]).nice(Some(10)).domain, [0., 0.5]);
-        assert_eq!(super::Scale::linear().domain([0., 14.1]).nice(Some(5)).domain, [0., 20.]);
-        assert_eq!(super::Scale::linear().domain([0., 15.]).nice(Some(5)).domain, [0., 20.]);
-        assert_eq!(super::Scale::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
-        assert_eq!(super::Scale::linear().domain([123.1, -0.9]).nice(Some(10)).domain, [130., -10.]);
-        assert_eq!(super::Scale::linear().domain([12., 87.]).nice(Some(5)).domain, [0., 100.]);
-        assert_eq!(super::Scale::linear().domain([12., 87.]).nice(Some(10)).domain, [10., 90.]);
-        assert_eq!(super::Scale::linear().domain([12., 87.]).nice(Some(100)).domain, [12., 87.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 0.96]).nice(None).domain, [0., 1.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 96.]).nice(None).domain, [0., 100.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 0.96]).nice(Some(10)).domain, [0., 1.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 96.]).nice(Some(10)).domain, [0., 100.]);
+        assert_eq!(ScaleContinuous::linear().domain([0.96, 0.]).nice(Some(10)).domain, [1., 0.]);
+        assert_eq!(ScaleContinuous::linear().domain([96., 0.]).nice(Some(10)).domain, [100., 0.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., -0.96]).nice(Some(10)).domain, [0., -1.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., -96.]).nice(Some(10)).domain, [0., -100.]);
+        assert_eq!(ScaleContinuous::linear().domain([-0.96, 0.]).nice(Some(10)).domain, [-1., 0.]);
+        assert_eq!(ScaleContinuous::linear().domain([-96., 0.]).nice(Some(10)).domain, [-100., 0.]);
+        assert_eq!(ScaleContinuous::linear().domain([-0.1, 51.1]).nice(Some(8)).domain, [-10., 60.]);
+        assert_eq!(ScaleContinuous::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
+        assert_eq!(ScaleContinuous::linear().domain([10.9, 1.1]).nice(Some(10)).domain, [11., 1.]);
+        assert_eq!(ScaleContinuous::linear().domain([0.7, 11.001]).nice(Some(10)).domain, [0., 12.]);
+        assert_eq!(ScaleContinuous::linear().domain([123.1, 6.7]).nice(Some(10)).domain, [130., 0.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 0.49]).nice(Some(10)).domain, [0., 0.5]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 14.1]).nice(Some(5)).domain, [0., 20.]);
+        assert_eq!(ScaleContinuous::linear().domain([0., 15.]).nice(Some(5)).domain, [0., 20.]);
+        assert_eq!(ScaleContinuous::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
+        assert_eq!(ScaleContinuous::linear().domain([123.1, -0.9]).nice(Some(10)).domain, [130., -10.]);
+        assert_eq!(ScaleContinuous::linear().domain([12., 87.]).nice(Some(5)).domain, [0., 100.]);
+        assert_eq!(ScaleContinuous::linear().domain([12., 87.]).nice(Some(10)).domain, [10., 90.]);
+        assert_eq!(ScaleContinuous::linear().domain([12., 87.]).nice(Some(100)).domain, [12., 87.]);
     }
 
     #[rustfmt::skip]
     #[test]
     fn test_scale_linear_ticks() {
-        let s = super::Scale::linear();
+        let s = ScaleContinuous::linear();
         let round_epsilon = |vec: Vec<f32>| vec.iter().map(|x| (x * 1e12).round() / 1e12).collect::<Vec<f32>>();
         let reverse = |arr: Vec<f32>| arr.into_iter().rev().collect::<Vec<f32>>();
         assert_eq!(round_epsilon(s.ticks(Some(10))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
@@ -308,7 +309,7 @@ mod tests {
         assert_eq!(s.ticks(Some(2)), [-100., 0., 100.]);
         assert_eq!(s.ticks(Some(1)), [0.]);
 
-        let s = super::Scale::linear().domain([1., 0.]);
+        let s = ScaleContinuous::linear().domain([1., 0.]);
         assert_eq!(round_epsilon(s.ticks(Some(10))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
         assert_eq!(round_epsilon(s.ticks(Some(9))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
         assert_eq!(round_epsilon(s.ticks(Some(8))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
@@ -336,23 +337,23 @@ mod tests {
     #[rustfmt::skip]
     #[test]
     fn test_scale_log_nice() {
-        assert_eq!(super::Scale::log10().domain([1.1, 10.9]).nice(None).domain, [1., 100.]);
-        assert_eq!(super::Scale::log10().domain([10.9, 1.1]).nice(None).domain, [100., 1.]);
-        assert_eq!(super::Scale::log10().domain([0.7, 11.001]).nice(None).domain, [0.1, 100.]);
-        assert_eq!(super::Scale::log10().domain([123.1, 6.7]).nice(None).domain, [1000., 1.]);
-        assert_eq!(super::Scale::log10().domain([0.01, 0.49]).nice(None).domain, [0.01, 1.]);
+        assert_eq!(ScaleContinuous::log10().domain([1.1, 10.9]).nice(None).domain, [1., 100.]);
+        assert_eq!(ScaleContinuous::log10().domain([10.9, 1.1]).nice(None).domain, [100., 1.]);
+        assert_eq!(ScaleContinuous::log10().domain([0.7, 11.001]).nice(None).domain, [0.1, 100.]);
+        assert_eq!(ScaleContinuous::log10().domain([123.1, 6.7]).nice(None).domain, [1000., 1.]);
+        assert_eq!(ScaleContinuous::log10().domain([0.01, 0.49]).nice(None).domain, [0.01, 1.]);
 
-        let x = super::Scale::log10().domain([1.5, 50.]).nice(None);
+        let x = ScaleContinuous::log10().domain([1.5, 50.]).nice(None);
         assert_eq!(x.domain, [1., 100.]);
         assert_eq!(x.range, [0., 1.]);
         assert_eq!(x.apply(1.), 0.);
         assert_eq!(x.apply(100.), 1.);
 
-        let x = super::Scale::log10().domain([0., 0.]).nice(None);
+        let x = ScaleContinuous::log10().domain([0., 0.]).nice(None);
         assert_eq!(x.domain, [0., 0.]);
         assert_eq!(x.domain([0.5, 0.5]).nice(None).domain, [0.1, 1.]);
 
-        let x = super::Scale::log10().domain([1.1, 10.9]).nice(None);
+        let x = ScaleContinuous::log10().domain([1.1, 10.9]).nice(None);
         assert_eq!(x.domain, [1., 100.]);
         assert_eq!(x.domain([-123.1, -0.5]).nice(None).domain, [-1000., -0.1])
     }
@@ -362,63 +363,63 @@ mod tests {
     fn test_scale_log_ticks() {
         let round = |vec: Vec<f32>| vec.iter().map(|x| (x * 10.).round() / 10.).collect::<Vec<f32>>();
         let reverse = |arr: Vec<f32>| arr.into_iter().rev().collect::<Vec<f32>>();
-        assert_eq!(super::Scale::log10().domain([0.15, 0.68]).ticks(None), [0.2, 0.3, 0.4, 0.5, 0.6]);
-        assert_eq!(super::Scale::log10().domain([0.68, 0.15]).ticks(None), [0.6, 0.5, 0.4, 0.3, 0.2]);
-        assert_eq!(super::Scale::log10().domain([-0.15, -0.68]).ticks(None), [-0.2, -0.3, -0.4, -0.5, -0.6]);
-        assert_eq!(super::Scale::log10().domain([-0.68, -0.15]).ticks(None), [-0.6, -0.5, -0.4, -0.3, -0.2]);
+        assert_eq!(ScaleContinuous::log10().domain([0.15, 0.68]).ticks(None), [0.2, 0.3, 0.4, 0.5, 0.6]);
+        assert_eq!(ScaleContinuous::log10().domain([0.68, 0.15]).ticks(None), [0.6, 0.5, 0.4, 0.3, 0.2]);
+        assert_eq!(ScaleContinuous::log10().domain([-0.15, -0.68]).ticks(None), [-0.2, -0.3, -0.4, -0.5, -0.6]);
+        assert_eq!(ScaleContinuous::log10().domain([-0.68, -0.15]).ticks(None), [-0.6, -0.5, -0.4, -0.3, -0.2]);
 
         assert_eq!(
-            round(super::Scale::log10().domain([1e-1, 1e1]).ticks(None)),
+            round(ScaleContinuous::log10().domain([1e-1, 1e1]).ticks(None)),
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
         );
         assert_eq!(
-            round(super::Scale::log10().domain([1e-1, 1e0]).ticks(None)),
+            round(ScaleContinuous::log10().domain([1e-1, 1e0]).ticks(None)),
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
         );
         assert_eq!(
-            round(super::Scale::log10().domain([-1e0, -1e-1]).ticks(None)),
+            round(ScaleContinuous::log10().domain([-1e0, -1e-1]).ticks(None)),
             [-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1]
         );
 
         assert_eq!(
-            round(super::Scale::log10().domain([-1e-1, -1e1]).ticks(None)),
+            round(ScaleContinuous::log10().domain([-1e-1, -1e1]).ticks(None)),
             reverse(vec![-10., -9., -8., -7., -6., -5., -4., -3., -2., -1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
         );
         assert_eq!(
-            round(super::Scale::log10().domain([-1e-1, -1e0]).ticks(None)),
+            round(ScaleContinuous::log10().domain([-1e-1, -1e0]).ticks(None)),
             reverse(vec![-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
         );
         assert_eq!(
-            round(super::Scale::log10().domain([1e0, 1e-1]).ticks(None)),
+            round(ScaleContinuous::log10().domain([1e0, 1e-1]).ticks(None)),
             reverse(vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
         );
 
-        assert_eq!(super::Scale::log10().domain([1., 5.]).ticks(None), [1., 2., 3., 4., 5.]);
-        assert_eq!(super::Scale::log10().domain([5., 1.]).ticks(None), [5., 4., 3., 2., 1.]);
-        assert_eq!(super::Scale::log10().domain([-1., -5.]).ticks(None), [-1., -2., -3., -4., -5.]);
-        assert_eq!(super::Scale::log10().domain([-5., -1.]).ticks(None), [-5., -4., -3., -2., -1.]);
-        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(1)), [300.]);
-        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(2)), [300.]);
-        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(3)), [300., 320.]);
-        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(Some(4)), [290., 300., 310., 320.]);
-        assert_eq!(super::Scale::log10().domain([286.9252014, 329.4978332]).ticks(None), [290., 295., 300., 305., 310., 315., 320., 325.]);
+        assert_eq!(ScaleContinuous::log10().domain([1., 5.]).ticks(None), [1., 2., 3., 4., 5.]);
+        assert_eq!(ScaleContinuous::log10().domain([5., 1.]).ticks(None), [5., 4., 3., 2., 1.]);
+        assert_eq!(ScaleContinuous::log10().domain([-1., -5.]).ticks(None), [-1., -2., -3., -4., -5.]);
+        assert_eq!(ScaleContinuous::log10().domain([-5., -1.]).ticks(None), [-5., -4., -3., -2., -1.]);
+        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(1)), [300.]);
+        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(2)), [300.]);
+        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(3)), [300., 320.]);
+        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(4)), [290., 300., 310., 320.]);
+        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(None), [290., 295., 300., 305., 310., 315., 320., 325.]);
 
         assert_eq!(
-            super::Scale::log10().domain([41., 42.]).ticks(None),
+            ScaleContinuous::log10().domain([41., 42.]).ticks(None),
             [41., 41.1, 41.2, 41.3, 41.4, 41.5, 41.6, 41.7, 41.8, 41.9, 42.]
         );
         assert_eq!(
-            super::Scale::log10().domain([42., 41.]).ticks(None),
+            ScaleContinuous::log10().domain([42., 41.]).ticks(None),
             [42., 41.9, 41.8, 41.7, 41.6, 41.5, 41.4, 41.3, 41.2, 41.1, 41.]
         );
         assert_eq!(
-            super::Scale::log10().domain([1600., 1400.]).ticks(None),
+            ScaleContinuous::log10().domain([1600., 1400.]).ticks(None),
             [1600., 1580., 1560., 1540., 1520., 1500., 1480., 1460., 1440., 1420., 1400.]
         );
 
         let round = |vec: Vec<f32>| vec.iter().map(|x| (x * 1e12).round() * 1e-12).collect::<Vec<f32>>();
         assert_eq!(
-            round(super::Scale::ln().domain([0.1, 100.]).ticks(None)),
+            round(ScaleContinuous::ln().domain([0.1, 100.]).ticks(None)),
             [0.135335283237, 0.367879441171, 1., 2.718281828459, 7.389056098931, 20.085536923188, 54.598150033144]
         );
     }
