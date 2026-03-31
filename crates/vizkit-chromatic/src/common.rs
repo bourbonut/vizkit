@@ -46,7 +46,8 @@ impl InterpolateBasis {
         } else {
             2. * v2 - v1
         };
-        Self::basis((t - i as f32) / n as f32, v0, v1, v2, v3)
+        let n = n as f32;
+        Self::basis((t - i as f32 / n) * n, v0, v1, v2, v3)
     }
 
     fn basis(t1: f32, v0: f32, v1: f32, v2: f32, v3: f32) -> f32 {

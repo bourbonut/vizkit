@@ -20,6 +20,7 @@ impl<'a> ViridisInterpolator<'a> {
     }
 }
 
+#[derive(Debug)]
 pub enum ViridisSpace {
     Viridis,
     Magma,
@@ -59,24 +60,36 @@ mod tests {
     #[test]
     fn test_viridis() {
         let step = 100;
-        let viridis = ViridisSpace::Viridis.interpolator();
-        let _: Vec<String> = (0..=step)
-            .map(|i| viridis.interpolate(i as f32 / step as f32))
-            .collect();
+        let variants = [
+            ViridisSpace::Viridis,
+            ViridisSpace::Inferno,
+            ViridisSpace::Plasma,
+            ViridisSpace::Magma,
+        ];
 
-        let inferno = ViridisSpace::Inferno.interpolator();
-        let _: Vec<String> = (0..=step)
-            .map(|i| inferno.interpolate(i as f32 / step as f32))
-            .collect();
-
-        let magma = ViridisSpace::Magma.interpolator();
-        let _: Vec<String> = (0..=step)
-            .map(|i| magma.interpolate(i as f32 / step as f32))
-            .collect();
-
-        let plasma = ViridisSpace::Plasma.interpolator();
-        let _: Vec<String> = (0..=step)
-            .map(|i| plasma.interpolate(i as f32 / step as f32))
-            .collect();
+        for space in variants {
+            let interpolator = space.interpolator();
+            let colors: Vec<[f32; 3]> = (0..=step)
+                .map(|i| interpolator.interpolate(i as f32 / step as f32))
+                .collect();
+            for color in colors {
+                let [r, g, b] = color;
+                assert!(
+                    0. <= r && r <= 1.,
+                    "red must be between [0, 1] (variant: {:?})",
+                    space
+                );
+                assert!(
+                    0. <= g && g <= 1.,
+                    "green must be between [0, 1] (variant: {:?})",
+                    space
+                );
+                assert!(
+                    0. <= b && b <= 1.,
+                    "blue must be between [0, 1] (variant: {:?})",
+                    space
+                );
+            }
+        }
     }
 }
