@@ -53,11 +53,12 @@ impl InterpolateBasis {
     fn basis(t1: f32, v0: f32, v1: f32, v2: f32, v3: f32) -> f32 {
         let t2 = t1 * t1;
         let t3 = t2 * t1;
-        ((1. - 3. * t1 + 3. * t2 - t3) * v0
+        let channel_value = ((1. - 3. * t1 + 3. * t2 - t3) * v0
             + (4. - 6. * t2 + 3. * t3) * v1
             + (1. + 3. * t1 + 3. * t2 - 3. * t3) * v2
             + t3 * v3)
-            / 6.
+            / 6.;
+        channel_value.clamp(0., 1.)
     }
 }
 

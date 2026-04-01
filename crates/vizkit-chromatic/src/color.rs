@@ -47,9 +47,9 @@ impl From<Cubehelix> for Color {
         let cosh = h.cos();
         let sinh = h.sin();
         Color([
-            l + a * (A * cosh + B * sinh),
-            l + a * (C * cosh + D * sinh),
-            l + a * (E * cosh),
+            (l + a * (A * cosh + B * sinh)).clamp(0., 1.),
+            (l + a * (C * cosh + D * sinh)).clamp(0., 1.),
+            (l + a * (E * cosh)).clamp(0., 1.),
         ])
     }
 }
