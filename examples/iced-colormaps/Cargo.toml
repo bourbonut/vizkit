@@ -1,5 +1,5 @@
 [package]
-name = "colormaps"
+name = "iced-colormaps"
 version.workspace = true
 edition.workspace = true
 

@@ -41,12 +41,7 @@ impl<Message, C: ColorMap + Clone> canvas::Program<Message> for ColorMapDraw<C> 
             frame.fill_rectangle(
                 Point::new(t as f32, 0.),
                 Size::new(rect_width as f32, height),
-                canvas::Fill {
-                    rule: canvas::fill::Rule::NonZero,
-                    style: canvas::fill::Style::Solid(Color::from(
-                        interpolator.apply::<[f32; 3]>(t as f32),
-                    )),
-                },
+                Color::from(interpolator.apply::<[f32; 3]>(t as f32)),
             );
         }
         vec![frame.into_geometry()]
