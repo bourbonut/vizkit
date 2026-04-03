@@ -1,5 +1,6 @@
 use crate::common::{RGBInterpolator, Scheme, split_colors};
 
+/// Color space used for [`Sequential`][`crate::Sequential`] color map
 #[derive(Debug)]
 pub enum SequentialSpace {
     Blues,

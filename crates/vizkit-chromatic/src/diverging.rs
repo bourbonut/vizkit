@@ -1,5 +1,6 @@
 use crate::common::{RGBInterpolator, Scheme, split_colors};
 
+/// Color space used for [`Diverging`][`crate::Diverging`] color map
 #[derive(Debug)]
 pub enum DivergingSpace {
     BrBg,

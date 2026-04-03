@@ -8,6 +8,13 @@ members = [
   "examples/*",
 ]
 
+default-members = [
+  "crates/vizkit-chromatic",
+  "crates/vizkit-scale",
+  "crates/vizkit-time",
+  "crates/vizkit",
+]
+
 [workspace.package]
 version = "0.1.0"
 edition = "2024"

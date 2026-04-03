@@ -1,12 +1,16 @@
 use crate::color::Color;
 
+/// Trait used for interpolating values between [0, 1] as a Color
 pub trait ColorMap {
+    /// Interpolates a value between [0, 1] and returns a color
     fn interpolate<T>(&self, t: f32) -> T
     where
         Color: Into<T>;
 }
 
+/// Trait used for returning a collection of colors
 pub trait Scheme {
+    /// Returns a collection of colors in hex format (without the `#`)
     fn scheme(&self) -> Vec<&str>;
 }
 

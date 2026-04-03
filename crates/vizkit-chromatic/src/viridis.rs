@@ -20,6 +20,7 @@ impl<'a> ViridisInterpolator<'a> {
     }
 }
 
+/// Color space used for [`Viridis`][`crate::Viridis`] color map
 #[derive(Debug)]
 pub enum ViridisSpace {
     Viridis,

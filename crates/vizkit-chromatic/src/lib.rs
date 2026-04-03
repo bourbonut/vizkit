@@ -23,18 +23,23 @@ use crate::{
     viridis::ViridisInterpolator, warm_cold::CubehelixInterpolator,
 };
 
-#[derive(Clone)]
+/// Color space used for [`WarmCold`] color map
+#[derive(Debug, Clone)]
 pub enum WarmColdSpace {
+    /// 180° rotation
     Warm,
+    /// 0° rotation
     Cold,
 }
 
+/// Colors from a Niccoli's perceptual rainbow
 #[derive(Clone)]
 pub struct WarmCold {
     interpolator: CubehelixInterpolator,
 }
 
 impl WarmCold {
+    /// Constructs a new color map from a Niccoli's perceptual rainbow
     pub fn new(space: WarmColdSpace) -> Self {
         match space {
             WarmColdSpace::Warm => Self {
@@ -45,6 +50,8 @@ impl WarmCold {
             },
         }
     }
+
+    /// Sets gamma used as exponant on lightness channel values
     pub fn gamma(self, gamma: f32) -> Self {
         Self {
             interpolator: self.interpolator.gamma(gamma),
@@ -61,6 +68,8 @@ impl ColorMap for WarmCold {
     }
 }
 
+/// Color map from the "viridis" perceptually-uniform color scheme designed by Van der Walt, Smith
+/// and Firing
 #[derive(Clone)]
 pub struct Viridis<'a> {
     interpolator: ViridisInterpolator<'a>,
@@ -83,6 +92,7 @@ impl<'a> ColorMap for Viridis<'a> {
     }
 }
 
+/// Colors using sequential scales used for a color encoding
 #[derive(Clone)]
 pub struct Sequential {
     interpolator: RGBInterpolator,
@@ -105,6 +115,7 @@ impl ColorMap for Sequential {
     }
 }
 
+/// Colors using diverging scales used for a color encoding
 #[derive(Clone)]
 pub struct Diverging {
     interpolator: RGBInterpolator,
@@ -127,23 +138,57 @@ impl ColorMap for Diverging {
     }
 }
 
-macro_rules! empty_color_map {
-    ($name:ident, $function:path) => {
-        #[derive(Default, Clone)]
-        pub struct $name;
+/// Color map from [`WarmColdSpace::Warm`] in range [0.0, 0.5] followed by the
+/// [`WarmColdSpace::Cold`] in range [0.5, 1.0], thus implementing the cyclical less-angry rainbow
+/// color scheme.
+#[derive(Default, Clone)]
+pub struct Rainbow;
 
-        impl ColorMap for $name {
-            fn interpolate<T>(&self, t: f32) -> T
-            where
-                Color: Into<T>,
-            {
-                $function(t)
-            }
-        }
-    };
+impl ColorMap for Rainbow {
+    fn interpolate<T>(&self, t: f32) -> T
+    where
+        Color: Into<T>,
+    {
+        rainbow(t)
+    }
 }
 
-empty_color_map!(Rainbow, rainbow);
-empty_color_map!(Cividis, cividis);
-empty_color_map!(Sinebow, sinebow);
-empty_color_map!(Turbo, turbo);
+/// Color map from the "cividis" color vision deficiency-optimized color scheme designed by Nuñez,
+/// Anderton, and Renslow.
+#[derive(Default, Clone)]
+pub struct Cividis;
+
+impl ColorMap for Cividis {
+    fn interpolate<T>(&self, t: f32) -> T
+    where
+        Color: Into<T>,
+    {
+        cividis(t)
+    }
+}
+
+/// Color map from the "sinebow" color scheme by Jim Bumgardner and Charlie Loyd.
+#[derive(Default, Clone)]
+pub struct Sinebow;
+
+impl ColorMap for Sinebow {
+    fn interpolate<T>(&self, t: f32) -> T
+    where
+        Color: Into<T>,
+    {
+        sinebow(t)
+    }
+}
+
+/// Color map from the "turbo" color scheme by Anton Mikhailov.
+#[derive(Default, Clone)]
+pub struct Turbo;
+
+impl ColorMap for Turbo {
+    fn interpolate<T>(&self, t: f32) -> T
+    where
+        Color: Into<T>,
+    {
+        turbo(t)
+    }
+}
