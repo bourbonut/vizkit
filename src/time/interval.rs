@@ -31,7 +31,7 @@ impl<T: Timing> Timing for Every<T> {
             step += 1;
             while step <= 0 {
                 date = self.time_type.offset(date, -1);
-                while self.time_type.field(date) % self.step != 0 {
+                while !self.time_type.field(date).is_multiple_of(self.step) {
                     date = self.time_type.offset(date, -1);
                 }
                 step += 1;
@@ -40,7 +40,7 @@ impl<T: Timing> Timing for Every<T> {
             step -= 1;
             while step >= 0 {
                 date = self.time_type.offset(date, 1);
-                while self.time_type.field(date) % self.step != 0 {
+                while !self.time_type.field(date).is_multiple_of(self.step) {
                     date = self.time_type.offset(date, 1);
                 }
                 step -= 1;

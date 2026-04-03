@@ -52,14 +52,14 @@ where
                     return None;
                 }
                 let index = i % self.range.len();
-                return self.range.get(index);
+                self.range.get(index)
             }
             Some(i) => {
                 if self.range.is_empty() {
                     return None;
                 }
                 let index = i % self.range.len();
-                return self.range.get(index);
+                self.range.get(index)
             }
         }
     }

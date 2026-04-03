@@ -1,6 +1,5 @@
 use std::f32;
 use std::mem::swap;
-use std::usize;
 
 use super::{
     continuous::Transformer,

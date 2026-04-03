@@ -5,7 +5,8 @@ where
     Color: Into<T>,
 {
     let mut t = t;
-    if t < 0. || t > 1. {
+    // t < 0. || t > 1.
+    if !(0. ..=1.).contains(&t) {
         t -= t.floor();
     }
     let ts = (t - 0.5).abs();
