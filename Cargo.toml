@@ -1,28 +1,11 @@
-[workspace]
-resolver = "3"
-members = [
-  "crates/vizkit-chromatic",
-  "crates/vizkit-scale",
-  "crates/vizkit-time",
-  "crates/vizkit",
-  "examples/*",
-]
-
-default-members = [
-  "crates/vizkit-chromatic",
-  "crates/vizkit-scale",
-  "crates/vizkit-time",
-  "crates/vizkit",
-]
-
-[workspace.package]
+[package]
+name = "vizkit"
+description = "An agnotic kit for data visualization"
 version = "0.1.0"
 edition = "2024"
 
-[workspace.dependencies]
-vizkit-time = { path = "crates/vizkit-time" }
-vizkit-chromatic = { path = "crates/vizkit-chromatic" }
-vizkit-scale = { path = "crates/vizkit-scale" }
-vizkit = { path = "crates/vizkit" }
-
+[dependencies]
 chrono = "0.4.44"
+
+[workspace]
+members = ["examples/*"]

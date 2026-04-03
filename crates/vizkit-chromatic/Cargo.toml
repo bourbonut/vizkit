@@ -1,6 +1,0 @@
-[package]
-name = "vizkit-chromatic"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]

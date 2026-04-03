@@ -1,7 +1,0 @@
-[package]
-name = "vizkit-scale"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-vizkit-chromatic.workspace = true
