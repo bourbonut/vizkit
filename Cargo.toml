@@ -1,6 +1,6 @@
 [package]
 name = "vizkit"
-description = "An agnotic kit for data visualization"
+description = "An agnostic kit for data visualization"
 version = "0.1.0"
 edition = "2024"
 
