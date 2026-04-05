@@ -1,5 +1,9 @@
 # vizkit - An agnostic kit for data visualization
 
+|                           Iced                                  |                               Egui                              |
+| --------------------------------------------------------------- | --------------------------------------------------------------- |
+| ![iced-colormaps](./examples/iced-colormaps/iced-colormaps.png) | ![egui-colormaps](./examples/egui-colormaps/egui-colormaps.png) |
+
 > [!WARNING]
 > Under development
 
