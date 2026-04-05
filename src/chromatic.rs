@@ -1,3 +1,20 @@
+//! This module provides color maps.
+//!
+//! ```
+//! use vizkit::chromatic::{ColorMap, Scheme, Diverging, DivergingSpace};
+//! use vizkit::scale::ScaleColor;
+//!
+//! let color_map = Diverging::new(DivergingSpace::Spectral);
+//!
+//! // You can convert to `String` or `[f32; 3]`
+//! assert_eq!(color_map.interpolate::<String>(0.), "#9e0042".to_string());
+//! assert_eq!(color_map.interpolate::<String>(0.5), "#faf8af".to_string());
+//! assert_eq!(color_map.interpolate::<String>(1.), "#5e4ea2".to_string());
+//!
+//! // For color space with `Scheme` trait
+//! assert_eq!(DivergingSpace::Spectral.scheme().len(), 11); // 11 interpolated colors
+//! ```
+
 mod categorical;
 mod cividis;
 mod color;
@@ -51,7 +68,7 @@ impl WarmCold {
         }
     }
 
-    /// Sets gamma used as exponant on lightness channel values
+    /// Sets gamma used as exponent on lightness channel values
     pub fn gamma(self, gamma: f32) -> Self {
         Self {
             interpolator: self.interpolator.gamma(gamma),

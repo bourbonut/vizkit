@@ -4,11 +4,30 @@ const C: f32 = -0.29227;
 const D: f32 = -0.90649;
 const E: f32 = 1.97294;
 
+/// Represents a color in RGB (red, green, blue) where each channel is a value in [0., 1.].
 pub struct Color(pub [f32; 3]);
-pub struct Cubehelix(pub [f32; 3]);
+/// Represents a color in HSL (hue, saturation, lightness) where each channel is a value in [0.,
+/// 1.].
+pub(crate) struct Cubehelix(pub [f32; 3]);
 
+/// Converts a string formated in hex color to this type. If the string has more than 6 characters,
+/// it returns a color filled with `0.`. If a channel cannot be converted, the channel defaults to
+/// `0.`.
+///
+/// ```
+/// use vizkit::chromatic::Color;
+///
+/// assert_eq!(Color::from("ffffff").0, [1., 1., 1.]);
+/// assert_eq!(Color::from("#ffffff").0, [0., 0., 0.]); // invalid: len > 6
+/// assert_eq!(Color::from("ZZFFFF").0, [0., 1., 1.]);
+/// assert_eq!(Color::from("zzzzzz").0, [0., 0., 0.]);
+/// assert_eq!(Color::from("4I9820842908490").0, [0., 0., 0.]);
+/// ```
 impl From<&str> for Color {
     fn from(string: &str) -> Self {
+        if string.len() > 6 {
+            return Color([0.; 3]);
+        }
         Color([
             u8::from_str_radix(&string[0..2], 16).unwrap_or_default() as f32 / 255.,
             u8::from_str_radix(&string[2..4], 16).unwrap_or_default() as f32 / 255.,
@@ -17,6 +36,13 @@ impl From<&str> for Color {
     }
 }
 
+/// Converts a string into a color in hex format.
+///
+/// ```
+/// use vizkit::chromatic::Color;
+///
+/// assert_eq!(String::from(Color([1., 1., 1.])), String::from("#ffffff"));
+/// ```
 impl From<Color> for String {
     fn from(color: Color) -> String {
         let [r, g, b] = color.0;
