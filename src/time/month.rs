@@ -1,6 +1,7 @@
 use super::interval::Timing;
 use chrono::{DateTime, Datelike, TimeDelta, Timelike, Utc};
 
+/// Month interval
 pub struct Month;
 impl Timing for Month {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {

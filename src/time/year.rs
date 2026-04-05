@@ -1,6 +1,7 @@
 use super::interval::Timing;
 use chrono::{DateTime, Datelike, TimeDelta, Timelike, Utc};
 
+/// Year interval
 pub struct Year;
 impl Timing for Year {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {

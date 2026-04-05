@@ -4,13 +4,20 @@ use super::{
 };
 use chrono::{DateTime, Local, TimeDelta, Utc};
 
+/// Trait for operations on specific time interval boundary
 pub trait Timing {
+    /// Returns a new date representing the latest interval boundary date before or equal to date.
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>>;
+    /// Returns a new date equal to date plus `step` intervals.
     fn offset(&self, date: DateTime<Utc>, step: i64) -> DateTime<Utc>;
+    /// Returns the number of interval boundaries after start (exclusive) and before or equal to end
+    /// (inclusive).
     fn count(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> i64;
+    /// Returns the unit of the date based on the interval boundary
     fn field(&self, date: DateTime<Utc>) -> u32;
 }
 
+/// Every interval
 pub struct Every<T: Timing> {
     time_type: T,
     step: u32,
@@ -58,15 +65,56 @@ impl<T: Timing> Timing for Every<T> {
     }
 }
 
+/// Time interval for manipulating [`chrono::DateTime`] such as floor, ceil, round, range, every
+/// operations.
 pub struct TimeInterval<T: Timing> {
     time_type: T,
 }
 
 impl<T: Timing> TimeInterval<T> {
+    /// Returns a new date representing the latest interval boundary date before or equal to date.
+    /// Default: current time.
+    ///
+    /// ```
+    /// use chrono::NaiveDate;
+    /// use vizkit::time::TimeInterval;
+    ///
+    /// // Returns `DateTime<Utc>`
+    /// let datetime = |year, month, day| {
+    ///     NaiveDate::from_ymd_opt(year, month, day)
+    ///         .and_then(|date| date.and_hms_opt(0, 0, 0))
+    ///         .expect("invalid time values")
+    ///         .and_utc()
+    /// };
+    ///
+    /// assert_eq!(
+    ///     TimeInterval::month().interval(Some(datetime(2015, 05, 15))),
+    ///     Some(datetime(2015, 05, 01))
+    /// )
+    /// ```
     pub fn interval(&self, date: Option<DateTime<Utc>>) -> Option<DateTime<Utc>> {
         self.time_type.floor(date.unwrap_or(Local::now().to_utc()))
     }
 
+    /// Returns a new date representing the earliest interval boundary date before or equal to date.
+    ///
+    /// ```
+    /// use chrono::NaiveDate;
+    /// use vizkit::time::TimeInterval;
+    ///
+    /// // Returns `DateTime<Utc>`
+    /// let datetime = |year, month, day| {
+    ///     NaiveDate::from_ymd_opt(year, month, day)
+    ///         .and_then(|date| date.and_hms_opt(0, 0, 0))
+    ///         .expect("invalid time values")
+    ///         .and_utc()
+    /// };
+    ///
+    /// assert_eq!(
+    ///     TimeInterval::month().ceil(datetime(2015, 05, 15)),
+    ///     Some(datetime(2015, 06, 01))
+    /// )
+    /// ```
     pub fn ceil(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         self.time_type
             .floor(date + TimeDelta::nanoseconds(-1))
@@ -74,6 +122,7 @@ impl<T: Timing> TimeInterval<T> {
             .and_then(|d| self.time_type.floor(d))
     }
 
+    /// Returns a new date representing the closest interval boundary date before or equal to date.
     pub fn round(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
         let d0 = self.interval(Some(date));
         let d1 = self.ceil(date);
@@ -89,6 +138,33 @@ impl<T: Timing> TimeInterval<T> {
         }
     }
 
+    /// Returns a collection of dates representing every interval boundary after or equal to start
+    /// (inclusive) and before stop (exclusive).
+    ///
+    /// ```
+    /// use chrono::NaiveDate;
+    /// use vizkit::time::TimeInterval;
+    ///
+    /// // Returns `DateTime<Utc>`
+    /// let datetime = |year, month, day| {
+    ///     NaiveDate::from_ymd_opt(year, month, day)
+    ///         .and_then(|date| date.and_hms_opt(0, 0, 0))
+    ///         .expect("invalid time values")
+    ///         .and_utc()
+    /// };
+    ///
+    /// assert_eq!(
+    ///     TimeInterval::month()
+    ///         .range(datetime(2015, 05, 15), datetime(2015, 10, 20), 1),
+    ///     vec![
+    ///         datetime(2015, 6, 1),
+    ///         datetime(2015, 7, 1),
+    ///         datetime(2015, 8, 1),
+    ///         datetime(2015, 9, 1),
+    ///         datetime(2015, 10, 1),
+    ///     ]
+    /// )
+    /// ```
     pub fn range(
         &self,
         start: DateTime<Utc>,
@@ -117,6 +193,35 @@ impl<T: Timing> TimeInterval<T> {
         range
     }
 
+    /// Returns a filtered view of this interval representing every step-th date.
+    ///
+    /// ```
+    /// use chrono::NaiveDate;
+    /// use vizkit::time::TimeInterval;
+    ///
+    /// // Returns `DateTime<Utc>`
+    /// let datetime = |year, month, day| {
+    ///     NaiveDate::from_ymd_opt(year, month, day)
+    ///         .and_then(|date| date.and_hms_opt(0, 0, 0))
+    ///         .expect("invalid time values")
+    ///         .and_utc()
+    /// };
+    ///
+    /// assert_eq!(
+    ///     TimeInterval::month()
+    ///         .every(3)
+    ///         .range(datetime(2008, 12, 3), datetime(2010, 7, 5), 1),
+    ///     vec![
+    ///         datetime(2009, 1, 1),
+    ///         datetime(2009, 4, 1),
+    ///         datetime(2009, 7, 1),
+    ///         datetime(2009, 10, 1),
+    ///         datetime(2010, 1, 1),
+    ///         datetime(2010, 4, 1),
+    ///         datetime(2010, 7, 1),
+    ///     ]
+    /// )
+    /// ```
     pub fn every(self, step: u32) -> TimeInterval<Every<T>> {
         TimeInterval::<Every<T>> {
             time_type: Every {
@@ -128,43 +233,50 @@ impl<T: Timing> TimeInterval<T> {
 }
 
 impl TimeInterval<Day> {
+    /// Day interval
     pub fn day() -> Self {
         Self { time_type: Day }
     }
 }
 
 impl TimeInterval<Month> {
+    /// Month interval
     pub fn month() -> Self {
         Self { time_type: Month }
     }
 }
 
 impl TimeInterval<Year> {
+    /// Year interval
     pub fn year() -> Self {
         Self { time_type: Year }
     }
 }
 
 impl TimeInterval<Hour> {
-    pub fn year() -> Self {
+    /// Hour interval
+    pub fn hour() -> Self {
         Self { time_type: Hour }
     }
 }
 
 impl TimeInterval<Minute> {
-    pub fn year() -> Self {
+    /// Minute interval
+    pub fn minute() -> Self {
         Self { time_type: Minute }
     }
 }
 
 impl TimeInterval<Second> {
-    pub fn year() -> Self {
+    /// Second interval
+    pub fn second() -> Self {
         Self { time_type: Second }
     }
 }
 
 impl TimeInterval<Millisecond> {
-    pub fn year() -> Self {
+    /// Millisecond interval
+    pub fn millisecond() -> Self {
         Self {
             time_type: Millisecond,
         }

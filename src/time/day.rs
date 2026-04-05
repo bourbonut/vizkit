@@ -1,6 +1,7 @@
 use super::interval::Timing;
 use chrono::{DateTime, Datelike, TimeDelta, Timelike, Utc};
 
+/// Day interval
 pub struct Day;
 impl Timing for Day {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {

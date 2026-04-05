@@ -1,6 +1,7 @@
 use super::interval::Timing;
 use chrono::{DateTime, TimeDelta, Timelike, Utc};
 
+/// Minute interval
 pub struct Minute;
 impl Timing for Minute {
     fn floor(&self, date: DateTime<Utc>) -> Option<DateTime<Utc>> {
