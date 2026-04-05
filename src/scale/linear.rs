@@ -5,6 +5,7 @@ use super::{
     ticks::{Tick, tick_increment, ticks},
 };
 
+/// Linear transformation
 pub struct Linear;
 impl Transformer for Linear {
     fn transform(&self, x: f32) -> f32 {

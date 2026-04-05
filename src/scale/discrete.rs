@@ -1,6 +1,31 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// Scaler with a discrete domain and a discrete range.
+///
+/// ```
+/// use vizkit::scale::ScaleOrdinal;
+///
+/// // The method `apply` needs `&mut self`.
+/// let mut scale = ScaleOrdinal::default()
+///     .domain(vec!["a", "b", "c"])
+///     .range(vec!["red", "green", "blue"]);
+///
+/// for c in "abcdefgh".split("") {
+///     match c {
+///         "a" => assert_eq!(scale.apply(c), Some("red").as_ref()),
+///         "b" => assert_eq!(scale.apply(c), Some("green").as_ref()),
+///         "c" => assert_eq!(scale.apply(c), Some("blue").as_ref()),
+///         "d" => assert_eq!(scale.apply(c), Some("red").as_ref()),
+///         "e" => assert_eq!(scale.apply(c), Some("green").as_ref()),
+///         "f" => assert_eq!(scale.apply(c), Some("blue").as_ref()),
+///         "g" => assert_eq!(scale.apply(c), Some("red").as_ref()),
+///         "h" => assert_eq!(scale.apply(c), Some("green").as_ref()),
+///         "" => (),
+///         x => unreachable!("char {} should not exist", x),
+///     }
+/// }
+/// ```
 #[derive(Default)]
 pub struct ScaleOrdinal<D, R>
 where
@@ -15,6 +40,7 @@ impl<D, R> ScaleOrdinal<D, R>
 where
     D: Hash + Eq,
 {
+    /// Returns a new [`ScaleOrdinal`] with the specified domain applied.
     pub fn domain(self, domain: Vec<D>) -> Self
     where
         D: Clone,
@@ -35,10 +61,14 @@ where
         }
     }
 
+    /// Returns a new [`ScaleOrdinal`] with the specified range applied.
     pub fn range(self, range: Vec<R>) -> Self {
         Self { range, ..self }
     }
 
+    /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
+    /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
+    /// it returns `None` (invalid value or empty range).
     pub fn apply(&mut self, x: D) -> Option<&R>
     where
         D: Clone,
@@ -65,6 +95,35 @@ where
     }
 }
 
+/// Scaler with a discrete domain and a continous range.
+///
+/// Additionally, it computes _band_ dimensions used for typically bar charts.
+///
+/// See [`ScaleBand::step`] and [`ScaleBand::bandwidth`].
+///
+/// ```
+/// use vizkit::scale::ScaleBand;
+///
+/// // The method `apply` needs `&mut self`.
+/// let mut scale = ScaleBand::default()
+///     .domain(vec!["a", "b", "c"])
+///     .range([0., 960.]);
+///
+/// for c in "abcdefgh".split("") {
+///     match c {
+///         "a" => assert_eq!(scale.apply(c), Some(0_f32).as_ref()),
+///         "b" => assert_eq!(scale.apply(c), Some(320_f32).as_ref()),
+///         "c" => assert_eq!(scale.apply(c), Some(640_f32).as_ref()),
+///         "d" => assert_eq!(scale.apply(c), None),
+///         "e" => assert_eq!(scale.apply(c), None),
+///         "f" => assert_eq!(scale.apply(c), None),
+///         "g" => assert_eq!(scale.apply(c), None),
+///         "h" => assert_eq!(scale.apply(c), None),
+///         "" => (),
+///         x => unreachable!("char {} should not exist", x),
+///     }
+/// }
+/// ```
 pub struct ScaleBand<D>
 where
     D: Hash + Eq,
@@ -101,6 +160,7 @@ impl<D> ScaleBand<D>
 where
     D: Hash + Eq + Clone,
 {
+    /// Returns a new [`ScaleBand`] with the specified domain applied.
     pub fn domain(self, domain: Vec<D>) -> Self {
         Self {
             scale_ordinal: self.scale_ordinal.domain(domain),
@@ -109,6 +169,7 @@ where
         .rescale()
     }
 
+    /// Returns a new [`ScaleBand`] with the specified range applied.
     pub fn range(self, range: [f32; 2]) -> Self {
         let [r0, r1] = range;
         Self { r0, r1, ..self }.rescale()
@@ -135,6 +196,9 @@ where
         }
     }
 
+    /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
+    /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
+    /// it returns `None` (invalid value or empty range).
     pub fn apply(&mut self, x: D) -> Option<&f32> {
         self.scale_ordinal.index.get(&x).and_then(|i| {
             if self.scale_ordinal.range.is_empty() {
@@ -145,56 +209,13 @@ where
         })
     }
 
+    /// Returns the distance between two adjacent bands.
     pub fn step(&self) -> f32 {
         self.step
     }
 
+    /// Returns the width of each band
     pub fn bandwidth(&self) -> f32 {
         self.bandwidth
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_ordinal() {
-        let mut s = super::ScaleOrdinal::default()
-            .domain(vec!["a", "b", "c"])
-            .range(vec!["red", "green", "blue"]);
-        for c in "abcdefgh".split("") {
-            match c {
-                "a" => assert_eq!(s.apply(c), Some("red").as_ref()),
-                "b" => assert_eq!(s.apply(c), Some("green").as_ref()),
-                "c" => assert_eq!(s.apply(c), Some("blue").as_ref()),
-                "d" => assert_eq!(s.apply(c), Some("red").as_ref()),
-                "e" => assert_eq!(s.apply(c), Some("green").as_ref()),
-                "f" => assert_eq!(s.apply(c), Some("blue").as_ref()),
-                "g" => assert_eq!(s.apply(c), Some("red").as_ref()),
-                "h" => assert_eq!(s.apply(c), Some("green").as_ref()),
-                "" => (),
-                x => unreachable!("char {} should not exist", x),
-            }
-        }
-    }
-
-    #[test]
-    fn test_scale() {
-        let mut s = super::ScaleBand::default()
-            .domain(vec!["a", "b", "c"])
-            .range([0., 960.]);
-        for c in "abcdefgh".split("") {
-            match c {
-                "a" => assert_eq!(s.apply(c), Some(0_f32).as_ref()),
-                "b" => assert_eq!(s.apply(c), Some(320_f32).as_ref()),
-                "c" => assert_eq!(s.apply(c), Some(640_f32).as_ref()),
-                "d" => assert_eq!(s.apply(c), None),
-                "e" => assert_eq!(s.apply(c), None),
-                "f" => assert_eq!(s.apply(c), None),
-                "g" => assert_eq!(s.apply(c), None),
-                "h" => assert_eq!(s.apply(c), None),
-                "" => (),
-                x => unreachable!("char {} should not exist", x),
-            }
-        }
     }
 }

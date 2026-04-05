@@ -1,6 +1,13 @@
+/// Trait to generate ticks values and extend numeric domains to nice round values.
 pub trait Tick {
+    /// Returns approximately `count` representative values from the domain where `count` varies
+    /// more or fewer the number of values depending on the domain
     fn ticks(&self, domain: &[f32; 2], count: usize) -> Vec<f32>;
+
     // fn tick_format(&self, count: Option<usize>, specifier: Option<&str>) -> TickFormatter;
+
+    /// Extends the domain so that it starts and ends on nice round values where `count` allows
+    /// greater control over the step size used to extend the bounds.
     fn nice(&self, domain: &[f32; 2], count: usize) -> [f32; 2];
 }
 
@@ -49,7 +56,7 @@ fn tick_spec(start: f32, stop: f32, count: usize) -> [f32; 3] {
     [i1, i2, inc]
 }
 
-pub fn ticks(start: f32, stop: f32, count: usize) -> Vec<f32> {
+pub(crate) fn ticks(start: f32, stop: f32, count: usize) -> Vec<f32> {
     if count == 0 {
         return Vec::new();
     }
@@ -74,96 +81,97 @@ pub fn ticks(start: f32, stop: f32, count: usize) -> Vec<f32> {
     }
 }
 
-pub fn tick_increment(start: f32, stop: f32, count: usize) -> f32 {
+pub(crate) fn tick_increment(start: f32, stop: f32, count: usize) -> f32 {
     tick_spec(start, stop, count)[2]
 }
 
 #[cfg(test)]
 mod tests {
+    use super::ticks;
 
     #[rustfmt::skip]
     #[test]
     fn test_ticks_1() {
-        assert_eq!(super::ticks(0., 2.2, 3), [0., 1., 2.]);
-        assert_eq!(super::ticks(0., 1., 10), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
-        assert_eq!(super::ticks(0., 1., 9), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
-        assert_eq!(super::ticks(0., 1., 8), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
-        assert_eq!(super::ticks(0., 1., 7), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(super::ticks(0., 1., 6), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(super::ticks(0., 1., 5), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(super::ticks(0., 1., 4), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(super::ticks(0., 1., 3), [0.0, 0.5, 1.0]);
-        assert_eq!(super::ticks(0., 1., 2), [0.0, 0.5, 1.0]);
-        assert_eq!(super::ticks(0., 1., 1), [0.0, 1.0]);
-        assert_eq!(super::ticks(0., 10., 10), [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
-        assert_eq!(super::ticks(0., 10., 9), [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
-        assert_eq!(super::ticks(0., 10., 8), [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
-        assert_eq!(super::ticks(0., 10., 7), [0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(0., 10., 6), [0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(0., 10., 5), [0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(0., 10., 4), [0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(0., 10., 3), [0., 5., 10.]);
-        assert_eq!(super::ticks(0., 10., 2), [0., 5., 10.]);
-        assert_eq!(super::ticks(0., 10., 1), [0., 10.]);
-        assert_eq!(super::ticks(-10., 10., 10), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(-10., 10., 9), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(-10., 10., 8), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(-10., 10., 7), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
-        assert_eq!(super::ticks(-10., 10., 6), [-10., -5., 0., 5., 10.]);
-        assert_eq!(super::ticks(-10., 10., 5), [-10., -5., 0., 5., 10.]);
-        assert_eq!(super::ticks(-10., 10., 4), [-10., -5., 0., 5., 10.]);
-        assert_eq!(super::ticks(-10., 10., 3), [-10., -5., 0., 5., 10.]);
-        assert_eq!(super::ticks(-10., 10., 2), [-10., 0., 10.]);
-        assert_eq!(super::ticks(-10., 10., 1), [0.]);
+        assert_eq!(ticks(0., 2.2, 3), [0., 1., 2.]);
+        assert_eq!(ticks(0., 1., 10), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+        assert_eq!(ticks(0., 1., 9), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+        assert_eq!(ticks(0., 1., 8), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
+        assert_eq!(ticks(0., 1., 7), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(ticks(0., 1., 6), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(ticks(0., 1., 5), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(ticks(0., 1., 4), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+        assert_eq!(ticks(0., 1., 3), [0.0, 0.5, 1.0]);
+        assert_eq!(ticks(0., 1., 2), [0.0, 0.5, 1.0]);
+        assert_eq!(ticks(0., 1., 1), [0.0, 1.0]);
+        assert_eq!(ticks(0., 10., 10), [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
+        assert_eq!(ticks(0., 10., 9), [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
+        assert_eq!(ticks(0., 10., 8), [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
+        assert_eq!(ticks(0., 10., 7), [0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(0., 10., 6), [0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(0., 10., 5), [0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(0., 10., 4), [0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(0., 10., 3), [0., 5., 10.]);
+        assert_eq!(ticks(0., 10., 2), [0., 5., 10.]);
+        assert_eq!(ticks(0., 10., 1), [0., 10.]);
+        assert_eq!(ticks(-10., 10., 10), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(-10., 10., 9), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(-10., 10., 8), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(-10., 10., 7), [-10., -8., -6., -4., -2., 0., 2., 4., 6., 8., 10.]);
+        assert_eq!(ticks(-10., 10., 6), [-10., -5., 0., 5., 10.]);
+        assert_eq!(ticks(-10., 10., 5), [-10., -5., 0., 5., 10.]);
+        assert_eq!(ticks(-10., 10., 4), [-10., -5., 0., 5., 10.]);
+        assert_eq!(ticks(-10., 10., 3), [-10., -5., 0., 5., 10.]);
+        assert_eq!(ticks(-10., 10., 2), [-10., 0., 10.]);
+        assert_eq!(ticks(-10., 10., 1), [0.]);
     }
 
-    #[rustfmt::skip]
     #[test]
     fn test_ticks_2() {
-        assert_eq!(super::ticks(1., 0., 10), super::ticks(0., 1., 10).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 9), super::ticks(0., 1., 9).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 8), super::ticks(0., 1., 8).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 7), super::ticks(0., 1., 7).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 6), super::ticks(0., 1., 6).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 5), super::ticks(0., 1., 5).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 4), super::ticks(0., 1., 4).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 3), super::ticks(0., 1., 3).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 2), super::ticks(0., 1., 2).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(1., 0., 1), super::ticks(0., 1., 1).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 10), super::ticks(0., 10., 10).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 9), super::ticks(0., 10., 9).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 8), super::ticks(0., 10., 8).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 7), super::ticks(0., 10., 7).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 6), super::ticks(0., 10., 6).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 5), super::ticks(0., 10., 5).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 4), super::ticks(0., 10., 4).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 3), super::ticks(0., 10., 3).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 2), super::ticks(0., 10., 2).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., 0., 1), super::ticks(0., 10., 1).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 10), super::ticks(-10., 10., 10).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 9), super::ticks(-10., 10., 9).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 8), super::ticks(-10., 10., 8).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 7), super::ticks(-10., 10., 7).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 6), super::ticks(-10., 10., 6).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 5), super::ticks(-10., 10., 5).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 4), super::ticks(-10., 10., 4).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 3), super::ticks(-10., 10., 3).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 2), super::ticks(-10., 10., 2).into_iter().rev().collect::<Vec<f32>>());
-        assert_eq!(super::ticks(10., -10., 1), super::ticks(-10., 10., 1).into_iter().rev().collect::<Vec<f32>>());
+        let reverse = |vec: Vec<f32>| vec.into_iter().rev().collect::<Vec<f32>>();
+        assert_eq!(ticks(1., 0., 10), reverse(ticks(0., 1., 10)));
+        assert_eq!(ticks(1., 0., 9), reverse(ticks(0., 1., 9)));
+        assert_eq!(ticks(1., 0., 8), reverse(ticks(0., 1., 8)));
+        assert_eq!(ticks(1., 0., 7), reverse(ticks(0., 1., 7)));
+        assert_eq!(ticks(1., 0., 6), reverse(ticks(0., 1., 6)));
+        assert_eq!(ticks(1., 0., 5), reverse(ticks(0., 1., 5)));
+        assert_eq!(ticks(1., 0., 4), reverse(ticks(0., 1., 4)));
+        assert_eq!(ticks(1., 0., 3), reverse(ticks(0., 1., 3)));
+        assert_eq!(ticks(1., 0., 2), reverse(ticks(0., 1., 2)));
+        assert_eq!(ticks(1., 0., 1), reverse(ticks(0., 1., 1)));
+        assert_eq!(ticks(10., 0., 10), reverse(ticks(0., 10., 10)));
+        assert_eq!(ticks(10., 0., 9), reverse(ticks(0., 10., 9)));
+        assert_eq!(ticks(10., 0., 8), reverse(ticks(0., 10., 8)));
+        assert_eq!(ticks(10., 0., 7), reverse(ticks(0., 10., 7)));
+        assert_eq!(ticks(10., 0., 6), reverse(ticks(0., 10., 6)));
+        assert_eq!(ticks(10., 0., 5), reverse(ticks(0., 10., 5)));
+        assert_eq!(ticks(10., 0., 4), reverse(ticks(0., 10., 4)));
+        assert_eq!(ticks(10., 0., 3), reverse(ticks(0., 10., 3)));
+        assert_eq!(ticks(10., 0., 2), reverse(ticks(0., 10., 2)));
+        assert_eq!(ticks(10., 0., 1), reverse(ticks(0., 10., 1)));
+        assert_eq!(ticks(10., -10., 10), reverse(ticks(-10., 10., 10)));
+        assert_eq!(ticks(10., -10., 9), reverse(ticks(-10., 10., 9)));
+        assert_eq!(ticks(10., -10., 8), reverse(ticks(-10., 10., 8)));
+        assert_eq!(ticks(10., -10., 7), reverse(ticks(-10., 10., 7)));
+        assert_eq!(ticks(10., -10., 6), reverse(ticks(-10., 10., 6)));
+        assert_eq!(ticks(10., -10., 5), reverse(ticks(-10., 10., 5)));
+        assert_eq!(ticks(10., -10., 4), reverse(ticks(-10., 10., 4)));
+        assert_eq!(ticks(10., -10., 3), reverse(ticks(-10., 10., 3)));
+        assert_eq!(ticks(10., -10., 2), reverse(ticks(-10., 10., 2)));
+        assert_eq!(ticks(10., -10., 1), reverse(ticks(-10., 10., 1)));
     }
 
     #[rustfmt::skip]
     #[test]
     fn test_ticks_3() {
-        assert_eq!(super::ticks(0.98, 1.14, 10), [0.98, 1., 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14]);
-        assert_eq!(super::ticks(1., 364., 1), [200.]);
-        assert_eq!(super::ticks(1., 499., 1), [200., 400.]);
-        assert_eq!(super::ticks(364., 1., 1), [200.]);
-        assert_eq!(super::ticks(0.001, 0.364, 1), [0.2]);
-        assert_eq!(super::ticks(0.364, 0.001, 1), [0.2]);
-        assert_eq!(super::ticks(-1., -364., 1), [-200.]);
-        assert_eq!(super::ticks(-364., -1., 1), [-200.]);
-        assert_eq!(super::ticks(-0.001, -0.364, 1), [-0.2]);
-        assert_eq!(super::ticks(-0.364, -0.001, 1), [-0.2]);
+        assert_eq!(ticks(0.98, 1.14, 10), [0.98, 1., 1.02, 1.04, 1.06, 1.08, 1.1, 1.12, 1.14]);
+        assert_eq!(ticks(1., 364., 1), [200.]);
+        assert_eq!(ticks(1., 499., 1), [200., 400.]);
+        assert_eq!(ticks(364., 1., 1), [200.]);
+        assert_eq!(ticks(0.001, 0.364, 1), [0.2]);
+        assert_eq!(ticks(0.364, 0.001, 1), [0.2]);
+        assert_eq!(ticks(-1., -364., 1), [-200.]);
+        assert_eq!(ticks(-364., -1., 1), [-200.]);
+        assert_eq!(ticks(-0.001, -0.364, 1), [-0.2]);
+        assert_eq!(ticks(-0.364, -0.001, 1), [-0.2]);
     }
 }

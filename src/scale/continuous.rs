@@ -43,12 +43,16 @@ impl Interpolate {
     }
 }
 
+/// Enum used for clamping values
 pub enum Clamper {
+    /// Identity transformation
     Identity,
+    /// Linear clamp (i.e. `x.clamp(a, b)`)
     Linear { a: f32, b: f32 },
 }
 
 impl Clamper {
+    /// Returns the clamped value of the specified value.
     pub fn clamp(&self, x: f32) -> f32 {
         match self {
             Self::Identity => x,
@@ -94,11 +98,23 @@ impl Default for BiMap {
     }
 }
 
+/// Trait used for bijection functions (bidirectional transformation)
 pub trait Transformer {
+    /// Transforms `x` to `y`
     fn transform(&self, x: f32) -> f32;
+    /// Untransforms `y` to `x`
     fn untransform(&self, y: f32) -> f32;
 }
 
+/// Continuous scaler between two domain values and two range values
+///
+/// ```
+/// use vizkit::scale::ScaleContinuous;
+///
+/// let scale = ScaleContinuous::linear().domain([20., 30.]).range([100., 400.]);
+/// assert_eq!(scale.apply(25.), 250.);
+/// assert_eq!(scale.invert(400.), 30.);
+/// ```
 pub struct ScaleContinuous<T: Transformer + Tick> {
     transformer: T,
     domain: [f32; 2],
@@ -109,6 +125,7 @@ pub struct ScaleContinuous<T: Transformer + Tick> {
 }
 
 impl<T: Transformer + Tick> ScaleContinuous<T> {
+    /// Returns a new [`ScaleContinuous`] with the specified domain applied.
     pub fn domain(self, domain: [f32; 2]) -> Self {
         Self {
             domain,
@@ -118,6 +135,7 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
         }
     }
 
+    /// Returns a new [`ScaleContinuous`] with the specified range applied.
     pub fn range(self, range: [f32; 2]) -> Self {
         Self {
             range,
@@ -127,24 +145,58 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
         }
     }
 
+    /// Returns a new [`ScaleContinuous`] with the specified clamper applied which takes action
+    /// before the transform step (see [`ScaleContinuous::apply`]) and after untransform step
+    /// (see [`ScaleContinuous::invert`]). Default: [`Clamper::Identity`].
     pub fn clamper(self, clamper: Clamper) -> Self {
         Self { clamper, ..self }
     }
 
+    /// Given the specified value in the domain, it clamps the value, transforms it and returns the
+    /// corresponding value of the range.
     pub fn apply(&self, x: f32) -> f32 {
         self.output
             .apply(self.transformer.transform(self.clamper.clamp(x)))
     }
 
+    /// Given the specified value in the range, it computes the corresponding value of the domain,
+    /// untransforms it and returns the clamped value.
     pub fn invert(&self, y: f32) -> f32 {
         self.clamper
             .clamp(self.transformer.untransform(self.input.apply(y)))
     }
 
+    /// Returns approximately `count` representative values from the domain where `count` varies
+    /// more or fewer the number of values depending on the domain. Default: `10`.
+    ///
+    /// ```
+    /// use vizkit::scale::ScaleContinuous;
+    ///
+    /// // Default for `count` is `10`
+    /// let scale = ScaleContinuous::linear().domain([20., 100.]).range([0., 1.]);
+    /// assert_eq!(scale.ticks(None), vec![20., 30., 40., 50., 60., 70., 80., 90., 100.]);
+    /// assert_eq!(scale.ticks(Some(5)), vec![20., 40., 60., 80., 100.]);
+    /// ```
     pub fn ticks(&self, count: Option<usize>) -> Vec<f32> {
         self.transformer.ticks(&self.domain, count.unwrap_or(10))
     }
 
+    /// Extends the domain so that it starts and ends on nice round values where `count` allows
+    /// greater control over the step size used to extend the bounds. Default: `10`.
+    ///
+    /// ```
+    /// use vizkit::scale::ScaleContinuous;
+    ///
+    /// // Default for `count` is `10`
+    /// let scale = ScaleContinuous::linear().domain([12.94728, 16.24782]).range([0., 1.]).nice(None);
+    /// assert_eq!(scale.invert(0.), 12.5);
+    /// assert_eq!(scale.invert(1.), 16.5);
+    ///
+    /// let scale = ScaleContinuous::linear().domain([12.94728, 16.24782]).range([0.,
+    /// 1.]).nice(Some(1));
+    /// assert_eq!(scale.invert(0.), 10.0);
+    /// assert_eq!(scale.invert(1.), 20.0);
+    /// ```
     pub fn nice(self, count: Option<usize>) -> Self {
         let domain = self.transformer.nice(&self.domain, count.unwrap_or(10));
         self.domain(domain)
@@ -152,6 +204,7 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
 }
 
 impl ScaleContinuous<Linear> {
+    /// Linear transformation
     pub fn linear() -> Self {
         Self {
             transformer: Linear,
@@ -165,6 +218,7 @@ impl ScaleContinuous<Linear> {
 }
 
 impl ScaleContinuous<Log10> {
+    /// Logarithm transformation (base `10`)
     pub fn log10() -> Self {
         let domain = [1., 10.];
         let range = [0., 1.];
@@ -180,6 +234,7 @@ impl ScaleContinuous<Log10> {
 }
 
 impl ScaleContinuous<Log2> {
+    /// Logarithm transformation (base `2`)
     pub fn log2() -> Self {
         let domain = [1., 2.];
         let range = [0., 1.];
@@ -195,6 +250,7 @@ impl ScaleContinuous<Log2> {
 }
 
 impl ScaleContinuous<Ln> {
+    /// Natural logarithm transformation (base `e`)
     pub fn ln() -> Self {
         let domain = [1., consts::E];
         let range = [0., 1.];
@@ -210,6 +266,7 @@ impl ScaleContinuous<Ln> {
 }
 
 impl ScaleContinuous<Log> {
+    /// Logarithm transformation
     pub fn log(base: f32) -> Self {
         let domain = [1., base];
         let range = [0., 1.];
@@ -225,6 +282,8 @@ impl ScaleContinuous<Log> {
 }
 
 impl ScaleContinuous<Power> {
+    /// Power transformation (`x.powf(exponent)` where `x` is the input value used in
+    /// [`ScaleContinuous::apply`])
     pub fn pow(exponent: f32) -> Self {
         Self {
             transformer: Power { exponent },
@@ -238,6 +297,7 @@ impl ScaleContinuous<Power> {
 }
 
 impl ScaleContinuous<Sqrt> {
+    /// Square root transformation
     pub fn sqrt() -> Self {
         Self {
             transformer: Sqrt,

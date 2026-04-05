@@ -8,6 +8,7 @@ use super::{
 
 // TODO: negative values for domain
 
+/// Logarithm transformation (base `10`)
 pub struct Log10;
 impl Transformer for Log10 {
     fn transform(&self, x: f32) -> f32 {
@@ -25,6 +26,7 @@ impl Log10 {
     }
 }
 
+/// Logarithm transformation (base `2`)
 pub struct Log2;
 impl Transformer for Log2 {
     fn transform(&self, x: f32) -> f32 {
@@ -42,6 +44,7 @@ impl Log2 {
     }
 }
 
+/// Natural logarithm transformation (base `e`)
 pub struct Ln;
 impl Transformer for Ln {
     fn transform(&self, x: f32) -> f32 {
@@ -59,6 +62,7 @@ impl Ln {
     }
 }
 
+/// Logarithm transformation
 pub struct Log {
     pub base: f32,
 }

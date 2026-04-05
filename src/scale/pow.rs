@@ -5,6 +5,7 @@ use super::{
     ticks::{Tick, tick_increment, ticks},
 };
 
+/// Power transformation (`x.powf(exponent)`)
 pub struct Power {
     pub exponent: f32,
 }
@@ -19,6 +20,7 @@ impl Transformer for Power {
     }
 }
 
+/// Square root transformation
 pub struct Sqrt;
 
 impl Transformer for Sqrt {
