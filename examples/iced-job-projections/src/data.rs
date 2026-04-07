@@ -73,8 +73,9 @@ pub fn load_transform_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
         .round(0, RoundMode::default())
         .alias("openings");
 
-    let turnover_expr = (col("Annual Exits 2018-2028") + col("Annual Transfers 2018-2028"))
-        / col("Total Jobs 2018").alias("turnover");
+    let turnover_expr = ((col("Annual Exits 2018-2028") + col("Annual Transfers 2018-2028"))
+        / col("Total Jobs 2018"))
+    .alias("turnover");
 
     let yref = lit(33900).alias("yRef");
 
