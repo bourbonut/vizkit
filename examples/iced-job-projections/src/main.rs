@@ -1,5 +1,6 @@
 mod data;
 use core::f32;
+use std::str::FromStr;
 
 use iced::{
     Element,
@@ -10,7 +11,6 @@ use vizkit::scale::{ScaleContinuous, ScaleOrdinal};
 
 use crate::data::load_transform_data;
 
-#[allow(unused)]
 struct Margin {
     top: f32,
     right: f32,
@@ -30,6 +30,10 @@ struct Plot {
     radius_domain: [f32; 2],
     x_domain: [f32; 2],
     margin: Margin,
+    turnover: Vec<f32>,
+    median_wage: Vec<f32>,
+    openings: Vec<f32>,
+    sector_cat: Vec<String>,
 }
 
 impl Plot {
@@ -39,9 +43,31 @@ impl Plot {
             .into_value()
             .try_extract::<f32>()?;
 
+        println!("{:?}", df["turnover"].dtype());
+
         Ok(Self {
             radius_domain: [min(&df["openings"])?, max(&df["openings"])?],
             x_domain: [0., xmax],
+            turnover: df["turnover"]
+                .f64()?
+                .into_iter()
+                .map(|x| x.map(|v| v as f32).unwrap_or_default())
+                .collect::<Vec<f32>>(),
+            median_wage: df["Median Wage 2018"]
+                .f64()?
+                .into_iter()
+                .map(|x| x.map(|v| v as f32).unwrap_or_default())
+                .collect::<Vec<f32>>(),
+            openings: df["openings"]
+                .f64()?
+                .into_iter()
+                .map(|x| x.map(|v| v as f32).unwrap_or_default())
+                .collect::<Vec<f32>>(),
+            sector_cat: df["sector_cat"]
+                .str()?
+                .into_iter()
+                .map(|x| x.map(|v| v.to_string()).unwrap_or_default())
+                .collect::<Vec<String>>(),
             margin,
         })
     }
@@ -64,7 +90,7 @@ impl<Message> canvas::Program<Message> for Plot {
         let width = bounds.width;
         let height = bounds.height;
 
-        let _radius = ScaleContinuous::sqrt()
+        let radius = ScaleContinuous::sqrt()
             .domain(self.radius_domain.clone())
             .range([2., 20.]);
 
@@ -74,11 +100,11 @@ impl<Message> canvas::Program<Message> for Plot {
             .nice(None);
 
         let y = ScaleContinuous::linear()
-            .domain([0., 140000.])
+            .domain([0., 140_000.])
             .range([height - self.margin.bottom, self.margin.top])
             .nice(None);
 
-        let _color = ScaleOrdinal::default()
+        let mut color = ScaleOrdinal::default()
             .domain(vec![
                 "Natural Resources",
                 "Construction",
@@ -92,6 +118,7 @@ impl<Message> canvas::Program<Message> for Plot {
                 "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d",
             ]);
 
+        // x axis
         let x_axis = canvas::Path::line(
             [self.margin.left, height - self.margin.bottom].into(),
             [width - self.margin.right, height - self.margin.bottom].into(),
@@ -142,6 +169,7 @@ impl<Message> canvas::Program<Message> for Plot {
             frame.fill_text(text);
         }
 
+        // y axis
         let y_axis = canvas::Path::line(
             [self.margin.left, self.margin.top].into(),
             [self.margin.left, height - self.margin.bottom].into(),
@@ -174,7 +202,7 @@ impl<Message> canvas::Program<Message> for Plot {
         });
 
         for tick in y.ticks(Some(5)) {
-            let name = format!("{}k", (tick / 1000.).round());
+            let name = format!("${}k", (tick / 1000.).round());
             let y_pos = y.apply(tick);
             let line = canvas::Path::line(
                 [self.margin.left - 7.5, y_pos].into(),
@@ -199,6 +227,75 @@ impl<Message> canvas::Program<Message> for Plot {
             };
             frame.fill_text(text);
         }
+
+        // grid
+        for tick in x.ticks(None) {
+            let x_pos = x.apply(tick);
+            let line = canvas::Path::line(
+                [x_pos, self.margin.top].into(),
+                [x_pos, height - self.margin.bottom].into(),
+            );
+            frame.stroke(
+                &line,
+                canvas::Stroke::default().with_color(iced::Color::WHITE),
+            );
+        }
+
+        for tick in y.ticks(Some(5)) {
+            let y_pos = y.apply(tick);
+            let line = canvas::Path::line(
+                [self.margin.left, y_pos].into(),
+                [width - self.margin.right, y_pos].into(),
+            );
+            frame.stroke(
+                &line,
+                canvas::Stroke::default().with_color(iced::Color::WHITE),
+            );
+        }
+
+        // circles
+        for idx in 0..self.turnover.len() {
+            let cx = x.apply(self.turnover[idx]);
+            let cy = y.apply(self.median_wage[idx]);
+            let r = radius.apply(self.openings[idx]);
+            let fill_color = color.apply(&self.sector_cat[idx]).map_or("", |v| v);
+            let stroke_color = color.apply(&self.sector_cat[idx]).map_or("", |v| v);
+
+            let circle = canvas::Path::circle([cx, cy].into(), r);
+            frame.fill(
+                &circle,
+                canvas::Fill {
+                    style: canvas::Style::Solid(
+                        iced::Color::from_str(fill_color)
+                            .unwrap_or(iced::Color::WHITE)
+                            .scale_alpha(0.5),
+                    ),
+                    rule: canvas::fill::Rule::EvenOdd,
+                },
+            );
+
+            frame.stroke(
+                &circle,
+                canvas::Stroke::default()
+                    .with_width(0.75)
+                    .with_color(iced::Color::from_str(stroke_color).unwrap_or(iced::Color::WHITE)),
+            );
+        }
+
+        // yref
+        let line = canvas::Path::line(
+            [self.margin.left, y.apply(33_900.0)].into(),
+            [width - self.margin.right, y.apply(33_900.0)].into(),
+        );
+
+        frame.stroke(
+            &line,
+            canvas::Stroke::default().with_width(1.5).with_color(
+                iced::Color::from_str("#666")
+                    .unwrap_or(iced::Color::WHITE)
+                    .scale_alpha(0.75),
+            ),
+        );
 
         vec![frame.into_geometry()]
     }
@@ -233,5 +330,7 @@ impl App {
 }
 
 fn main() -> iced::Result {
-    iced::application(App::default, App::update, App::view).run()
+    iced::application(App::default, App::update, App::view)
+        .antialiasing(true)
+        .run()
 }

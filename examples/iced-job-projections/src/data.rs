@@ -77,7 +77,7 @@ pub fn load_transform_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
         / col("Total Jobs 2018"))
     .alias("turnover");
 
-    let yref = lit(33900).alias("yRef");
+    let yref = lit(33_900).alias("yRef");
 
     Ok(JsonReader::new(&mut file)
         .finish()?
@@ -87,7 +87,7 @@ pub fn load_transform_data() -> Result<DataFrame, Box<dyn std::error::Error>> {
         .filter(
             col("Median Wage 2018")
                 .gt(0.)
-                .and(col("Median Wage 2018").lt_eq(140000.)),
+                .and(col("Median Wage 2018").lt_eq(140_000.)),
         )
         .collect()?)
 }
