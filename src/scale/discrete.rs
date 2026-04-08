@@ -8,8 +8,8 @@ use std::hash::Hash;
 ///
 /// // The method `apply` needs `&mut self`.
 /// let mut scale = ScaleOrdinal::default()
-///     .domain(vec!["a", "b", "c"])
-///     .range(vec!["red", "green", "blue"]);
+///     .domain(&["a", "b", "c"])
+///     .range(&["red", "green", "blue"]);
 ///
 /// for c in "abcdefgh".split("") {
 ///     match c {
@@ -41,7 +41,7 @@ where
     D: Hash + Eq,
 {
     /// Returns a new [`ScaleOrdinal`] with the specified domain applied.
-    pub fn domain(self, domain: Vec<D>) -> Self
+    pub fn domain(self, domain: &[D]) -> Self
     where
         D: Clone,
     {
@@ -62,8 +62,14 @@ where
     }
 
     /// Returns a new [`ScaleOrdinal`] with the specified range applied.
-    pub fn range(self, range: Vec<R>) -> Self {
-        Self { range, ..self }
+    pub fn range(self, range: &[R]) -> Self
+    where
+        R: Clone,
+    {
+        Self {
+            range: range.iter().cloned().collect(),
+            ..self
+        }
     }
 
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
@@ -106,7 +112,7 @@ where
 ///
 /// // The method `apply` needs `&mut self`.
 /// let mut scale = ScaleBand::default()
-///     .domain(vec!["a", "b", "c"])
+///     .domain(&["a", "b", "c"])
 ///     .range([0., 960.]);
 ///
 /// for c in "abcdefgh".split("") {
@@ -161,7 +167,7 @@ where
     D: Hash + Eq + Clone,
 {
     /// Returns a new [`ScaleBand`] with the specified domain applied.
-    pub fn domain(self, domain: Vec<D>) -> Self {
+    pub fn domain(self, domain: &[D]) -> Self {
         Self {
             scale_ordinal: self.scale_ordinal.domain(domain),
             ..self
@@ -189,7 +195,7 @@ where
             range.reverse();
         }
         Self {
-            scale_ordinal: self.scale_ordinal.range(range),
+            scale_ordinal: self.scale_ordinal.range(&range),
             step,
             bandwidth,
             ..self

@@ -108,7 +108,7 @@ impl<Message> canvas::Program<Message> for Plot {
             .nice(None);
 
         let mut color = ScaleOrdinal::default()
-            .domain(vec![
+            .domain(&[
                 "Natural Resources",
                 "Construction",
                 "Manufacturing",
@@ -117,7 +117,7 @@ impl<Message> canvas::Program<Message> for Plot {
                 "Healthcare",
                 "Education/Government",
             ])
-            .range(vec![
+            .range(&[
                 "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d",
             ]);
 
