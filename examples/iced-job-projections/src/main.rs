@@ -103,7 +103,7 @@ impl<Message> canvas::Program<Message> for Plot {
         &self,
         _state: &Self::State,
         renderer: &iced::Renderer,
-        _theme: &iced::Theme,
+        theme: &iced::Theme,
         bounds: iced::Rectangle,
         _cursor: iced::mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
@@ -111,8 +111,8 @@ impl<Message> canvas::Program<Message> for Plot {
         let width = bounds.width;
         let height = bounds.height;
 
-        let white = iced::Color::WHITE;
-        let stroke_white = canvas::Stroke::default().with_color(white);
+        let text_color = theme.palette().text;
+        let stroke_color = canvas::Stroke::default().with_color(text_color);
 
         let radius = ScaleContinuous::sqrt()
             .domain(self.radius_domain.clone())
@@ -138,7 +138,7 @@ impl<Message> canvas::Program<Message> for Plot {
         let text = canvas::Text {
             content: String::from("Occupation annual turnover rate"),
             position: [tx, height - self.margin.bottom + ty].into(),
-            color: white,
+            color: text_color,
             size: iced::Pixels(12.),
             font: iced::Font {
                 weight: iced::font::Weight::Bold,
@@ -152,7 +152,7 @@ impl<Message> canvas::Program<Message> for Plot {
         // X axis domain line
         let start = [self.margin.left, height - self.margin.bottom];
         let end = [width - self.margin.right, height - self.margin.bottom];
-        frame.stroke(&line(start, end), stroke_white);
+        frame.stroke(&line(start, end), stroke_color);
 
         for tick in x.ticks(None) {
             let name = format!("{}%", (tick * 100.).round());
@@ -161,13 +161,13 @@ impl<Message> canvas::Program<Message> for Plot {
             // Tick lines
             let start = [x_pos, height - self.margin.bottom];
             let end = [x_pos, height - self.margin.bottom + 7.5];
-            frame.stroke(&line(start, end), stroke_white);
+            frame.stroke(&line(start, end), stroke_color);
 
             // Tick labels
             frame.fill_text(canvas::Text {
                 content: name,
                 position: [x_pos, height - self.margin.bottom + 8.].into(),
-                color: white,
+                color: text_color,
                 size: iced::Pixels(10.),
                 align_x: iced::Alignment::Center.into(),
                 ..Default::default()
@@ -176,14 +176,14 @@ impl<Message> canvas::Program<Message> for Plot {
             // Grid lines
             let start = [x_pos, self.margin.top];
             let end = [x_pos, height - self.margin.bottom];
-            frame.stroke(&line(start, end), stroke_white);
+            frame.stroke(&line(start, end), stroke_color);
         }
 
         // Y label
         let text = canvas::Text {
             content: String::from("Median wage, 2018"),
             position: [0., 0.].into(),
-            color: iced::Color::WHITE,
+            color: text_color,
             size: iced::Pixels(12.),
             font: iced::Font {
                 weight: iced::font::Weight::Bold,
@@ -207,7 +207,7 @@ impl<Message> canvas::Program<Message> for Plot {
         // Y axis domain line
         let start = [self.margin.left, self.margin.top];
         let end = [self.margin.left, height - self.margin.bottom];
-        frame.stroke(&line(start, end), stroke_white);
+        frame.stroke(&line(start, end), stroke_color);
 
         for tick in y.ticks(Some(5)) {
             let name = format!("${}k", (tick / 1000.).round());
@@ -216,13 +216,13 @@ impl<Message> canvas::Program<Message> for Plot {
             // Tick lines
             let start = [self.margin.left - 7.5, y_pos];
             let end = [self.margin.left, y_pos];
-            frame.stroke(&line(start, end), stroke_white);
+            frame.stroke(&line(start, end), stroke_color);
 
             // Tick labels
             frame.fill_text(canvas::Text {
                 content: name,
                 position: [self.margin.left - 8., y_pos].into(),
-                color: white,
+                color: text_color,
                 size: iced::Pixels(10.),
                 align_x: iced::Alignment::End.into(),
                 align_y: iced::Alignment::Center.into(),
@@ -232,7 +232,7 @@ impl<Message> canvas::Program<Message> for Plot {
             // Grid lines
             let start = [self.margin.left, y_pos];
             let end = [width - self.margin.right, y_pos];
-            frame.stroke(&line(start, end), stroke_white);
+            frame.stroke(&line(start, end), stroke_color);
         }
 
         // Circles
