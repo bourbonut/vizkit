@@ -1,7 +1,10 @@
 mod data;
 use std::str::FromStr;
 
-use iced::{Element, widget::canvas};
+use iced::{
+    Element,
+    widget::{canvas, column, container, row, space, text},
+};
 use polars::{
     frame::DataFrame,
     prelude::{ChunkedArray, Column, PolarsDataType},
@@ -9,6 +12,24 @@ use polars::{
 use vizkit::scale::{ScaleContinuous, ScaleOrdinal};
 
 use crate::data::load_transform_data;
+
+const COLOR_DOMAIN: [&str; 7] = [
+    "Natural Resources",
+    "Construction",
+    "Manufacturing",
+    "Trade",
+    "Services",
+    "Healthcare",
+    "Education/Government",
+];
+
+const COLOR_RANGE: [&str; 7] = [
+    "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d",
+];
+
+const RRANGE: [f32; 2] = [4., 40.];
+
+const RBASE: f32 = 10.;
 
 struct Margin {
     top: f32,
@@ -95,7 +116,7 @@ impl<Message> canvas::Program<Message> for Plot {
 
         let radius = ScaleContinuous::sqrt()
             .domain(self.radius_domain.clone())
-            .range([2., 20.]);
+            .range(RRANGE);
 
         let x = ScaleContinuous::linear()
             .domain(self.x_domain.clone())
@@ -108,18 +129,8 @@ impl<Message> canvas::Program<Message> for Plot {
             .nice(None);
 
         let mut color = ScaleOrdinal::default()
-            .domain(&[
-                "Natural Resources",
-                "Construction",
-                "Manufacturing",
-                "Trade",
-                "Services",
-                "Healthcare",
-                "Education/Government",
-            ])
-            .range(&[
-                "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d",
-            ]);
+            .domain(&COLOR_DOMAIN)
+            .range(&COLOR_RANGE);
 
         // X label
         let tx = (self.margin.left + width - self.margin.right) * 0.5;
@@ -269,6 +280,99 @@ impl<Message> canvas::Program<Message> for Plot {
     }
 }
 
+struct Circle {
+    color: iced::Color,
+    radius: f32,
+    center: iced::Point,
+}
+
+impl<Message> canvas::Program<Message> for Circle {
+    type State = ();
+
+    fn draw(
+        &self,
+        _state: &Self::State,
+        renderer: &iced::Renderer,
+        _theme: &iced::Theme,
+        bounds: iced::Rectangle,
+        _cursor: iced::mouse::Cursor,
+    ) -> Vec<canvas::Geometry> {
+        let mut frame = canvas::Frame::new(renderer, bounds.size());
+        frame.fill(&canvas::Path::circle(self.center, self.radius), self.color);
+        vec![frame.into_geometry()]
+    }
+}
+
+fn legend<'a>(df: &DataFrame) -> iced::widget::Column<'a, Message> {
+    let radius = ScaleContinuous::sqrt()
+        .domain([min(&df["openings"]).unwrap(), max(&df["openings"]).unwrap()])
+        .range(RRANGE);
+
+    let mut color = ScaleOrdinal::default()
+        .domain(&COLOR_DOMAIN)
+        .range(&COLOR_RANGE);
+
+    let column_element = column![
+        text("Openings projected").font(iced::Font {
+            weight: iced::font::Weight::Bold,
+            ..Default::default()
+        }),
+        space().height(10.),
+    ];
+
+    let rmax = radius.apply(2000.);
+    let column_element =
+        [10.0, 100.0, 500.0, 1_000.0, 2_000.0]
+            .into_iter()
+            .fold(column_element, |col, r| {
+                let string = r.to_string();
+                let r = radius.apply(r);
+                col.push(
+                    row![
+                        canvas(Circle {
+                            color: iced::Color::WHITE,
+                            radius: r,
+                            center: [rmax, r].into(),
+                        })
+                        .width(iced::Length::Fixed(rmax * 2.0))
+                        .height(iced::Length::Fixed(r * 2.0)),
+                        text(string),
+                    ]
+                    .spacing(15.)
+                    .align_y(iced::Alignment::Center),
+                )
+            });
+
+    let column_element =
+        column_element
+            .push(space().height(10.))
+            .push(text("Occupation sector").font(iced::Font {
+                weight: iced::font::Weight::Bold,
+                ..Default::default()
+            }));
+
+    COLOR_DOMAIN
+        .iter()
+        .fold(column_element, |col, value| {
+            let color_str = color.apply(value).map_or("", |v| v);
+            col.push(
+                row![
+                    canvas(Circle {
+                        color: iced::Color::from_str(color_str).unwrap_or_default(),
+                        radius: RBASE,
+                        center: [RBASE, RBASE].into(),
+                    })
+                    .width(iced::Length::Fixed(RBASE * 2.0))
+                    .height(iced::Length::Fixed(RBASE * 2.0)),
+                    text(*value),
+                ]
+                .spacing(15.)
+                .align_y(iced::Alignment::Center),
+            )
+        })
+        .spacing(5.)
+}
+
 struct App {
     df: DataFrame,
 }
@@ -290,10 +394,15 @@ impl App {
             bottom: 40.,
             left: 55.,
         };
-        canvas(Plot::new(&self.df, margin).unwrap())
-            .width(iced::Length::Fill)
-            .height(iced::Length::Fill)
-            .into()
+        row![
+            canvas(Plot::new(&self.df, margin).unwrap())
+                .width(iced::Length::Fill)
+                .height(iced::Length::Fill),
+            container(legend(&self.df))
+                .width(iced::Length::Shrink)
+                .padding(20.)
+        ]
+        .into()
     }
 }
 
