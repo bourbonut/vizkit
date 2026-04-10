@@ -3,15 +3,11 @@ use std::str::FromStr;
 
 use iced::{
     Element,
-    widget::{canvas, column, container, row, space, text},
+    widget::{canvas, column, container, row, space, text, tooltip},
 };
-use polars::{
-    frame::DataFrame,
-    prelude::{ChunkedArray, Column, PolarsDataType},
-};
-use vizkit::scale::{ScaleContinuous, ScaleOrdinal};
+use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
-use crate::data::load_transform_data;
+use crate::data::Data;
 
 const COLOR_DOMAIN: [&str; 7] = [
     "Natural Resources",
@@ -38,55 +34,14 @@ struct Margin {
     left: f32,
 }
 
-/// Finds the min in a `Column`
-fn min(column: &Column) -> Result<f32, Box<dyn std::error::Error>> {
-    Ok(column.min_reduce()?.into_value().try_extract::<f32>()?)
-}
-
-/// Finds the max in a `Column`
-fn max(column: &Column) -> Result<f32, Box<dyn std::error::Error>> {
-    Ok(column.max_reduce()?.into_value().try_extract::<f32>()?)
-}
-
-/// Converts a `ChunkedArray` into `Vec<T>`
-fn into_vec<'a, T: std::default::Default, U: PolarsDataType>(
-    chunk_arr: &'a ChunkedArray<U>,
-    f: impl Fn(U::Physical<'a>) -> T,
-) -> Vec<T> {
-    chunk_arr
-        .iter()
-        .map(|x| x.map(|v| f(v)).unwrap_or_default())
-        .collect()
-}
-
-struct Plot {
-    /// Radius domain for circles
-    radius_domain: [f32; 2],
-    /// X domain
-    x_domain: [f32; 2],
-    /// Margin dimensions
+struct Plot<'a> {
+    data: &'a Data,
     margin: Margin,
-    /// Turnover values
-    turnover: Vec<f32>,
-    /// Median wage values
-    median_wage: Vec<f32>,
-    /// Openings values
-    openings: Vec<f32>,
-    /// Sector cat values
-    sector_cat: Vec<String>,
 }
 
-impl Plot {
-    fn new(df: &DataFrame, margin: Margin) -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(Self {
-            radius_domain: [min(&df["openings"])?, max(&df["openings"])?],
-            x_domain: [0., max(&df["turnover"])?],
-            turnover: into_vec(df["turnover"].f64()?, |v| v as f32),
-            median_wage: into_vec(df["Median Wage 2018"].f64()?, |v| v as f32),
-            openings: into_vec(df["openings"].f64()?, |v| v as f32),
-            sector_cat: into_vec(df["sector_cat"].str()?, |v| v.to_string()),
-            margin,
-        })
+impl<'a> Plot<'a> {
+    fn new(data: &'a Data, margin: Margin) -> Self {
+        Self { data: data, margin }
     }
 }
 
@@ -94,14 +49,53 @@ fn line(from: [f32; 2], to: [f32; 2]) -> canvas::Path {
     canvas::Path::line(from.into(), to.into())
 }
 
-enum Message {}
+enum Message {
+    HoverCircle(usize),
+    None,
+}
 
-impl<Message> canvas::Program<Message> for Plot {
-    type State = ();
+struct PlotCircle {
+    center: [f32; 2],
+    radius: f32,
+    fill_color: iced::Color,
+    stroke_color: iced::Color,
+}
+
+impl PlotCircle {
+    fn new(center: [f32; 2], radius: f32, fill_color: &str, stroke_color: &str) -> Self {
+        Self {
+            center,
+            radius,
+            fill_color: iced::Color::from_str(fill_color)
+                .unwrap_or_default()
+                .scale_alpha(0.5),
+            stroke_color: iced::Color::from_str(stroke_color).unwrap_or_default(),
+        }
+    }
+}
+
+struct PlotState {
+    x_scale: ScaleContinuous<Linear>,
+    y_scale: ScaleContinuous<Linear>,
+    circles: Vec<PlotCircle>,
+}
+
+impl Default for PlotState {
+    fn default() -> Self {
+        Self {
+            x_scale: ScaleContinuous::linear(),
+            y_scale: ScaleContinuous::linear(),
+            circles: Vec::new(),
+        }
+    }
+}
+
+impl<'a> canvas::Program<Message> for Plot<'a> {
+    type State = PlotState;
 
     fn draw(
         &self,
-        _state: &Self::State,
+        state: &Self::State,
         renderer: &iced::Renderer,
         theme: &iced::Theme,
         bounds: iced::Rectangle,
@@ -113,24 +107,6 @@ impl<Message> canvas::Program<Message> for Plot {
 
         let text_color = theme.palette().text;
         let stroke_color = canvas::Stroke::default().with_color(text_color);
-
-        let radius = ScaleContinuous::sqrt()
-            .domain(self.radius_domain.clone())
-            .range(RRANGE);
-
-        let x = ScaleContinuous::linear()
-            .domain(self.x_domain.clone())
-            .range([self.margin.left, width - self.margin.right])
-            .nice(None);
-
-        let y = ScaleContinuous::linear()
-            .domain([0., 140_000.])
-            .range([height - self.margin.bottom, self.margin.top])
-            .nice(None);
-
-        let mut color = ScaleOrdinal::default()
-            .domain(&COLOR_DOMAIN)
-            .range(&COLOR_RANGE);
 
         // X label
         let tx = (self.margin.left + width - self.margin.right) * 0.5;
@@ -154,9 +130,9 @@ impl<Message> canvas::Program<Message> for Plot {
         let end = [width - self.margin.right, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        for tick in x.ticks(None) {
+        for tick in state.x_scale.ticks(None) {
             let name = format!("{}%", (tick * 100.).round());
-            let x_pos = x.apply(tick);
+            let x_pos = state.x_scale.apply(tick);
 
             // Tick lines
             let start = [x_pos, height - self.margin.bottom];
@@ -209,9 +185,9 @@ impl<Message> canvas::Program<Message> for Plot {
         let end = [self.margin.left, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        for tick in y.ticks(Some(5)) {
+        for tick in state.y_scale.ticks(Some(5)) {
             let name = format!("${}k", (tick / 1000.).round());
-            let y_pos = y.apply(tick);
+            let y_pos = state.y_scale.apply(tick);
 
             // Tick lines
             let start = [self.margin.left - 7.5, y_pos];
@@ -236,22 +212,12 @@ impl<Message> canvas::Program<Message> for Plot {
         }
 
         // Circles
-        for idx in 0..self.turnover.len() {
-            let cx = x.apply(self.turnover[idx]);
-            let cy = y.apply(self.median_wage[idx]);
-            let r = radius.apply(self.openings[idx]);
-            let fill_color = color.apply(&self.sector_cat[idx]).map_or("", |v| v);
-            let stroke_color = color.apply(&self.sector_cat[idx]).map_or("", |v| v);
-
-            let circle = canvas::Path::circle([cx, cy].into(), r);
+        for plot_circle in state.circles.iter() {
+            let circle = canvas::Path::circle(plot_circle.center.into(), plot_circle.radius);
             frame.fill(
                 &circle,
                 canvas::Fill {
-                    style: canvas::Style::Solid(
-                        iced::Color::from_str(fill_color)
-                            .unwrap_or_default()
-                            .scale_alpha(0.5),
-                    ),
+                    style: canvas::Style::Solid(plot_circle.fill_color),
                     rule: canvas::fill::Rule::EvenOdd,
                 },
             );
@@ -260,13 +226,13 @@ impl<Message> canvas::Program<Message> for Plot {
                 &circle,
                 canvas::Stroke::default()
                     .with_width(0.75)
-                    .with_color(iced::Color::from_str(stroke_color).unwrap_or_default()),
+                    .with_color(plot_circle.stroke_color),
             );
         }
 
         // Y reference (horizontal line)
-        let start = [self.margin.left, y.apply(33_900.0)];
-        let end = [width - self.margin.right, y.apply(33_900.0)];
+        let start = [self.margin.left, state.y_scale.apply(33_900.0)];
+        let end = [width - self.margin.right, state.y_scale.apply(33_900.0)];
         frame.stroke(
             &line(start, end),
             canvas::Stroke::default().with_width(1.5).with_color(
@@ -277,6 +243,71 @@ impl<Message> canvas::Program<Message> for Plot {
         );
 
         vec![frame.into_geometry()]
+    }
+
+    fn update(
+        &self,
+        state: &mut Self::State,
+        _event: &iced::Event,
+        bounds: iced::Rectangle,
+        cursor: iced::mouse::Cursor,
+    ) -> Option<canvas::Action<Message>> {
+        let width = bounds.width;
+        let height = bounds.height;
+
+        state.x_scale = ScaleContinuous::linear()
+            .domain(self.data.x_domain)
+            .range([self.margin.left, width - self.margin.right])
+            .nice(None);
+
+        state.y_scale = ScaleContinuous::linear()
+            .domain([0., 140_000.])
+            .range([height - self.margin.bottom, self.margin.top])
+            .nice(None);
+
+        let r_scale = ScaleContinuous::sqrt()
+            .domain(self.data.radius_domain)
+            .range(RRANGE);
+
+        let mut color = ScaleOrdinal::default()
+            .domain(&COLOR_DOMAIN)
+            .range(&COLOR_RANGE);
+
+        state.circles = self
+            .data
+            .into_iter()
+            .map(|row| {
+                let cx = state.x_scale.apply(row.turnover);
+                let cy = state.y_scale.apply(row.median_wage);
+                let r = r_scale.apply(row.openings);
+                let fill_color = color.apply(&row.sector_cat).map_or("", |v| v);
+                let stroke_color = color.apply(&row.sector_cat).map_or("", |v| v);
+                PlotCircle::new([cx, cy], r, fill_color, stroke_color)
+            })
+            .collect();
+
+        if let Some(position) = cursor.position() {
+            let argmin = state
+                .circles
+                .iter()
+                .enumerate()
+                .filter_map(|(idx, circle)| {
+                    let center = iced::Point::from(circle.center);
+                    let r = circle.radius;
+                    let delta = position - center;
+                    let x = delta.x;
+                    let y = delta.y;
+                    let h = x.hypot(y);
+                    if h > r { None } else { Some((r - h, idx)) }
+                })
+                .min_by(|(a, _), (b, _)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+            match argmin {
+                Some((_, idx)) => Some(iced::widget::Action::publish(Message::HoverCircle(idx))),
+                None => Some(iced::widget::Action::publish(Message::None)),
+            }
+        } else {
+            Some(iced::widget::Action::publish(Message::None))
+        }
     }
 }
 
@@ -303,9 +334,9 @@ impl<Message> canvas::Program<Message> for Circle {
     }
 }
 
-fn legend<'a>(df: &DataFrame) -> iced::widget::Column<'a, Message> {
+fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
     let radius = ScaleContinuous::sqrt()
-        .domain([min(&df["openings"]).unwrap(), max(&df["openings"]).unwrap()])
+        .domain(data.radius_domain)
         .range(RRANGE);
 
     let mut color = ScaleOrdinal::default()
@@ -374,19 +405,26 @@ fn legend<'a>(df: &DataFrame) -> iced::widget::Column<'a, Message> {
 }
 
 struct App {
-    df: DataFrame,
+    data: Data,
+    hovered_index: Option<usize>,
 }
 
-impl Default for App {
-    fn default() -> Self {
+impl App {
+    fn new() -> Self {
         Self {
-            df: load_transform_data().unwrap(),
+            data: Data::new().unwrap(),
+            hovered_index: None,
         }
     }
 }
 
 impl App {
-    fn update(&mut self, _: Message) {}
+    fn update(&mut self, message: Message) {
+        match message {
+            Message::HoverCircle(idx) => self.hovered_index = Some(idx),
+            Message::None => self.hovered_index = None,
+        }
+    }
     fn view(&self) -> Element<'_, Message> {
         let margin = Margin {
             top: 10.,
@@ -394,20 +432,41 @@ impl App {
             bottom: 40.,
             left: 55.,
         };
-        row![
-            canvas(Plot::new(&self.df, margin).unwrap())
+        let row_element = row![
+            canvas(Plot::new(&self.data, margin))
                 .width(iced::Length::Fill)
                 .height(iced::Length::Fill),
-            container(legend(&self.df))
+            container(legend(&self.data))
                 .width(iced::Length::Shrink)
                 .padding(20.)
-        ]
-        .into()
+        ];
+        if let Some(idx) = self.hovered_index {
+            let row_data = self.data.row(idx);
+            tooltip(
+                row_element,
+                container(column![
+                    "Occupation",
+                    row_data.soc_title,
+                    "Sector",
+                    row_data.sector,
+                    "Median Wage 2018",
+                    text(format!("${}k", (row_data.median_wage / 1000.).round())),
+                    "Turnover",
+                    text(format!("{}%", (row_data.turnover * 100.).round())),
+                ])
+                .style(container::rounded_box)
+                .padding(10.),
+                tooltip::Position::FollowCursor,
+            )
+            .into()
+        } else {
+            row_element.into()
+        }
     }
 }
 
 fn main() -> iced::Result {
-    iced::application(App::default, App::update, App::view)
+    iced::application(App::new, App::update, App::view)
         .antialiasing(true)
         .run()
 }
