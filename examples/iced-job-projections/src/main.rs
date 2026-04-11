@@ -108,6 +108,10 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
 
         let text_color = theme.palette().text;
         let stroke_color = canvas::Stroke::default().with_color(text_color);
+        let bold_font = iced::Font {
+            weight: iced::font::Weight::Bold,
+            ..Default::default()
+        };
 
         // X label
         let tx = (self.margin.left + width - self.margin.right) * 0.5;
@@ -117,10 +121,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             position: [tx, height - self.margin.bottom + ty].into(),
             color: text_color,
             size: iced::Pixels(12.),
-            font: iced::Font {
-                weight: iced::font::Weight::Bold,
-                ..Default::default()
-            },
+            font: bold_font,
             align_x: iced::Alignment::Center.into(),
             ..Default::default()
         };
@@ -157,10 +158,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             position: [0., 0.].into(),
             color: text_color,
             size: iced::Pixels(12.),
-            font: iced::Font {
-                weight: iced::font::Weight::Bold,
-                ..Default::default()
-            },
+            font: bold_font,
             align_x: iced::Alignment::Center.into(),
             ..Default::default()
         };
@@ -334,6 +332,7 @@ fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
         .domain(&COLOR_DOMAIN)
         .range(&COLOR_RANGE);
 
+    // Section with different radii values
     let column_element = column![
         text("Openings projected").font(iced::Font {
             weight: iced::font::Weight::Bold,
@@ -343,37 +342,33 @@ fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
     ];
 
     let rmax = radius.apply(2000.);
-    let column_element =
-        [10.0, 100.0, 500.0, 1_000.0, 2_000.0]
-            .into_iter()
-            .fold(column_element, |col, r| {
-                let string = r.to_string();
-                let r = radius.apply(r);
-                col.push(
-                    row![
-                        canvas(Circle {
-                            color: iced::Color::WHITE,
-                            radius: r,
-                            center: [rmax, r].into(),
-                        })
-                        .width(iced::Length::Fixed(rmax * 2.0))
-                        .height(iced::Length::Fixed(r * 2.0)),
-                        text(string),
-                    ]
-                    .spacing(15.)
-                    .align_y(iced::Alignment::Center),
-                )
-            });
+    let column_element = [10.0, 100.0, 500.0, 1_000.0, 2_000.0]
+        .into_iter()
+        .fold(column_element, |col, r| {
+            let string = r.to_string();
+            let r = radius.apply(r);
+            col.push(
+                row![
+                    canvas(Circle {
+                        color: iced::Color::WHITE,
+                        radius: r,
+                        center: [rmax, r].into(),
+                    })
+                    .width(iced::Length::Fixed(rmax * 2.0))
+                    .height(iced::Length::Fixed(r * 2.0)),
+                    text(string),
+                ]
+                .spacing(15.)
+                .align_y(iced::Alignment::Center),
+            )
+        })
+        .push(space().height(10.)) // Add the next title
+        .push(text("Occupation sector").font(iced::Font {
+            weight: iced::font::Weight::Bold,
+            ..Default::default()
+        }));
 
-    let column_element =
-        column_element
-            .push(space().height(10.))
-            .push(text("Occupation sector").font(iced::Font {
-                weight: iced::font::Weight::Bold,
-                ..Default::default()
-            }));
-
-    COLOR_DOMAIN
+    COLOR_DOMAIN // Section with different colors
         .iter()
         .fold(column_element, |col, value| {
             let color_str = color.apply(value).map_or("", |v| v);
