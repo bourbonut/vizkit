@@ -43,5 +43,6 @@
 
 pub mod axis;
 pub mod chromatic;
+pub mod draw;
 pub mod scale;
 pub mod time;

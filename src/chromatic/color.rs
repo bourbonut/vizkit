@@ -5,10 +5,17 @@ const D: f32 = -0.90649;
 const E: f32 = 1.97294;
 
 /// Represents a color in RGB (red, green, blue) where each channel is a value in [0., 1.].
+#[derive(Clone, Copy)]
 pub struct Color(pub [f32; 3]);
 /// Represents a color in HSL (hue, saturation, lightness) where each channel is a value in [0.,
 /// 1.].
 pub(crate) struct Cubehelix(pub [f32; 3]);
+
+impl Default for Color {
+    fn default() -> Self {
+        Self([1.; 3])
+    }
+}
 
 /// Converts a string formated in hex color to this type. If the string has more than 6 characters,
 /// it returns a color filled with `0.`. If a channel cannot be converted, the channel defaults to
