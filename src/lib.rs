@@ -41,6 +41,7 @@
 //!     - [`Turbo`][`crate::chromatic::Turbo`]
 //!     - [`Sinebow`][`crate::chromatic::Sinebow`]
 
+pub mod axis;
 pub mod chromatic;
 pub mod scale;
 pub mod time;

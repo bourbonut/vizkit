@@ -5,6 +5,7 @@ use iced::{
     Element,
     widget::{canvas, column, container, row, space, text, tooltip},
 };
+use vizkit::axis::Axis;
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
@@ -130,26 +131,21 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [width - self.margin.right, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        for tick in state.x_scale.ticks(None) {
-            let name = format!("{}%", (tick * 100.).round());
-            let x_pos = state.x_scale.apply(tick);
-
-            // Tick lines
-            let start = [x_pos, height - self.margin.bottom];
-            let end = [x_pos, height - self.margin.bottom + 7.5];
-            frame.stroke(&line(start, end), stroke_color);
-
-            // Tick labels
+        Axis::bottom(height - self.margin.bottom).draw(&state.x_scale, |tick_line, label| {
+            frame.stroke(&line(tick_line.start, tick_line.end), stroke_color);
             frame.fill_text(canvas::Text {
-                content: name,
-                position: [x_pos, height - self.margin.bottom + 8.].into(),
+                content: format!("{}%", (label.tick_value * 100.).round()),
+                position: label.position.into(),
                 color: text_color,
                 size: iced::Pixels(10.),
                 align_x: iced::Alignment::Center.into(),
                 ..Default::default()
             });
+        });
 
-            // Grid lines
+        // Grid lines
+        for tick in state.x_scale.ticks(None) {
+            let x_pos = state.x_scale.apply(tick);
             let start = [x_pos, self.margin.top];
             let end = [x_pos, height - self.margin.bottom];
             frame.stroke(&line(start, end), stroke_color);
@@ -185,27 +181,22 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [self.margin.left, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        for tick in state.y_scale.ticks(Some(5)) {
-            let name = format!("${}k", (tick / 1000.).round());
-            let y_pos = state.y_scale.apply(tick);
-
-            // Tick lines
-            let start = [self.margin.left - 7.5, y_pos];
-            let end = [self.margin.left, y_pos];
-            frame.stroke(&line(start, end), stroke_color);
-
-            // Tick labels
+        Axis::left(self.margin.left).draw(&state.y_scale, |tick_line, label| {
+            frame.stroke(&line(tick_line.start, tick_line.end), stroke_color);
             frame.fill_text(canvas::Text {
-                content: name,
-                position: [self.margin.left - 8., y_pos].into(),
+                content: format!("${}k", (label.tick_value / 1000.).round()),
+                position: label.position.into(),
                 color: text_color,
                 size: iced::Pixels(10.),
                 align_x: iced::Alignment::End.into(),
                 align_y: iced::Alignment::Center.into(),
                 ..Default::default()
             });
+        });
 
-            // Grid lines
+        // Grid lines
+        for tick in state.y_scale.ticks(Some(5)) {
+            let y_pos = state.y_scale.apply(tick);
             let start = [self.margin.left, y_pos];
             let end = [width - self.margin.right, y_pos];
             frame.stroke(&line(start, end), stroke_color);
