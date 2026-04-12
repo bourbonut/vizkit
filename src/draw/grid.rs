@@ -1,4 +1,5 @@
-use super::{Draw, LineProperties};
+use super::{Direction, Draw, Horizontal, LineProperties, Vertical};
+use crate::generator::{Constant1D, Function1D, Generator1D};
 use std::marker::PhantomData;
 
 use crate::{
@@ -6,58 +7,11 @@ use crate::{
     scale::{ScaleContinuous, Tick, Transformer},
 };
 
-pub trait Direction {
-    fn direction(coord1: f32, coord2: f32) -> [f32; 2];
-}
-
-struct Vectical;
-struct Horizontal;
-
-impl Direction for Vectical {
-    fn direction(coord1: f32, coord2: f32) -> [f32; 2] {
-        [coord1, coord2]
-    }
-}
-
-impl Direction for Horizontal {
-    fn direction(coord1: f32, coord2: f32) -> [f32; 2] {
-        [coord2, coord1]
-    }
-}
-
-pub trait Generator {
-    type Output;
-    fn generate(&self, value: f32) -> Self::Output;
-}
-
-struct Constant<T>(pub T);
-
-impl<T: Clone> Generator for Constant<T> {
-    type Output = T;
-    fn generate(&self, _: f32) -> Self::Output {
-        self.0.clone()
-    }
-}
-
-struct Function<F, T>(pub F)
-where
-    F: Fn(f32) -> T;
-
-impl<F, T> Generator for Function<F, T>
-where
-    F: Fn(f32) -> T,
-{
-    type Output = T;
-    fn generate(&self, value: f32) -> Self::Output {
-        (self.0)(value)
-    }
-}
-
 pub struct Grid<
     D: Direction,
-    W: Generator<Output = f32>,
-    C: Generator<Output = Color>,
-    O: Generator<Output = f32>,
+    W: Generator1D<Output = f32>,
+    C: Generator1D<Output = Color>,
+    O: Generator1D<Output = f32>,
 > {
     marker: PhantomData<D>,
     boundaries: [f32; 2],
@@ -66,109 +20,109 @@ pub struct Grid<
     opacity: O,
 }
 
-impl Grid<Vectical, Constant<f32>, Constant<Color>, Constant<f32>> {
+impl Grid<Vertical, Constant1D<f32>, Constant1D<Color>, Constant1D<f32>> {
     pub fn vertical(top: f32, down: f32) -> Self {
         Self {
             marker: PhantomData,
             boundaries: [top, down],
-            width: Constant(1.),
-            color: Constant(Color::default()),
-            opacity: Constant(1.),
+            width: Constant1D(1.),
+            color: Constant1D(Color::default()),
+            opacity: Constant1D(1.),
         }
     }
 }
 
-impl Grid<Horizontal, Constant<f32>, Constant<Color>, Constant<f32>> {
+impl Grid<Horizontal, Constant1D<f32>, Constant1D<Color>, Constant1D<f32>> {
     pub fn horizontal(left: f32, right: f32) -> Self {
         Self {
             marker: PhantomData,
             boundaries: [left, right],
-            width: Constant(1.),
-            color: Constant(Color::default()),
-            opacity: Constant(1.),
+            width: Constant1D(1.),
+            color: Constant1D(Color::default()),
+            opacity: Constant1D(1.),
         }
     }
 }
 
-impl<D: Direction, C: Generator<Output = Color>, O: Generator<Output = f32>>
-    Grid<D, Constant<f32>, C, O>
+impl<D: Direction, C: Generator1D<Output = Color>, O: Generator1D<Output = f32>>
+    Grid<D, Constant1D<f32>, C, O>
 {
-    pub fn width_with<F>(self, width_fn: F) -> Grid<D, Function<F, f32>, C, O>
+    pub fn width_with<F>(self, width_fn: F) -> Grid<D, Function1D<F, f32>, C, O>
     where
         F: Fn(f32) -> f32,
     {
-        Grid::<D, Function<F, f32>, C, O> {
+        Grid::<D, Function1D<F, f32>, C, O> {
             marker: self.marker,
             boundaries: self.boundaries,
-            width: Function(width_fn),
+            width: Function1D(width_fn),
             color: self.color,
             opacity: self.opacity,
         }
     }
 }
 
-impl<D: Direction, W: Generator<Output = f32>, O: Generator<Output = f32>>
-    Grid<D, W, Constant<Color>, O>
+impl<D: Direction, W: Generator1D<Output = f32>, O: Generator1D<Output = f32>>
+    Grid<D, W, Constant1D<Color>, O>
 {
-    pub fn color_with<F>(self, color_fn: F) -> Grid<D, W, Function<F, Color>, O>
+    pub fn color_with<F>(self, color_fn: F) -> Grid<D, W, Function1D<F, Color>, O>
     where
         F: Fn(f32) -> Color,
     {
-        Grid::<D, W, Function<F, Color>, O> {
+        Grid::<D, W, Function1D<F, Color>, O> {
             marker: self.marker,
             boundaries: self.boundaries,
             width: self.width,
-            color: Function(color_fn),
+            color: Function1D(color_fn),
             opacity: self.opacity,
         }
     }
 }
 
-impl<D: Direction, W: Generator<Output = f32>, C: Generator<Output = Color>>
-    Grid<D, W, C, Constant<f32>>
+impl<D: Direction, W: Generator1D<Output = f32>, C: Generator1D<Output = Color>>
+    Grid<D, W, C, Constant1D<f32>>
 {
-    pub fn opacity_with<F>(self, opacity_fn: F) -> Grid<D, W, C, Function<F, f32>>
+    pub fn opacity_with<F>(self, opacity_fn: F) -> Grid<D, W, C, Function1D<F, f32>>
     where
         F: Fn(f32) -> f32,
     {
-        Grid::<D, W, C, Function<F, f32>> {
+        Grid::<D, W, C, Function1D<F, f32>> {
             marker: self.marker,
             boundaries: self.boundaries,
             width: self.width,
             color: self.color,
-            opacity: Function(opacity_fn),
+            opacity: Function1D(opacity_fn),
         }
     }
 }
 
-impl<D: Direction, C: Generator<Output = Color>, O: Generator<Output = f32>>
-    Grid<D, Constant<f32>, C, O>
+impl<D: Direction, C: Generator1D<Output = Color>, O: Generator1D<Output = f32>>
+    Grid<D, Constant1D<f32>, C, O>
 {
     pub fn width(self, width: f32) -> Self {
         Self {
-            width: Constant(width),
+            width: Constant1D(width),
             ..self
         }
     }
 }
 
-impl<D: Direction, W: Generator<Output = f32>, O: Generator<Output = f32>>
-    Grid<D, W, Constant<Color>, O>
+impl<D: Direction, W: Generator1D<Output = f32>, O: Generator1D<Output = f32>>
+    Grid<D, W, Constant1D<Color>, O>
 {
     pub fn color(self, color: Color) -> Self {
         Self {
-            color: Constant(color),
+            color: Constant1D(color),
             ..self
         }
     }
 }
 
-impl<D: Direction, W: Generator<Output = f32>, C: Generator<Output = Color>>
-    Grid<D, W, C, Constant<f32>>
+impl<D: Direction, W: Generator1D<Output = f32>, C: Generator1D<Output = Color>>
+    Grid<D, W, C, Constant1D<f32>>
 {
     pub fn opacity(self, opacity: f32) -> Self {
         Self {
-            opacity: Constant(opacity),
+            opacity: Constant1D(opacity),
             ..self
         }
     }
@@ -176,9 +130,9 @@ impl<D: Direction, W: Generator<Output = f32>, C: Generator<Output = Color>>
 
 impl<
     Dir: Direction,
-    W: Generator<Output = f32>,
-    C: Generator<Output = Color>,
-    O: Generator<Output = f32>,
+    W: Generator1D<Output = f32>,
+    C: Generator1D<Output = Color>,
+    O: Generator1D<Output = f32>,
 > Grid<Dir, W, C, O>
 {
     pub fn draw<D: Draw, T: Transformer + Tick>(
