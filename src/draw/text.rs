@@ -5,9 +5,9 @@ use crate::{
 };
 
 pub struct Text1D<
+    S: Generator1D<Output = f32>,
     Fmt: Generator1D<Output = String>,
     C: Generator1D<Output = Color>,
-    S: Generator1D<Output = f32>,
 > {
     direction: Function2D<fn(f32, f32) -> [f32; 2], [f32; 2]>,
     scale: S,
@@ -18,9 +18,9 @@ pub struct Text1D<
 
 impl
     Text1D<
+        Function1D<fn(f32) -> f32, f32>,
         Function1D<fn(f32) -> String, String>,
         Constant1D<Color>,
-        Function1D<fn(f32) -> f32, f32>,
     >
 {
     pub fn vertical(at: f32) -> Self {
@@ -45,16 +45,16 @@ impl
 }
 
 impl<
+    S: Generator1D<Output = f32>,
     Fmt: Generator1D<Output = String>,
     C: Generator1D<Output = Color>,
-    S: Generator1D<Output = f32>,
-> Text1D<Fmt, C, S>
+> Text1D<S, Fmt, C>
 {
-    pub fn scale_with<F>(self, scale_fn: F) -> Text1D<Fmt, C, Function1D<F, f32>>
+    pub fn scale_with<F>(self, scale_fn: F) -> Text1D<Function1D<F, f32>, Fmt, C>
     where
         F: Fn(f32) -> f32,
     {
-        Text1D::<Fmt, C, Function1D<F, f32>> {
+        Text1D::<Function1D<F, f32>, Fmt, C> {
             direction: self.direction,
             scale: Function1D(scale_fn),
             at: self.at,
@@ -63,11 +63,11 @@ impl<
         }
     }
 
-    pub fn format_with<F>(self, format_fn: F) -> Text1D<Function1D<F, String>, C, S>
+    pub fn format_with<F>(self, format_fn: F) -> Text1D<S, Function1D<F, String>, C>
     where
         F: Fn(f32) -> String,
     {
-        Text1D::<Function1D<F, String>, C, S> {
+        Text1D::<S, Function1D<F, String>, C> {
             direction: self.direction,
             scale: self.scale,
             at: self.at,
@@ -76,8 +76,8 @@ impl<
         }
     }
 
-    pub fn color(self, color: Color) -> Text1D<Fmt, Constant1D<Color>, S> {
-        Text1D::<Fmt, Constant1D<Color>, S> {
+    pub fn color(self, color: Color) -> Text1D<S, Fmt, Constant1D<Color>> {
+        Text1D::<S, Fmt, Constant1D<Color>> {
             direction: self.direction,
             scale: self.scale,
             at: self.at,
@@ -86,11 +86,11 @@ impl<
         }
     }
 
-    pub fn color_with<F>(self, color_fn: F) -> Text1D<Fmt, Function1D<F, Color>, S>
+    pub fn color_with<F>(self, color_fn: F) -> Text1D<S, Fmt, Function1D<F, Color>>
     where
         F: Fn(f32) -> Color,
     {
-        Text1D::<Fmt, Function1D<F, Color>, S> {
+        Text1D::<S, Fmt, Function1D<F, Color>> {
             direction: self.direction,
             scale: self.scale,
             at: self.at,
