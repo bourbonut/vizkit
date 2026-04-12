@@ -32,15 +32,7 @@ impl
             color: Constant1D(Color::default()),
         }
     }
-}
 
-impl
-    Text1D<
-        Function1D<fn(f32) -> String, String>,
-        Constant1D<Color>,
-        Function1D<fn(f32) -> f32, f32>,
-    >
-{
     pub fn horizontal(at: f32) -> Self {
         Self {
             direction: Function2D(|x, y| [x, y]),
@@ -70,14 +62,7 @@ impl<
             color: self.color,
         }
     }
-}
 
-impl<
-    Fmt: Generator1D<Output = String>,
-    C: Generator1D<Output = Color>,
-    S: Generator1D<Output = f32>,
-> Text1D<Fmt, C, S>
-{
     pub fn format_with<F>(self, format_fn: F) -> Text1D<Function1D<F, String>, C, S>
     where
         F: Fn(f32) -> String,
@@ -90,14 +75,7 @@ impl<
             color: self.color,
         }
     }
-}
 
-impl<
-    Fmt: Generator1D<Output = String>,
-    C: Generator1D<Output = Color>,
-    S: Generator1D<Output = f32>,
-> Text1D<Fmt, C, S>
-{
     pub fn color(self, color: Color) -> Text1D<Fmt, Constant1D<Color>, S> {
         Text1D::<Fmt, Constant1D<Color>, S> {
             direction: self.direction,
@@ -107,14 +85,7 @@ impl<
             color: Constant1D(color),
         }
     }
-}
 
-impl<
-    Fmt: Generator1D<Output = String>,
-    C: Generator1D<Output = Color>,
-    S: Generator1D<Output = f32>,
-> Text1D<Fmt, C, S>
-{
     pub fn color_with<F>(self, color_fn: F) -> Text1D<Fmt, Function1D<F, Color>, S>
     where
         F: Fn(f32) -> Color,
@@ -127,14 +98,7 @@ impl<
             color: Function1D(color_fn),
         }
     }
-}
 
-impl<
-    Fmt: Generator1D<Output = String>,
-    C: Generator1D<Output = Color>,
-    S: Generator1D<Output = f32>,
-> Text1D<Fmt, C, S>
-{
     pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[f32]) {
         for &value in values.iter() {
             let scaled = self.scale.generate(value);
@@ -195,15 +159,7 @@ impl<
             color: self.color,
         }
     }
-}
 
-impl<
-    X: Generator1D<Output = f32>,
-    Y: Generator1D<Output = f32>,
-    Fmt: Generator2D<Output = String>,
-    C: Generator2D<Output = Color>,
-> Text<X, Y, Fmt, C>
-{
     pub fn y_scale_with<F>(self, y_scale_fn: F) -> Text<X, Function1D<F, f32>, Fmt, C>
     where
         F: Fn(f32) -> f32,
@@ -215,15 +171,7 @@ impl<
             color: self.color,
         }
     }
-}
 
-impl<
-    X: Generator1D<Output = f32>,
-    Y: Generator1D<Output = f32>,
-    Fmt: Generator2D<Output = String>,
-    C: Generator2D<Output = Color>,
-> Text<X, Y, Fmt, C>
-{
     pub fn format_with<F>(self, format_fn: F) -> Text<X, Y, Function2D<F, String>, C>
     where
         F: Fn(f32, f32) -> String,
@@ -235,15 +183,7 @@ impl<
             color: self.color,
         }
     }
-}
 
-impl<
-    X: Generator1D<Output = f32>,
-    Y: Generator1D<Output = f32>,
-    Fmt: Generator2D<Output = String>,
-    C: Generator2D<Output = Color>,
-> Text<X, Y, Fmt, C>
-{
     pub fn color(self, color: Color) -> Text<X, Y, Fmt, Constant2D<Color>> {
         Text::<X, Y, Fmt, Constant2D<Color>> {
             x_scale: self.x_scale,
@@ -252,15 +192,7 @@ impl<
             color: Constant2D(color),
         }
     }
-}
 
-impl<
-    X: Generator1D<Output = f32>,
-    Y: Generator1D<Output = f32>,
-    Fmt: Generator2D<Output = String>,
-    C: Generator2D<Output = Color>,
-> Text<X, Y, Fmt, C>
-{
     pub fn color_with<F>(self, color_fn: F) -> Text<X, Y, Fmt, Function2D<F, Color>>
     where
         F: Fn(f32, f32) -> Color,
@@ -272,15 +204,7 @@ impl<
             color: Function2D(color_fn),
         }
     }
-}
 
-impl<
-    X: Generator1D<Output = f32>,
-    Y: Generator1D<Output = f32>,
-    Fmt: Generator2D<Output = String>,
-    C: Generator2D<Output = Color>,
-> Text<X, Y, Fmt, C>
-{
     pub fn draw<D: Draw>(&self, drawer: &mut D, x_values: &[f32], y_values: &[f32]) {
         for (&x_value, &y_value) in x_values.iter().zip(y_values.iter()) {
             let x_scaled = self.x_scale.generate(x_value);
