@@ -6,7 +6,7 @@ use crate::chromatic::Color;
 
 pub use self::grid::Grid;
 pub use self::line::Line;
-pub use self::text::{Text, Text1D};
+pub use self::text::{Text1D, Text2D};
 
 #[derive(Clone)]
 pub struct LineProperties {

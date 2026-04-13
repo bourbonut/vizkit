@@ -111,7 +111,7 @@ impl<
     }
 }
 
-pub struct Text<
+pub struct Text2D<
     X: Generator1D<Output = f32>,
     Y: Generator1D<Output = f32>,
     Fmt: Generator2D<Output = String>,
@@ -123,15 +123,15 @@ pub struct Text<
     color: C,
 }
 
-impl
-    Text<
+impl Default
+    for Text2D<
         Function1D<fn(f32) -> f32, f32>,
         Function1D<fn(f32) -> f32, f32>,
         Function2D<fn(f32, f32) -> String, String>,
         Constant2D<Color>,
     >
 {
-    pub fn new() -> Self {
+    fn default() -> Self {
         Self {
             x_scale: Function1D(|x| x),
             y_scale: Function1D(|y| y),
@@ -146,13 +146,13 @@ impl<
     Y: Generator1D<Output = f32>,
     Fmt: Generator2D<Output = String>,
     C: Generator2D<Output = Color>,
-> Text<X, Y, Fmt, C>
+> Text2D<X, Y, Fmt, C>
 {
-    pub fn x_scale_with<F>(self, x_scale_fn: F) -> Text<Function1D<F, f32>, Y, Fmt, C>
+    pub fn scale_x_with<F>(self, x_scale_fn: F) -> Text2D<Function1D<F, f32>, Y, Fmt, C>
     where
         F: Fn(f32) -> f32,
     {
-        Text::<Function1D<F, f32>, Y, Fmt, C> {
+        Text2D::<Function1D<F, f32>, Y, Fmt, C> {
             x_scale: Function1D(x_scale_fn),
             y_scale: self.y_scale,
             format: self.format,
@@ -160,11 +160,11 @@ impl<
         }
     }
 
-    pub fn y_scale_with<F>(self, y_scale_fn: F) -> Text<X, Function1D<F, f32>, Fmt, C>
+    pub fn scale_y_with<F>(self, y_scale_fn: F) -> Text2D<X, Function1D<F, f32>, Fmt, C>
     where
         F: Fn(f32) -> f32,
     {
-        Text::<X, Function1D<F, f32>, Fmt, C> {
+        Text2D::<X, Function1D<F, f32>, Fmt, C> {
             x_scale: self.x_scale,
             y_scale: Function1D(y_scale_fn),
             format: self.format,
@@ -172,11 +172,11 @@ impl<
         }
     }
 
-    pub fn format_with<F>(self, format_fn: F) -> Text<X, Y, Function2D<F, String>, C>
+    pub fn format_with<F>(self, format_fn: F) -> Text2D<X, Y, Function2D<F, String>, C>
     where
         F: Fn(f32, f32) -> String,
     {
-        Text::<X, Y, Function2D<F, String>, C> {
+        Text2D::<X, Y, Function2D<F, String>, C> {
             x_scale: self.x_scale,
             y_scale: self.y_scale,
             format: Function2D(format_fn),
@@ -184,8 +184,8 @@ impl<
         }
     }
 
-    pub fn color(self, color: Color) -> Text<X, Y, Fmt, Constant2D<Color>> {
-        Text::<X, Y, Fmt, Constant2D<Color>> {
+    pub fn color(self, color: Color) -> Text2D<X, Y, Fmt, Constant2D<Color>> {
+        Text2D::<X, Y, Fmt, Constant2D<Color>> {
             x_scale: self.x_scale,
             y_scale: self.y_scale,
             format: self.format,
@@ -193,11 +193,11 @@ impl<
         }
     }
 
-    pub fn color_with<F>(self, color_fn: F) -> Text<X, Y, Fmt, Function2D<F, Color>>
+    pub fn color_with<F>(self, color_fn: F) -> Text2D<X, Y, Fmt, Function2D<F, Color>>
     where
         F: Fn(f32, f32) -> Color,
     {
-        Text::<X, Y, Fmt, Function2D<F, Color>> {
+        Text2D::<X, Y, Fmt, Function2D<F, Color>> {
             x_scale: self.x_scale,
             y_scale: self.y_scale,
             format: self.format,
@@ -220,7 +220,7 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use super::{Text, Text1D};
+    use super::{Text1D, Text2D};
     use crate::chromatic::{Color, Rainbow};
     use crate::draw::{Draw, LineProperties, TextProperties};
     use crate::scale::{ScaleColor, ScaleContinuous};
@@ -241,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn test_text() {
+    fn test_text_2d() {
         let width = 400.;
         let height = 200.;
         let margin_top = 10.;
@@ -261,9 +261,9 @@ mod tests {
         let y_values = y_scale.ticks(Some(10));
 
         let mut drawer = Drawer::default();
-        Text::new()
-            .x_scale_with(|x| x_scale.apply(x))
-            .y_scale_with(|y| y_scale.apply(y))
+        Text2D::default()
+            .scale_x_with(|x| x_scale.apply(x))
+            .scale_y_with(|y| y_scale.apply(y))
             .format_with(|x, y| (x * y).to_string())
             .color_with(|_, y| color_scale.apply(y))
             .draw(&mut drawer, &x_values, &y_values);
