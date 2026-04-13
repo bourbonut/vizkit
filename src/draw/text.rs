@@ -4,6 +4,7 @@ use crate::{
     generator::{Constant1D, Constant2D, Function1D, Function2D, Generator1D, Generator2D},
 };
 
+/// It distributes text vertically or horizontally based on a specified value.
 pub struct Text1D<
     S: Generator1D<Output = f32>,
     Fmt: Generator1D<Output = String>,
@@ -23,21 +24,23 @@ impl
         Constant1D<Color>,
     >
 {
-    pub fn vertical(at: f32) -> Self {
+    /// Creates a vertical text distribution drawer.
+    pub fn vertical(x_value: f32) -> Self {
         Self {
             direction: Function2D(|x, y| [y, x]),
             scale: Function1D(|x| x),
-            at,
+            at: x_value,
             format: Function1D(|x: f32| x.to_string()),
             color: Constant1D(Color::default()),
         }
     }
 
-    pub fn horizontal(at: f32) -> Self {
+    /// Creates an horizontal text distribution drawer.
+    pub fn horizontal(y_value: f32) -> Self {
         Self {
             direction: Function2D(|x, y| [x, y]),
             scale: Function1D(|x| x),
-            at,
+            at: y_value,
             format: Function1D(|x: f32| x.to_string()),
             color: Constant1D(Color::default()),
         }
@@ -50,6 +53,7 @@ impl<
     C: Generator1D<Output = Color>,
 > Text1D<S, Fmt, C>
 {
+    /// Sets a function for scaling the distributed values.
     pub fn scale_with<F>(self, scale_fn: F) -> Text1D<Function1D<F, f32>, Fmt, C>
     where
         F: Fn(f32) -> f32,
@@ -63,6 +67,7 @@ impl<
         }
     }
 
+    /// Sets a function for generating the content of the text given the distributed values.
     pub fn format_with<F>(self, format_fn: F) -> Text1D<S, Function1D<F, String>, C>
     where
         F: Fn(f32) -> String,
@@ -76,6 +81,7 @@ impl<
         }
     }
 
+    /// Sets a constant color used as the color of the text.
     pub fn color(self, color: Color) -> Text1D<S, Fmt, Constant1D<Color>> {
         Text1D::<S, Fmt, Constant1D<Color>> {
             direction: self.direction,
@@ -86,6 +92,7 @@ impl<
         }
     }
 
+    /// Sets a function for generating the color of the text given the distributed values.
     pub fn color_with<F>(self, color_fn: F) -> Text1D<S, Fmt, Function1D<F, Color>>
     where
         F: Fn(f32) -> Color,
@@ -99,6 +106,7 @@ impl<
         }
     }
 
+    /// Draws the text given the specified values.
     pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[f32]) {
         for &value in values.iter() {
             let scaled = self.scale.generate(value);
@@ -111,6 +119,7 @@ impl<
     }
 }
 
+/// It distributes text in two directions jointly.
 pub struct Text2D<
     X: Generator1D<Output = f32>,
     Y: Generator1D<Output = f32>,
@@ -123,6 +132,8 @@ pub struct Text2D<
     color: C,
 }
 
+/// By default, scalers are equivalent to identity transformations, only the Y-values are formatted
+/// into string.
 impl Default
     for Text2D<
         Function1D<fn(f32) -> f32, f32>,
@@ -148,6 +159,7 @@ impl<
     C: Generator2D<Output = Color>,
 > Text2D<X, Y, Fmt, C>
 {
+    /// Sets a function to scale X-values.
     pub fn scale_x_with<F>(self, x_scale_fn: F) -> Text2D<Function1D<F, f32>, Y, Fmt, C>
     where
         F: Fn(f32) -> f32,
@@ -160,6 +172,7 @@ impl<
         }
     }
 
+    /// Sets a function to scale Y-values.
     pub fn scale_y_with<F>(self, y_scale_fn: F) -> Text2D<X, Function1D<F, f32>, Fmt, C>
     where
         F: Fn(f32) -> f32,
@@ -172,6 +185,7 @@ impl<
         }
     }
 
+    /// Sets a function for generating the content of the text based on X-values and Y-values.
     pub fn format_with<F>(self, format_fn: F) -> Text2D<X, Y, Function2D<F, String>, C>
     where
         F: Fn(f32, f32) -> String,
@@ -184,6 +198,7 @@ impl<
         }
     }
 
+    /// Sets a constant color used as the color of the text.
     pub fn color(self, color: Color) -> Text2D<X, Y, Fmt, Constant2D<Color>> {
         Text2D::<X, Y, Fmt, Constant2D<Color>> {
             x_scale: self.x_scale,
@@ -193,6 +208,7 @@ impl<
         }
     }
 
+    /// Sets a function for generating the color of the text based on X-values and Y-values.
     pub fn color_with<F>(self, color_fn: F) -> Text2D<X, Y, Fmt, Function2D<F, Color>>
     where
         F: Fn(f32, f32) -> Color,
@@ -205,6 +221,7 @@ impl<
         }
     }
 
+    /// Draws text on X-values and Y-values by applying the scaler functions respectively.
     pub fn draw<D: Draw>(&self, drawer: &mut D, x_values: &[f32], y_values: &[f32]) {
         for (&x_value, &y_value) in x_values.iter().zip(y_values.iter()) {
             let x_scaled = self.x_scale.generate(x_value);
