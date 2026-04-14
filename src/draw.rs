@@ -1,9 +1,11 @@
+mod axis;
 mod grid;
 mod line;
 mod text;
 
 use crate::chromatic::Color;
 
+pub use self::axis::Axis;
 pub use self::grid::Grid;
 pub use self::line::Line;
 pub use self::text::{Text1D, Text2D};
