@@ -11,6 +11,19 @@ pub use self::line::Line;
 pub use self::text::{Text1D, Text2D};
 
 #[derive(Clone)]
+pub enum Alignment {
+    Start,
+    Center,
+    End,
+}
+
+impl Default for Alignment {
+    fn default() -> Self {
+        Self::Center
+    }
+}
+
+#[derive(Clone)]
 pub struct LineProperties {
     pub start: [f32; 2],
     pub end: [f32; 2],
@@ -36,6 +49,8 @@ pub struct TextProperties {
     pub content: String,
     pub position: [f32; 2],
     pub color: Color,
+    pub align_x: Alignment,
+    pub align_y: Alignment,
 }
 
 pub trait Draw {

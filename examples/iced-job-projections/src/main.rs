@@ -1,11 +1,12 @@
 mod data;
+use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
 use iced::{
     Element,
     widget::{canvas, column, container, row, space, text, tooltip},
 };
-use vizkit::axis::Axis;
+use vizkit::draw::{Alignment, Axis, Draw, LineProperties, TextProperties};
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
@@ -43,6 +44,54 @@ struct Plot<'a> {
 impl<'a> Plot<'a> {
     fn new(data: &'a Data, margin: Margin) -> Self {
         Self { data: data, margin }
+    }
+}
+
+struct IcedFrame<'a>(&'a mut canvas::Frame);
+
+impl<'a> Deref for IcedFrame<'a> {
+    type Target = canvas::Frame;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<'a> DerefMut for IcedFrame<'a> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<'a> Draw for IcedFrame<'a> {
+    fn line(&mut self, line: LineProperties) {
+        let [r, g, b] = line.color.into();
+        self.0.stroke(
+            &canvas::Path::line(line.start.into(), line.end.into()),
+            canvas::Stroke::default()
+                .with_color(iced::Color::from([r, g, b, line.opacity]))
+                .with_width(line.width),
+        );
+    }
+
+    fn text(&mut self, text: TextProperties) {
+        let color: [f32; 3] = text.color.into();
+        self.0.fill_text(canvas::Text {
+            content: text.content,
+            position: text.position.into(),
+            color: iced::Color::from(color),
+            size: iced::Pixels(10.),
+            align_x: match text.align_x {
+                Alignment::Start => iced::Alignment::Start.into(),
+                Alignment::Center => iced::Alignment::Center.into(),
+                Alignment::End => iced::Alignment::End.into(),
+            },
+            align_y: match text.align_y {
+                Alignment::Start => iced::Alignment::Start.into(),
+                Alignment::Center => iced::Alignment::Center.into(),
+                Alignment::End => iced::Alignment::End.into(),
+            },
+            ..Default::default()
+        })
     }
 }
 
@@ -102,7 +151,8 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         bounds: iced::Rectangle,
         _cursor: iced::mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
-        let mut frame = canvas::Frame::new(renderer, bounds.size());
+        let mut iced_frame = canvas::Frame::new(renderer, bounds.size());
+        let mut frame = IcedFrame(&mut iced_frame);
         let width = bounds.width;
         let height = bounds.height;
 
@@ -132,17 +182,9 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [width - self.margin.right, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        Axis::bottom(height - self.margin.bottom).draw(&state.x_scale, |tick_line, label| {
-            frame.stroke(&line(tick_line.start, tick_line.end), stroke_color);
-            frame.fill_text(canvas::Text {
-                content: format!("{}%", (label.tick_value * 100.).round()),
-                position: label.position.into(),
-                color: text_color,
-                size: iced::Pixels(10.),
-                align_x: iced::Alignment::Center.into(),
-                ..Default::default()
-            });
-        });
+        Axis::bottom(height - self.margin.bottom)
+            .format_with(|tick| format!("{}%", (tick / 100.).round()))
+            .draw(&mut frame, &state.x_scale, None);
 
         // Grid lines
         for tick in state.x_scale.ticks(None) {
@@ -179,18 +221,9 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [self.margin.left, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        Axis::left(self.margin.left).draw(&state.y_scale, |tick_line, label| {
-            frame.stroke(&line(tick_line.start, tick_line.end), stroke_color);
-            frame.fill_text(canvas::Text {
-                content: format!("${}k", (label.tick_value / 1000.).round()),
-                position: label.position.into(),
-                color: text_color,
-                size: iced::Pixels(10.),
-                align_x: iced::Alignment::End.into(),
-                align_y: iced::Alignment::Center.into(),
-                ..Default::default()
-            });
-        });
+        Axis::left(self.margin.left)
+            .format_with(|tick| format!("${}k", (tick / 1000.).round()))
+            .draw(&mut frame, &state.y_scale, None);
 
         // Grid lines
         for tick in state.y_scale.ticks(Some(5)) {
@@ -231,7 +264,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             ),
         );
 
-        vec![frame.into_geometry()]
+        vec![iced_frame.into_geometry()]
     }
 
     fn update(

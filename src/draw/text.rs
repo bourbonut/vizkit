@@ -1,4 +1,4 @@
-use super::{Draw, TextProperties};
+use super::{Alignment, Draw, TextProperties};
 use crate::{
     chromatic::Color,
     generator::{Constant1D, Constant2D, Function1D, Function2D, Generator1D, Generator2D},
@@ -114,6 +114,8 @@ impl<
                 position: self.direction.generate(scaled, self.at),
                 content: self.format.generate(value),
                 color: self.color.generate(value),
+                align_x: Alignment::Center,
+                align_y: Alignment::Center,
             })
         }
     }
@@ -230,6 +232,8 @@ impl<
                 position: [x_scaled, y_scaled],
                 content: self.format.generate(x_value, y_value),
                 color: self.color.generate(x_value, y_value),
+                align_x: Alignment::Center,
+                align_y: Alignment::Center,
             })
         }
     }

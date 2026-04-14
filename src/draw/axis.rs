@@ -1,4 +1,4 @@
-use super::{Draw, LineProperties, TextProperties};
+use super::{Alignment, Draw, LineProperties, TextProperties};
 use crate::{
     chromatic::Color,
     generator::{Function1D, Function2D, Generator1D, Generator2D},
@@ -16,6 +16,8 @@ pub struct Axis<Fmt: Generator1D<Output = String>> {
     line_color: Color,
     line_width: f32,
     line_opacity: f32,
+    align_x: Alignment,
+    align_y: Alignment,
 }
 
 impl Axis<Function1D<fn(f32) -> String, String>> {
@@ -31,6 +33,8 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
             line_color: Color::default(),
             line_width: 1.,
             line_opacity: 1.,
+            align_x: Alignment::Center,
+            align_y: Alignment::End,
         }
     }
 
@@ -46,6 +50,8 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
             line_color: Color::default(),
             line_width: 1.,
             line_opacity: 1.,
+            align_x: Alignment::Start,
+            align_y: Alignment::Center,
         }
     }
 
@@ -61,6 +67,8 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
             line_color: Color::default(),
             line_width: 1.,
             line_opacity: 1.,
+            align_x: Alignment::Center,
+            align_y: Alignment::Start,
         }
     }
 
@@ -76,6 +84,8 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
             line_color: Color::default(),
             line_width: 1.,
             line_opacity: 1.,
+            align_x: Alignment::End,
+            align_y: Alignment::Center,
         }
     }
 }
@@ -123,6 +133,8 @@ impl<Fmt: Generator1D<Output = String>> Axis<Fmt> {
             line_color: self.line_color,
             line_width: self.line_width,
             line_opacity: self.line_opacity,
+            align_x: self.align_x,
+            align_y: self.align_y,
         }
     }
 
@@ -150,6 +162,8 @@ impl<Fmt: Generator1D<Output = String>> Axis<Fmt> {
                 ),
                 content: self.format.generate(tick_value),
                 color: self.text_color,
+                align_x: self.align_x.clone(),
+                align_y: self.align_y.clone(),
             });
         }
     }
