@@ -35,7 +35,7 @@ mod ticks;
 
 pub use self::{
     color::ScaleColor,
-    continuous::{Clamper, ScaleContinuous, Transformer},
+    continuous::{ScaleContinuous, Transformer},
     discrete::{ScaleBand, ScaleOrdinal},
     linear::Linear,
     log::{Ln, Log, Log2, Log10},

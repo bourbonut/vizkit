@@ -43,24 +43,6 @@ impl Interpolate {
     }
 }
 
-/// Enum used for clamping values
-pub enum Clamper {
-    /// Identity transformation
-    Identity,
-    /// Linear clamp (i.e. `x.clamp(a, b)`)
-    Linear { a: f32, b: f32 },
-}
-
-impl Clamper {
-    /// Returns the clamped value of the specified value.
-    pub fn clamp(&self, x: f32) -> f32 {
-        match self {
-            Self::Identity => x,
-            Self::Linear { a, b } => x.clamp(*a, *b),
-        }
-    }
-}
-
 struct BiMap {
     d0: Normalizer,
     r0: Interpolate,
@@ -121,7 +103,7 @@ pub struct ScaleContinuous<T: Transformer + Tick> {
     range: [f32; 2],
     output: BiMap,
     input: BiMap,
-    clamper: Clamper,
+    clamp: bool,
 }
 
 impl<T: Transformer + Tick> ScaleContinuous<T> {
@@ -145,25 +127,34 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
         }
     }
 
-    /// Returns a new [`ScaleContinuous`] with the specified clamper applied which takes action
-    /// before the transform step (see [`ScaleContinuous::apply`]) and after untransform step
-    /// (see [`ScaleContinuous::invert`]). Default: [`Clamper::Identity`].
-    pub fn clamper(self, clamper: Clamper) -> Self {
-        Self { clamper, ..self }
+    /// Returns a new [`ScaleContinuous`] with the specified clamp value. If `true`, it clamps the
+    /// value passed to the transform step (see [`ScaleContinuous::apply`]) and the returned value
+    /// after untransform step (see [`ScaleContinuous::invert`]) with the domain values.
+    pub fn clamp(self, clamp: bool) -> Self {
+        Self { clamp, ..self }
     }
 
     /// Given the specified value in the domain, it clamps the value, transforms it and returns the
     /// corresponding value of the range.
     pub fn apply(&self, x: f32) -> f32 {
-        self.output
-            .apply(self.transformer.transform(self.clamper.clamp(x)))
+        self.output.apply(self.transformer.transform(if self.clamp {
+            let [a, b] = self.domain;
+            x.clamp(a, b)
+        } else {
+            x
+        }))
     }
 
     /// Given the specified value in the range, it computes the corresponding value of the domain,
     /// untransforms it and returns the clamped value.
     pub fn invert(&self, y: f32) -> f32 {
-        self.clamper
-            .clamp(self.transformer.untransform(self.input.apply(y)))
+        let x = self.transformer.untransform(self.input.apply(y));
+        if self.clamp {
+            let [a, b] = self.domain;
+            x.clamp(a, b)
+        } else {
+            x
+        }
     }
 
     /// Returns approximately `count` representative values from the domain where `count` varies
@@ -192,8 +183,7 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
     /// assert_eq!(scale.invert(0.), 12.5);
     /// assert_eq!(scale.invert(1.), 16.5);
     ///
-    /// let scale = ScaleContinuous::linear().domain([12.94728, 16.24782]).range([0.,
-    /// 1.]).nice(Some(1));
+    /// let scale = ScaleContinuous::linear().domain([12.94728, 16.24782]).range([0., 1.]).nice(Some(1));
     /// assert_eq!(scale.invert(0.), 10.0);
     /// assert_eq!(scale.invert(1.), 20.0);
     /// ```
@@ -212,7 +202,7 @@ impl ScaleContinuous<Linear> {
             range: [0.0, 1.0],
             input: BiMap::default(),
             output: BiMap::default(),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
@@ -228,7 +218,7 @@ impl ScaleContinuous<Log10> {
             range,
             input: BiMap::new(&range, &domain),
             output: BiMap::new(&domain, &range),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
@@ -244,7 +234,7 @@ impl ScaleContinuous<Log2> {
             range,
             input: BiMap::new(&range, &domain),
             output: BiMap::new(&domain, &range),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
@@ -260,7 +250,7 @@ impl ScaleContinuous<Ln> {
             range,
             input: BiMap::new(&range, &domain),
             output: BiMap::new(&domain, &range),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
@@ -276,7 +266,7 @@ impl ScaleContinuous<Log> {
             range,
             input: BiMap::new(&range, &domain),
             output: BiMap::new(&domain, &range),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
@@ -291,7 +281,7 @@ impl ScaleContinuous<Power> {
             range: [0.0, 1.0],
             input: BiMap::default(),
             output: BiMap::default(),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
@@ -305,7 +295,7 @@ impl ScaleContinuous<Sqrt> {
             range: [0.0, 1.0],
             input: BiMap::default(),
             output: BiMap::default(),
-            clamper: Clamper::Identity,
+            clamp: false,
         }
     }
 }
