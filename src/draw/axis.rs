@@ -1,12 +1,12 @@
-use super::{Alignment, Draw, LineProperties, TextProperties};
+use super::{Alignment, Draw, LineProperties, Orientation, TextProperties};
 use crate::{
     chromatic::Color,
-    generator::{Function1D, Function2D, Generator1D, Generator2D},
+    generator::{Function, Generator},
     scale::{ScaleContinuous, Tick, Transformer},
 };
 
-pub struct Axis<Fmt: Generator1D<Output = String>> {
-    orientation: Function2D<fn(f32, f32) -> [f32; 2], [f32; 2]>,
+pub struct Axis<Fmt: Generator<f32, Output = String>> {
+    orientation: Orientation,
     direction: f32,
     tick_size: f32,
     at: f32,
@@ -20,15 +20,15 @@ pub struct Axis<Fmt: Generator1D<Output = String>> {
     align_y: Alignment,
 }
 
-impl Axis<Function1D<fn(f32) -> String, String>> {
+impl Axis<Function<fn(&f32) -> String, f32, String>> {
     pub fn top(y_value: f32) -> Self {
         Self {
-            orientation: Function2D(|x, y| [x, y]),
+            orientation: Orientation::Same,
             direction: -1.,
             tick_size: 7.5,
             offset: 0.5,
             at: y_value,
-            format: Function1D(|x| x.to_string()),
+            format: Function::new(|x| x.to_string()),
             text_color: Color::default(),
             line_color: Color::default(),
             line_width: 1.,
@@ -40,12 +40,12 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
 
     pub fn right(x_value: f32) -> Self {
         Self {
-            orientation: Function2D(|x, y| [y, x]),
+            orientation: Orientation::Flip,
             direction: 1.,
             tick_size: 7.5,
             offset: 0.5,
             at: x_value,
-            format: Function1D(|x| x.to_string()),
+            format: Function::new(|x| x.to_string()),
             text_color: Color::default(),
             line_color: Color::default(),
             line_width: 1.,
@@ -57,12 +57,12 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
 
     pub fn bottom(y_value: f32) -> Self {
         Self {
-            orientation: Function2D(|x, y| [x, y]),
+            orientation: Orientation::Same,
             direction: 1.,
             tick_size: 7.5,
             offset: 0.5,
             at: y_value,
-            format: Function1D(|x| x.to_string()),
+            format: Function::new(|x| x.to_string()),
             text_color: Color::default(),
             line_color: Color::default(),
             line_width: 1.,
@@ -74,12 +74,12 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
 
     pub fn left(x_value: f32) -> Self {
         Self {
-            orientation: Function2D(|x, y| [y, x]),
+            orientation: Orientation::Flip,
             direction: -1.,
             tick_size: 7.5,
             offset: 0.5,
             at: x_value,
-            format: Function1D(|x| x.to_string()),
+            format: Function::new(|x| x.to_string()),
             text_color: Color::default(),
             line_color: Color::default(),
             line_width: 1.,
@@ -90,7 +90,7 @@ impl Axis<Function1D<fn(f32) -> String, String>> {
     }
 }
 
-impl<Fmt: Generator1D<Output = String>> Axis<Fmt> {
+impl<Fmt: Generator<f32, Output = String>> Axis<Fmt> {
     pub fn tick_size(self, tick_size: f32) -> Self {
         Self { tick_size, ..self }
     }
@@ -118,17 +118,17 @@ impl<Fmt: Generator1D<Output = String>> Axis<Fmt> {
         }
     }
 
-    pub fn format_with<F>(self, format_fn: F) -> Axis<Function1D<F, String>>
+    pub fn format_with<F>(self, format_fn: F) -> Axis<Function<F, f32, String>>
     where
-        F: Fn(f32) -> String,
+        F: Fn(&f32) -> String,
     {
-        Axis::<Function1D<F, String>> {
+        Axis::<Function<F, f32, String>> {
             orientation: self.orientation,
             direction: self.direction,
             tick_size: self.tick_size,
             offset: self.offset,
             at: self.at,
-            format: Function1D(format_fn),
+            format: Function::new(format_fn),
             text_color: self.text_color,
             line_color: self.line_color,
             line_width: self.line_width,
@@ -147,20 +147,20 @@ impl<Fmt: Generator1D<Output = String>> Axis<Fmt> {
         for tick_value in scaler.ticks(count) {
             let tick_coord = scaler.apply(tick_value);
             drawer.line(LineProperties {
-                start: self.orientation.generate(tick_coord, self.at),
+                start: self.orientation.apply(tick_coord, self.at),
                 end: self
                     .orientation
-                    .generate(tick_coord, self.at + self.direction * self.tick_size),
+                    .apply(tick_coord, self.at + self.direction * self.tick_size),
                 color: self.line_color,
                 width: self.line_width,
                 opacity: self.line_opacity,
             });
             drawer.text(TextProperties {
-                position: self.orientation.generate(
+                position: self.orientation.apply(
                     tick_coord,
                     self.at + self.direction * (self.tick_size + self.offset),
                 ),
-                content: self.format.generate(tick_value),
+                content: self.format.generate(&tick_value),
                 color: self.text_color,
                 align_x: self.align_x.clone(),
                 align_y: self.align_y.clone(),
