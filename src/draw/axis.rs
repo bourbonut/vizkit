@@ -1,26 +1,24 @@
-use super::{Alignment, Draw, LineProperties, Orientation, TextProperties};
+use super::{
+    Alignment, Draw, LineAttribs, LineProperties, Orientation, TextAttrbs, TextProperties,
+};
 use crate::{
     chromatic::Color,
-    generator::{Function, Generator},
+    generator::Generator,
     scale::{ScaleContinuous, Tick, Transformer},
 };
 
-pub struct Axis<Fmt: Generator<f32, Output = String>> {
+pub struct Axis {
     orientation: Orientation,
     direction: f32,
     tick_size: f32,
     at: f32,
     offset: f32,
-    format: Fmt,
-    text_color: Color,
-    line_color: Color,
-    line_width: f32,
-    line_opacity: f32,
+    count: Option<usize>,
     align_x: Alignment,
     align_y: Alignment,
 }
 
-impl Axis<Function<fn(&f32) -> String, f32, String>> {
+impl Axis {
     pub fn top(y_value: f32) -> Self {
         Self {
             orientation: Orientation::Same,
@@ -28,11 +26,7 @@ impl Axis<Function<fn(&f32) -> String, f32, String>> {
             tick_size: 7.5,
             offset: 0.5,
             at: y_value,
-            format: Function::new(|x| x.to_string()),
-            text_color: Color::default(),
-            line_color: Color::default(),
-            line_width: 1.,
-            line_opacity: 1.,
+            count: None,
             align_x: Alignment::Center,
             align_y: Alignment::End,
         }
@@ -45,11 +39,7 @@ impl Axis<Function<fn(&f32) -> String, f32, String>> {
             tick_size: 7.5,
             offset: 0.5,
             at: x_value,
-            format: Function::new(|x| x.to_string()),
-            text_color: Color::default(),
-            line_color: Color::default(),
-            line_width: 1.,
-            line_opacity: 1.,
+            count: None,
             align_x: Alignment::Start,
             align_y: Alignment::Center,
         }
@@ -62,11 +52,7 @@ impl Axis<Function<fn(&f32) -> String, f32, String>> {
             tick_size: 7.5,
             offset: 0.5,
             at: y_value,
-            format: Function::new(|x| x.to_string()),
-            text_color: Color::default(),
-            line_color: Color::default(),
-            line_width: 1.,
-            line_opacity: 1.,
+            count: None,
             align_x: Alignment::Center,
             align_y: Alignment::Start,
         }
@@ -79,18 +65,14 @@ impl Axis<Function<fn(&f32) -> String, f32, String>> {
             tick_size: 7.5,
             offset: 0.5,
             at: x_value,
-            format: Function::new(|x| x.to_string()),
-            text_color: Color::default(),
-            line_color: Color::default(),
-            line_width: 1.,
-            line_opacity: 1.,
+            count: None,
             align_x: Alignment::End,
             align_y: Alignment::Center,
         }
     }
 }
 
-impl<Fmt: Generator<f32, Output = String>> Axis<Fmt> {
+impl Axis {
     pub fn tick_size(self, tick_size: f32) -> Self {
         Self { tick_size, ..self }
     }
@@ -99,69 +81,46 @@ impl<Fmt: Generator<f32, Output = String>> Axis<Fmt> {
         Self { offset, ..self }
     }
 
-    pub fn text_color(self, text_color: Color) -> Self {
-        Self { text_color, ..self }
+    pub fn count(self, count: Option<usize>) -> Self {
+        Self { count, ..self }
     }
 
-    pub fn line_color(self, line_color: Color) -> Self {
-        Self { line_color, ..self }
-    }
-
-    pub fn line_width(self, line_width: f32) -> Self {
-        Self { line_width, ..self }
-    }
-
-    pub fn line_opacity(self, line_opacity: f32) -> Self {
-        Self {
-            line_opacity,
-            ..self
-        }
-    }
-
-    pub fn format_with<F>(self, format_fn: F) -> Axis<Function<F, f32, String>>
-    where
-        F: Fn(&f32) -> String,
-    {
-        Axis::<Function<F, f32, String>> {
-            orientation: self.orientation,
-            direction: self.direction,
-            tick_size: self.tick_size,
-            offset: self.offset,
-            at: self.at,
-            format: Function::new(format_fn),
-            text_color: self.text_color,
-            line_color: self.line_color,
-            line_width: self.line_width,
-            line_opacity: self.line_opacity,
-            align_x: self.align_x,
-            align_y: self.align_y,
-        }
-    }
-
-    pub fn draw<D: Draw, T: Transformer + Tick>(
+    pub fn draw<D, T, StrokeColor, StrokeWidth, StrokeOpacity, Attribs, Formatter, FillColor>(
         &self,
         drawer: &mut D,
         scaler: &ScaleContinuous<T>,
-        count: Option<usize>,
-    ) {
-        for tick_value in scaler.ticks(count) {
+        line_attrbs: &LineAttribs<f32, StrokeColor, StrokeWidth, StrokeOpacity>,
+        text_attrbs: Attribs,
+    ) where
+        D: Draw,
+        T: Transformer + Tick,
+        StrokeColor: Generator<f32, Output = Color>,
+        StrokeWidth: Generator<f32, Output = f32>,
+        StrokeOpacity: Generator<f32, Output = f32>,
+        Attribs: Into<TextAttrbs<f32, Formatter, FillColor>>,
+        Formatter: Fn(&f32) -> String,
+        FillColor: Generator<f32, Output = Color>,
+        TextAttrbs<f32, Formatter, FillColor>: From<Attribs>,
+    {
+        let text_attrbs: TextAttrbs<f32, Formatter, FillColor> = text_attrbs.into();
+        for tick_value in scaler.ticks(self.count) {
             let tick_coord = scaler.apply(tick_value);
             drawer.line(LineProperties {
                 start: self.orientation.apply(tick_coord, self.at),
                 end: self
                     .orientation
                     .apply(tick_coord, self.at + self.direction * self.tick_size),
-                color: self.line_color,
-                width: self.line_width,
-                opacity: self.line_opacity,
+                color: line_attrbs.color.generate(&tick_value),
+                width: line_attrbs.width.generate(&tick_value),
+                opacity: line_attrbs.opacity.generate(&tick_value),
             });
             drawer.text(TextProperties {
                 position: self.orientation.apply(
                     tick_coord,
                     self.at + self.direction * (self.tick_size + self.offset),
                 ),
-                content: self.format.generate(&tick_value),
-                color: self.text_color,
+                content: (text_attrbs.formatter)(&tick_value),
+                color: text_attrbs.color.generate(&tick_value),
                 align_x: self.align_x.clone(),
                 align_y: self.align_y.clone(),
             });
@@ -172,7 +131,7 @@ impl<Fmt: Generator<f32, Output = String>> Axis<Fmt> {
 #[cfg(test)]
 mod tests {
     use super::Axis;
-    use crate::draw::{Draw, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineAttribs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -201,7 +160,9 @@ mod tests {
             .range([0., width]);
 
         let mut drawer = Drawer::default();
-        Axis::bottom(height).draw(&mut drawer, &scale, None);
+        Axis::bottom(height).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+            x.to_string()
+        });
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], line.end[0]);
@@ -261,7 +222,9 @@ mod tests {
             .range([0., width]);
 
         let mut drawer = Drawer::default();
-        Axis::top(margin_top).draw(&mut drawer, &scale, None);
+        Axis::top(margin_top).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+            x.to_string()
+        });
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], line.end[0]);
@@ -321,7 +284,9 @@ mod tests {
             .range([height, 0.]);
 
         let mut drawer = Drawer::default();
-        Axis::left(margin_left).draw(&mut drawer, &scale, None);
+        Axis::left(margin_left).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+            x.to_string()
+        });
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], margin_left);
@@ -381,7 +346,9 @@ mod tests {
             .range([height, 0.]);
 
         let mut drawer = Drawer::default();
-        Axis::right(width).draw(&mut drawer, &scale, None);
+        Axis::right(width).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+            x.to_string()
+        });
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], width);
