@@ -6,7 +6,7 @@ use iced::{
     Element,
     widget::{canvas, column, container, row, space, text, tooltip},
 };
-use vizkit::draw::{Alignment, Axis, Draw, LineProperties, TextProperties};
+use vizkit::draw::{Alignment, Axis, Draw, LineAttrbs, LineProperties, TextProperties};
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
@@ -182,9 +182,12 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [width - self.margin.right, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        Axis::bottom(height - self.margin.bottom)
-            .format_with(|tick| format!("{}%", (tick / 100.).round()))
-            .draw(&mut frame, &state.x_scale, None);
+        Axis::bottom(height - self.margin.bottom).draw(
+            &mut frame,
+            &state.x_scale,
+            &LineAttrbs::default(),
+            |tick: &f32| format!("{}%", (tick * 100.).round()),
+        );
 
         // Grid lines
         for tick in state.x_scale.ticks(None) {
@@ -221,9 +224,12 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [self.margin.left, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        Axis::left(self.margin.left)
-            .format_with(|tick| format!("${}k", (tick / 1000.).round()))
-            .draw(&mut frame, &state.y_scale, None);
+        Axis::left(self.margin.left).draw(
+            &mut frame,
+            &state.y_scale,
+            &LineAttrbs::default(),
+            |tick: &f32| format!("${}k", (tick / 1000.).round()),
+        );
 
         // Grid lines
         for tick in state.y_scale.ticks(Some(5)) {
