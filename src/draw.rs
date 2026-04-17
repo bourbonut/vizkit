@@ -1,27 +1,18 @@
 mod axis;
 mod grid;
 mod line;
+mod line_attrbs;
 mod text;
+mod text_attrbs;
 
 use crate::chromatic::Color;
 
 pub use self::axis::Axis;
 pub use self::grid::Grid;
 pub use self::line::Line;
+pub use self::line_attrbs::LineAttribs;
 pub use self::text::{Text1D, Text2D};
-
-#[derive(Clone)]
-pub enum Alignment {
-    Start,
-    Center,
-    End,
-}
-
-impl Default for Alignment {
-    fn default() -> Self {
-        Self::Center
-    }
-}
+pub use self::text_attrbs::{Alignment, TextAttrbs};
 
 #[derive(Clone)]
 pub struct LineProperties {
