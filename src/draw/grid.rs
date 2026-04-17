@@ -1,6 +1,6 @@
 use super::{Draw, LineProperties};
 use crate::{
-    draw::{LineAttribs, Orientation},
+    draw::{LineAttrbs, Orientation},
     generator::Generator,
 };
 use std::marker::PhantomData;
@@ -43,7 +43,7 @@ where
         &self,
         drawer: &mut D,
         values: &[Data],
-        line_attrbs: &LineAttribs<Data, StrokeColor, StrokeWidth, StrokeOpacity>,
+        line_attrbs: &LineAttrbs<Data, StrokeColor, StrokeWidth, StrokeOpacity>,
     ) where
         D: Draw,
         StrokeColor: Generator<Data, Output = Color>,
@@ -67,7 +67,7 @@ where
 mod tests {
     use super::Grid;
     use crate::chromatic::Color;
-    use crate::draw::{Draw, LineAttribs, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineAttrbs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -101,7 +101,7 @@ mod tests {
         Grid::vertical(margin_top, height - margin_bottom, |x| scale.apply(*x)).draw(
             &mut drawer,
             &values,
-            &LineAttribs::default()
+            &LineAttrbs::default()
                 .width_with(|x| x / 50.)
                 .color_with(|x| Color([x / 50.; 3]))
                 .opacity_with(|x| x / 50.),

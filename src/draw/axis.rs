@@ -1,6 +1,4 @@
-use super::{
-    Alignment, Draw, LineAttribs, LineProperties, Orientation, TextAttrbs, TextProperties,
-};
+use super::{Alignment, Draw, LineAttrbs, LineProperties, Orientation, TextAttrbs, TextProperties};
 use crate::{
     chromatic::Color,
     generator::Generator,
@@ -89,7 +87,7 @@ impl Axis {
         &self,
         drawer: &mut D,
         scaler: &ScaleContinuous<T>,
-        line_attrbs: &LineAttribs<f32, StrokeColor, StrokeWidth, StrokeOpacity>,
+        line_attrbs: &LineAttrbs<f32, StrokeColor, StrokeWidth, StrokeOpacity>,
         text_attrbs: Attribs,
     ) where
         D: Draw,
@@ -131,7 +129,7 @@ impl Axis {
 #[cfg(test)]
 mod tests {
     use super::Axis;
-    use crate::draw::{Draw, LineAttribs, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineAttrbs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -160,7 +158,7 @@ mod tests {
             .range([0., width]);
 
         let mut drawer = Drawer::default();
-        Axis::bottom(height).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+        Axis::bottom(height).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
             x.to_string()
         });
 
@@ -222,7 +220,7 @@ mod tests {
             .range([0., width]);
 
         let mut drawer = Drawer::default();
-        Axis::top(margin_top).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+        Axis::top(margin_top).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
             x.to_string()
         });
 
@@ -284,7 +282,7 @@ mod tests {
             .range([height, 0.]);
 
         let mut drawer = Drawer::default();
-        Axis::left(margin_left).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+        Axis::left(margin_left).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
             x.to_string()
         });
 
@@ -346,7 +344,7 @@ mod tests {
             .range([height, 0.]);
 
         let mut drawer = Drawer::default();
-        Axis::right(width).draw(&mut drawer, &scale, &LineAttribs::default(), |x: &f32| {
+        Axis::right(width).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
             x.to_string()
         });
 
