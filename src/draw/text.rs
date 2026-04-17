@@ -1,189 +1,97 @@
 use std::marker::PhantomData;
 
-use super::{Alignment, Draw, Orientation, TextProperties};
+use super::{Draw, TextProperties};
 use crate::{
     chromatic::Color,
+    draw::TextAttrbs,
     generator::{Constant, Function, Generator},
 };
 
-/// It distributes text vertically or horizontally based on a specified value.
-pub struct Text1D<Data, S, Fmt, C>
+/// It distributes text in two directions jointly.
+pub struct Text<Data, ProjectionX, ProjectionY>
 where
-    S: Generator<Data, Output = f32>,
-    Fmt: Generator<Data, Output = String>,
-    C: Generator<Data, Output = Color>,
+    ProjectionX: Generator<Data, Output = f32>,
+    ProjectionY: Generator<Data, Output = f32>,
 {
-    data: PhantomData<Data>,
-    orientation: Orientation,
-    scale: S,
-    at: f32,
-    format: Fmt,
-    color: C,
+    projection_x: ProjectionX,
+    projection_y: ProjectionY,
+    marker: PhantomData<Data>,
 }
 
-impl<S, Fmt, Data>
-    Text1D<Data, Function<S, Data, f32>, Function<Fmt, Data, String>, Constant<Color>>
+impl<Data, ProjectionX, ProjectionY>
+    Text<Data, Function<ProjectionX, Data, f32>, Function<ProjectionY, Data, f32>>
 where
-    S: Fn(&Data) -> f32,
-    Fmt: Fn(&Data) -> String,
+    ProjectionX: Fn(&Data) -> f32,
+    ProjectionY: Fn(&Data) -> f32,
+{
+    pub fn new(projection_x: ProjectionX, projection_y: ProjectionY) -> Self {
+        Text {
+            projection_x: Function::new(projection_x),
+            projection_y: Function::new(projection_y),
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<Data, ProjectionY> Text<Data, Constant<f32>, Function<ProjectionY, Data, f32>>
+where
+    ProjectionY: Fn(&Data) -> f32,
 {
     /// Creates a vertical text distribution drawer.
-    pub fn vertical(x_value: f32, scale_fn: S, format_fn: Fmt) -> Self {
-        Self {
-            data: PhantomData,
-            orientation: Orientation::Flip,
-            scale: Function::new(scale_fn),
-            at: x_value,
-            format: Function::new(format_fn),
-            color: Constant(Color::default()),
+    pub fn vertical(x_value: f32, projection_y: ProjectionY) -> Self {
+        Text {
+            projection_x: Constant(x_value),
+            projection_y: Function::new(projection_y),
+            marker: PhantomData,
         }
     }
+}
 
+impl<Data, ProjectionX> Text<Data, Function<ProjectionX, Data, f32>, Constant<f32>>
+where
+    ProjectionX: Fn(&Data) -> f32,
+{
     /// Creates an horizontal text distribution drawer.
-    pub fn horizontal(y_value: f32, scale_fn: S, format_fn: Fmt) -> Self {
-        Self {
-            data: PhantomData,
-            orientation: Orientation::Same,
-            scale: Function::new(scale_fn),
-            at: y_value,
-            format: Function::new(format_fn),
-            color: Constant(Color::default()),
+    pub fn horizontal(
+        projection_x: ProjectionX,
+        y_value: f32,
+    ) -> Text<Data, Function<ProjectionX, Data, f32>, Constant<f32>> {
+        Text {
+            projection_x: Function::new(projection_x),
+            projection_y: Constant(y_value),
+            marker: PhantomData,
         }
     }
 }
 
-impl<Data, S, Fmt, C> Text1D<Data, S, Fmt, C>
+impl<Data, ProjectionX, ProjectionY> Text<Data, ProjectionX, ProjectionY>
 where
-    S: Generator<Data, Output = f32>,
-    Fmt: Generator<Data, Output = String>,
-    C: Generator<Data, Output = Color>,
+    ProjectionX: Generator<Data, Output = f32>,
+    ProjectionY: Generator<Data, Output = f32>,
 {
-    /// Sets a constant color used as the color of the text.
-    pub fn color(self, color: Color) -> Text1D<Data, S, Fmt, Constant<Color>> {
-        Text1D::<Data, S, Fmt, Constant<Color>> {
-            data: self.data,
-            orientation: self.orientation,
-            scale: self.scale,
-            at: self.at,
-            format: self.format,
-            color: Constant(color),
-        }
-    }
-
-    /// Sets a function for generating the color of the text given the distributed values.
-    pub fn color_with<F>(self, color_fn: F) -> Text1D<Data, S, Fmt, Function<F, Data, Color>>
-    where
-        F: Fn(&Data) -> Color,
-    {
-        Text1D::<Data, S, Fmt, Function<F, Data, Color>> {
-            data: self.data,
-            orientation: self.orientation,
-            scale: self.scale,
-            at: self.at,
-            format: self.format,
-            color: Function::new(color_fn),
-        }
-    }
-
-    /// Draws the text given the specified values.
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data]) {
-        for value in values.iter() {
-            let scaled = self.scale.generate(value);
-            drawer.text(TextProperties {
-                position: self.orientation.apply(scaled, self.at),
-                content: self.format.generate(value),
-                color: self.color.generate(value),
-                align_x: Alignment::Center,
-                align_y: Alignment::Center,
-            })
-        }
-    }
-}
-
-/// It distributes text in two directions jointly.
-pub struct Text2D<Data, X, Y, Fmt, C>
-where
-    X: Generator<Data, Output = f32>,
-    Y: Generator<Data, Output = f32>,
-    Fmt: Generator<Data, Output = String>,
-    C: Generator<Data, Output = Color>,
-{
-    data: PhantomData<Data>,
-    x_scale: X,
-    y_scale: Y,
-    format: Fmt,
-    color: C,
-}
-
-/// By default, scalers are equivalent to identity transformations, only the Y-values are formatted
-/// into string.
-impl<Data, X, Y, Fmt>
-    Text2D<
-        Data,
-        Function<X, Data, f32>,
-        Function<Y, Data, f32>,
-        Function<Fmt, Data, String>,
-        Constant<Color>,
-    >
-where
-    X: Fn(&Data) -> f32,
-    Y: Fn(&Data) -> f32,
-    Fmt: Fn(&Data) -> String,
-{
-    pub fn new(x_fn: X, y_fn: Y, format_fn: Fmt) -> Self {
-        Self {
-            data: PhantomData,
-            x_scale: Function::new(x_fn),
-            y_scale: Function::new(y_fn),
-            format: Function::new(format_fn),
-            color: Constant(Color::default()),
-        }
-    }
-}
-
-impl<Data, X, Y, Fmt, C> Text2D<Data, X, Y, Fmt, C>
-where
-    X: Generator<Data, Output = f32>,
-    Y: Generator<Data, Output = f32>,
-    Fmt: Generator<Data, Output = String>,
-    C: Generator<Data, Output = Color>,
-{
-    /// Sets a constant color used as the color of the text.
-    pub fn color(self, color: Color) -> Text2D<Data, X, Y, Fmt, Constant<Color>> {
-        Text2D::<Data, X, Y, Fmt, Constant<Color>> {
-            data: self.data,
-            x_scale: self.x_scale,
-            y_scale: self.y_scale,
-            format: self.format,
-            color: Constant(color),
-        }
-    }
-
-    /// Sets a function for generating the color of the text based on X-values and Y-values.
-    pub fn color_with<F>(self, color_fn: F) -> Text2D<Data, X, Y, Fmt, Function<F, Data, Color>>
-    where
-        F: Fn(&Data) -> Color,
-    {
-        Text2D::<Data, X, Y, Fmt, Function<F, Data, Color>> {
-            data: self.data,
-            x_scale: self.x_scale,
-            y_scale: self.y_scale,
-            format: self.format,
-            color: Function::new(color_fn),
-        }
-    }
-
     /// Draws text on X-values and Y-values by applying the scaler functions respectively.
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data]) {
+    pub fn draw<D, Formatter, FillColor, Attribs>(
+        &self,
+        drawer: &mut D,
+        values: &[Data],
+        text_attrbs: Attribs,
+    ) where
+        D: Draw,
+        Attribs: Into<TextAttrbs<Data, Formatter, FillColor>>,
+        Formatter: Fn(&Data) -> String,
+        FillColor: Generator<Data, Output = Color>,
+        TextAttrbs<Data, Formatter, FillColor>: From<Attribs>,
+    {
+        let text_attrbs: TextAttrbs<Data, Formatter, FillColor> = text_attrbs.into();
         for value in values.iter() {
-            let x_scaled = self.x_scale.generate(value);
-            let y_scaled = self.y_scale.generate(value);
+            let x_projected = self.projection_x.generate(value);
+            let y_projected = self.projection_y.generate(value);
             drawer.text(TextProperties {
-                position: [x_scaled, y_scaled],
-                content: self.format.generate(value),
-                color: self.color.generate(value),
-                align_x: Alignment::Center,
-                align_y: Alignment::Center,
+                position: [x_projected, y_projected],
+                content: (text_attrbs.formatter)(value),
+                color: text_attrbs.color.generate(value),
+                align_x: text_attrbs.align_x.clone(),
+                align_y: text_attrbs.align_y.clone(),
             })
         }
     }
@@ -191,9 +99,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::{Text1D, Text2D};
+    use super::Text;
     use crate::chromatic::{Color, Rainbow};
-    use crate::draw::{Draw, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineProperties, TextAttrbs, TextProperties};
     use crate::scale::{ScaleColor, ScaleContinuous};
 
     #[derive(Default)]
@@ -243,13 +151,16 @@ mod tests {
             .collect();
 
         let mut drawer = Drawer::default();
-        Text2D::new(
+        Text::new(
             |pair: &Pair| x_scale.apply(pair.x),
             |pair: &Pair| y_scale.apply(pair.y),
-            |pair: &Pair| (pair.x * pair.y).to_string(),
         )
-        .color_with(|pair| color_scale.apply(pair.y))
-        .draw(&mut drawer, &pairs);
+        .draw(
+            &mut drawer,
+            &pairs,
+            TextAttrbs::new(|pair: &Pair| (pair.x * pair.y).to_string())
+                .color_with(|pair| color_scale.apply(pair.y)),
+        );
 
         assert_eq!(drawer.texts.len(), y_values.len());
 
@@ -281,13 +192,11 @@ mod tests {
         let values = scale.ticks(None);
 
         let mut drawer = Drawer::default();
-        Text1D::horizontal(
-            height - margin_bottom,
-            |x| scale.apply(*x),
-            |x| (*x / 50.).to_string(),
-        )
-        .color_with(|x| Color([x / 50.; 3]))
-        .draw(&mut drawer, &values);
+        Text::horizontal(|x| scale.apply(*x), height - margin_bottom).draw(
+            &mut drawer,
+            &values,
+            TextAttrbs::new(|x: &f32| (*x / 50.).to_string()).color_with(|x| Color([x / 50.; 3])),
+        );
 
         assert_eq!(drawer.texts.len(), values.len());
 

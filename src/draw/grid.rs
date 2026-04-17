@@ -1,154 +1,63 @@
 use super::{Draw, LineProperties};
 use crate::{
-    draw::Orientation,
-    generator::{Constant, Function, Generator},
+    draw::{LineAttribs, Orientation},
+    generator::Generator,
 };
 use std::marker::PhantomData;
 
 use crate::chromatic::Color;
 
-pub struct Grid<Data, S, W, C, O>
+pub struct Grid<Data, Projection>
 where
-    S: Generator<Data, Output = f32>,
-    W: Generator<Data, Output = f32>,
-    C: Generator<Data, Output = Color>,
-    O: Generator<Data, Output = f32>,
+    Projection: Fn(&Data) -> f32,
 {
-    data: PhantomData<Data>,
+    projection: Projection,
     orientation: Orientation,
     boundaries: [f32; 2],
-    scale: S,
-    width: W,
-    color: C,
-    opacity: O,
+    marker: PhantomData<Data>,
 }
 
-impl<F, Data> Grid<Data, Function<F, Data, f32>, Constant<f32>, Constant<Color>, Constant<f32>>
+impl<Data, Projection> Grid<Data, Projection>
 where
-    F: Fn(&Data) -> f32,
+    Projection: Fn(&Data) -> f32,
 {
-    pub fn vertical(top: f32, down: f32, scale_fn: F) -> Self {
+    pub fn vertical(top: f32, down: f32, projection: Projection) -> Self {
         Self {
-            data: PhantomData,
             orientation: Orientation::Same,
             boundaries: [top, down],
-            scale: Function::new(scale_fn),
-            width: Constant(1.),
-            color: Constant(Color::default()),
-            opacity: Constant(1.),
+            projection: projection,
+            marker: PhantomData,
         }
     }
 
-    pub fn horizontal(left: f32, right: f32, scale_fn: F) -> Self {
+    pub fn horizontal(left: f32, right: f32, projection: Projection) -> Self {
         Self {
-            data: PhantomData,
             orientation: Orientation::Flip,
             boundaries: [left, right],
-            scale: Function::new(scale_fn),
-            width: Constant(1.),
-            color: Constant(Color::default()),
-            opacity: Constant(1.),
+            projection: projection,
+            marker: PhantomData,
         }
     }
-}
 
-impl<Data, S, W, C, O> Grid<Data, S, W, C, O>
-where
-    S: Generator<Data, Output = f32>,
-    W: Generator<Data, Output = f32>,
-    C: Generator<Data, Output = Color>,
-    O: Generator<Data, Output = f32>,
-{
-    pub fn width_with<F>(self, width_fn: F) -> Grid<Data, S, Function<F, Data, f32>, C, O>
-    where
-        F: Fn(&Data) -> f32,
+    pub fn draw<D, StrokeColor, StrokeWidth, StrokeOpacity>(
+        &self,
+        drawer: &mut D,
+        values: &[Data],
+        line_attrbs: &LineAttribs<Data, StrokeColor, StrokeWidth, StrokeOpacity>,
+    ) where
+        D: Draw,
+        StrokeColor: Generator<Data, Output = Color>,
+        StrokeWidth: Generator<Data, Output = f32>,
+        StrokeOpacity: Generator<Data, Output = f32>,
     {
-        Grid::<Data, S, Function<F, Data, f32>, C, O> {
-            data: self.data,
-            orientation: self.orientation,
-            boundaries: self.boundaries,
-            scale: self.scale,
-            width: Function::new(width_fn),
-            color: self.color,
-            opacity: self.opacity,
-        }
-    }
-
-    pub fn color_with<F>(self, color_fn: F) -> Grid<Data, S, W, Function<F, Data, Color>, O>
-    where
-        F: Fn(&Data) -> Color,
-    {
-        Grid::<Data, S, W, Function<F, Data, Color>, O> {
-            data: self.data,
-            orientation: self.orientation,
-            boundaries: self.boundaries,
-            scale: self.scale,
-            width: self.width,
-            color: Function::new(color_fn),
-            opacity: self.opacity,
-        }
-    }
-
-    pub fn opacity_with<F>(self, opacity_fn: F) -> Grid<Data, S, W, C, Function<F, Data, f32>>
-    where
-        F: Fn(&Data) -> f32,
-    {
-        Grid::<Data, S, W, C, Function<F, Data, f32>> {
-            data: self.data,
-            orientation: self.orientation,
-            boundaries: self.boundaries,
-            scale: self.scale,
-            width: self.width,
-            color: self.color,
-            opacity: Function::new(opacity_fn),
-        }
-    }
-
-    pub fn width(self, width: f32) -> Grid<Data, S, Constant<f32>, C, O> {
-        Grid::<Data, S, Constant<f32>, C, O> {
-            data: self.data,
-            orientation: self.orientation,
-            boundaries: self.boundaries,
-            scale: self.scale,
-            width: Constant(width),
-            color: self.color,
-            opacity: self.opacity,
-        }
-    }
-
-    pub fn color(self, color: Color) -> Grid<Data, S, W, Constant<Color>, O> {
-        Grid::<Data, S, W, Constant<Color>, O> {
-            data: self.data,
-            orientation: self.orientation,
-            boundaries: self.boundaries,
-            scale: self.scale,
-            width: self.width,
-            color: Constant(color),
-            opacity: self.opacity,
-        }
-    }
-
-    pub fn opacity(self, opacity: f32) -> Grid<Data, S, W, C, Constant<f32>> {
-        Grid::<Data, S, W, C, Constant<f32>> {
-            data: self.data,
-            orientation: self.orientation,
-            boundaries: self.boundaries,
-            scale: self.scale,
-            width: self.width,
-            color: self.color,
-            opacity: Constant(opacity),
-        }
-    }
-
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data]) {
         for value in values.iter() {
-            let scaled = self.scale.generate(value);
+            let projected = (self.projection)(value);
             drawer.line(LineProperties {
-                start: self.orientation.apply(scaled, self.boundaries[0]),
-                end: self.orientation.apply(scaled, self.boundaries[1]),
-                color: self.color.generate(value),
-                width: self.width.generate(value),
-                opacity: self.opacity.generate(value),
+                start: self.orientation.apply(projected, self.boundaries[0]),
+                end: self.orientation.apply(projected, self.boundaries[1]),
+                color: line_attrbs.color.generate(value),
+                width: line_attrbs.width.generate(value),
+                opacity: line_attrbs.opacity.generate(value),
             });
         }
     }
@@ -158,7 +67,7 @@ where
 mod tests {
     use super::Grid;
     use crate::chromatic::Color;
-    use crate::draw::{Draw, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineAttribs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -189,11 +98,14 @@ mod tests {
         let values = scale.ticks(None);
 
         let mut drawer = Drawer::default();
-        Grid::vertical(margin_top, height - margin_bottom, |x| scale.apply(*x))
-            .width_with(|x| x / 50.)
-            .color_with(|x| Color([x / 50.; 3]))
-            .opacity_with(|x| x / 50.)
-            .draw(&mut drawer, &values);
+        Grid::vertical(margin_top, height - margin_bottom, |x| scale.apply(*x)).draw(
+            &mut drawer,
+            &values,
+            &LineAttribs::default()
+                .width_with(|x| x / 50.)
+                .color_with(|x| Color([x / 50.; 3]))
+                .opacity_with(|x| x / 50.),
+        );
 
         assert_eq!(drawer.lines.len(), values.len());
         for (line, x) in drawer.lines.iter().zip(values.iter()) {

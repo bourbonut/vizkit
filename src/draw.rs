@@ -11,7 +11,7 @@ pub use self::axis::Axis;
 pub use self::grid::Grid;
 pub use self::line::Line;
 pub use self::line_attrbs::LineAttribs;
-pub use self::text::{Text1D, Text2D};
+pub use self::text::Text;
 pub use self::text_attrbs::{Alignment, TextAttrbs};
 
 #[derive(Clone)]

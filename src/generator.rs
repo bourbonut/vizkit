@@ -5,7 +5,7 @@ pub trait Generator<D> {
     fn generate(&self, value: &D) -> Self::Output;
 }
 
-pub struct Constant<T>(pub T);
+pub struct Constant<T>(pub(crate) T);
 
 impl<T: Clone, D> Generator<D> for Constant<T> {
     type Output = T;
@@ -28,7 +28,7 @@ impl<F, D, T> Function<F, D, T>
 where
     F: Fn(&D) -> T,
 {
-    pub fn new(f: F) -> Self {
+    pub(crate) fn new(f: F) -> Self {
         Self {
             f,
             _t: PhantomData,
