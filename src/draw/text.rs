@@ -7,12 +7,12 @@ use crate::{
 };
 
 /// It distributes text vertically or horizontally based on a specified value.
-pub struct Text1D<
-    Data,
+pub struct Text1D<Data, S, Fmt, C>
+where
     S: Generator<Data, Output = f32>,
     Fmt: Generator<Data, Output = String>,
     C: Generator<Data, Output = Color>,
-> {
+{
     data: PhantomData<Data>,
     orientation: Orientation,
     scale: S,
@@ -52,12 +52,11 @@ where
     }
 }
 
-impl<
-    Data,
+impl<Data, S, Fmt, C> Text1D<Data, S, Fmt, C>
+where
     S: Generator<Data, Output = f32>,
     Fmt: Generator<Data, Output = String>,
     C: Generator<Data, Output = Color>,
-> Text1D<Data, S, Fmt, C>
 {
     /// Sets a constant color used as the color of the text.
     pub fn color(self, color: Color) -> Text1D<Data, S, Fmt, Constant<Color>> {
@@ -102,13 +101,13 @@ impl<
 }
 
 /// It distributes text in two directions jointly.
-pub struct Text2D<
-    Data,
+pub struct Text2D<Data, X, Y, Fmt, C>
+where
     X: Generator<Data, Output = f32>,
     Y: Generator<Data, Output = f32>,
     Fmt: Generator<Data, Output = String>,
     C: Generator<Data, Output = Color>,
-> {
+{
     data: PhantomData<Data>,
     x_scale: X,
     y_scale: Y,
@@ -142,13 +141,12 @@ where
     }
 }
 
-impl<
-    Data,
+impl<Data, X, Y, Fmt, C> Text2D<Data, X, Y, Fmt, C>
+where
     X: Generator<Data, Output = f32>,
     Y: Generator<Data, Output = f32>,
     Fmt: Generator<Data, Output = String>,
     C: Generator<Data, Output = Color>,
-> Text2D<Data, X, Y, Fmt, C>
 {
     /// Sets a constant color used as the color of the text.
     pub fn color(self, color: Color) -> Text2D<Data, X, Y, Fmt, Constant<Color>> {

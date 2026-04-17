@@ -7,13 +7,13 @@ use std::marker::PhantomData;
 
 use crate::chromatic::Color;
 
-pub struct Grid<
-    Data,
+pub struct Grid<Data, S, W, C, O>
+where
     S: Generator<Data, Output = f32>,
     W: Generator<Data, Output = f32>,
     C: Generator<Data, Output = Color>,
     O: Generator<Data, Output = f32>,
-> {
+{
     data: PhantomData<Data>,
     orientation: Orientation,
     boundaries: [f32; 2],
@@ -52,13 +52,12 @@ where
     }
 }
 
-impl<
-    Data,
+impl<Data, S, W, C, O> Grid<Data, S, W, C, O>
+where
     S: Generator<Data, Output = f32>,
     W: Generator<Data, Output = f32>,
     C: Generator<Data, Output = Color>,
     O: Generator<Data, Output = f32>,
-> Grid<Data, S, W, C, O>
 {
     pub fn width_with<F>(self, width_fn: F) -> Grid<Data, S, Function<F, Data, f32>, C, O>
     where
