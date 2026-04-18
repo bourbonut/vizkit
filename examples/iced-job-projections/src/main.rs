@@ -6,7 +6,7 @@ use iced::{
     Element,
     widget::{canvas, column, container, row, space, text, tooltip},
 };
-use vizkit::draw::{Alignment, Axis, Draw, LineAttrbs, LineProperties, TextProperties};
+use vizkit::draw::{Alignment, Axis, Draw, LineAttrbs, LineProperties, TextAttrbs, TextProperties};
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
@@ -186,7 +186,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             &mut frame,
             &state.x_scale,
             &LineAttrbs::default(),
-            |tick: &f32| format!("{}%", (tick * 100.).round()),
+            &TextAttrbs::new(|tick: &f32| format!("{}%", (tick * 100.).round())),
         );
 
         // Grid lines
@@ -228,7 +228,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             &mut frame,
             &state.y_scale,
             &LineAttrbs::default(),
-            |tick: &f32| format!("${}k", (tick / 1000.).round()),
+            &TextAttrbs::new(|tick: &f32| format!("${}k", (tick / 1000.).round())),
         );
 
         // Grid lines
