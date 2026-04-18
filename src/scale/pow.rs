@@ -6,6 +6,7 @@ use super::{
 };
 
 /// Power transformation (`x.powf(exponent)`)
+#[derive(Clone, Copy)]
 pub struct Power {
     pub exponent: f32,
 }
@@ -21,6 +22,7 @@ impl Transformer for Power {
 }
 
 /// Square root transformation
+#[derive(Clone, Copy)]
 pub struct Sqrt;
 
 impl Transformer for Sqrt {

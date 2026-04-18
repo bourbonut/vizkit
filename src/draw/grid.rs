@@ -1,11 +1,6 @@
 use super::{Draw, LineProperties};
-use crate::{
-    draw::{LineAttrbs, Orientation},
-    generator::Generator,
-};
+use crate::draw::{LineAttrbs, Orientation};
 use std::marker::PhantomData;
-
-use crate::chromatic::Color;
 
 pub struct Grid<Data, Projection>
 where
@@ -39,25 +34,15 @@ where
         }
     }
 
-    pub fn draw<D, StrokeColor, StrokeWidth, StrokeOpacity>(
-        &self,
-        drawer: &mut D,
-        values: &[Data],
-        line_attrbs: &LineAttrbs<Data, StrokeColor, StrokeWidth, StrokeOpacity>,
-    ) where
-        D: Draw,
-        StrokeColor: Generator<Data, Output = Color>,
-        StrokeWidth: Generator<Data, Output = f32>,
-        StrokeOpacity: Generator<Data, Output = f32>,
-    {
+    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], line_attrbs: &LineAttrbs<Data>) {
         for value in values.iter() {
             let projected = (self.projection)(value);
             drawer.line(LineProperties {
                 start: self.orientation.apply(projected, self.boundaries[0]),
                 end: self.orientation.apply(projected, self.boundaries[1]),
-                color: line_attrbs.color.generate(value),
-                width: line_attrbs.width.generate(value),
-                opacity: line_attrbs.opacity.generate(value),
+                color: (line_attrbs.color)(value),
+                width: (line_attrbs.width)(value),
+                opacity: (line_attrbs.opacity)(value),
             });
         }
     }

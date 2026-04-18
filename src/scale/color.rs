@@ -22,6 +22,7 @@ use crate::chromatic::{Color, ColorMap};
 /// assert_eq!(scale_color.apply::<String>(width * 0.5), "#faf8af".to_string());
 /// assert_eq!(scale_color.apply::<String>(width), "#5e4ea2".to_string());
 /// ```
+#[derive(Clone, Copy)]
 pub struct ScaleColor<T: Transformer, C: ColorMap> {
     transformer: T,
     color_map: C,

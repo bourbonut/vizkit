@@ -6,6 +6,7 @@ use super::{
 };
 
 /// Linear transformation
+#[derive(Clone, Copy)]
 pub struct Linear;
 impl Transformer for Linear {
     fn transform(&self, x: f32) -> f32 {

@@ -1,9 +1,5 @@
 use super::{Alignment, Draw, LineAttrbs, LineProperties, Orientation, TextAttrbs, TextProperties};
-use crate::{
-    chromatic::Color,
-    generator::Generator,
-    scale::{ScaleContinuous, Tick, Transformer},
-};
+use crate::scale::{ScaleContinuous, Tick, Transformer};
 
 pub struct Axis {
     orientation: Orientation,
@@ -83,24 +79,13 @@ impl Axis {
         Self { count, ..self }
     }
 
-    pub fn draw<D, T, StrokeColor, StrokeWidth, StrokeOpacity, Attribs, Formatter, FillColor>(
+    pub fn draw<D: Draw, T: Transformer + Tick>(
         &self,
         drawer: &mut D,
         scaler: &ScaleContinuous<T>,
-        line_attrbs: &LineAttrbs<f32, StrokeColor, StrokeWidth, StrokeOpacity>,
-        text_attrbs: Attribs,
-    ) where
-        D: Draw,
-        T: Transformer + Tick,
-        StrokeColor: Generator<f32, Output = Color>,
-        StrokeWidth: Generator<f32, Output = f32>,
-        StrokeOpacity: Generator<f32, Output = f32>,
-        Attribs: Into<TextAttrbs<f32, Formatter, FillColor>>,
-        Formatter: Fn(&f32) -> String,
-        FillColor: Generator<f32, Output = Color>,
-        TextAttrbs<f32, Formatter, FillColor>: From<Attribs>,
-    {
-        let text_attrbs: TextAttrbs<f32, Formatter, FillColor> = text_attrbs.into();
+        line_attrbs: &LineAttrbs<f32>,
+        text_attrbs: &TextAttrbs<f32>,
+    ) {
         for tick_value in scaler.ticks(self.count) {
             let tick_coord = scaler.apply(tick_value);
             drawer.line(LineProperties {
@@ -108,9 +93,9 @@ impl Axis {
                 end: self
                     .orientation
                     .apply(tick_coord, self.at + self.direction * self.tick_size),
-                color: line_attrbs.color.generate(&tick_value),
-                width: line_attrbs.width.generate(&tick_value),
-                opacity: line_attrbs.opacity.generate(&tick_value),
+                color: (line_attrbs.color)(&tick_value),
+                width: (line_attrbs.width)(&tick_value),
+                opacity: (line_attrbs.opacity)(&tick_value),
             });
             drawer.text(TextProperties {
                 position: self.orientation.apply(
@@ -118,7 +103,7 @@ impl Axis {
                     self.at + self.direction * (self.tick_size + self.offset),
                 ),
                 content: (text_attrbs.formatter)(&tick_value),
-                color: text_attrbs.color.generate(&tick_value),
+                color: (text_attrbs.color)(&tick_value),
                 align_x: self.align_x.clone(),
                 align_y: self.align_y.clone(),
             });
@@ -129,7 +114,7 @@ impl Axis {
 #[cfg(test)]
 mod tests {
     use super::Axis;
-    use crate::draw::{Draw, LineAttrbs, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineAttrbs, LineProperties, TextAttrbs, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -158,9 +143,12 @@ mod tests {
             .range([0., width]);
 
         let mut drawer = Drawer::default();
-        Axis::bottom(height).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
-            x.to_string()
-        });
+        Axis::bottom(height).draw(
+            &mut drawer,
+            &scale,
+            &LineAttrbs::default(),
+            &TextAttrbs::new(|x: &f32| x.to_string()),
+        );
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], line.end[0]);
@@ -220,9 +208,12 @@ mod tests {
             .range([0., width]);
 
         let mut drawer = Drawer::default();
-        Axis::top(margin_top).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
-            x.to_string()
-        });
+        Axis::top(margin_top).draw(
+            &mut drawer,
+            &scale,
+            &LineAttrbs::default(),
+            &TextAttrbs::new(|x: &f32| x.to_string()),
+        );
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], line.end[0]);
@@ -282,9 +273,12 @@ mod tests {
             .range([height, 0.]);
 
         let mut drawer = Drawer::default();
-        Axis::left(margin_left).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
-            x.to_string()
-        });
+        Axis::left(margin_left).draw(
+            &mut drawer,
+            &scale,
+            &LineAttrbs::default(),
+            &TextAttrbs::new(|x: &f32| x.to_string()),
+        );
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], margin_left);
@@ -344,9 +338,12 @@ mod tests {
             .range([height, 0.]);
 
         let mut drawer = Drawer::default();
-        Axis::right(width).draw(&mut drawer, &scale, &LineAttrbs::default(), |x: &f32| {
-            x.to_string()
-        });
+        Axis::right(width).draw(
+            &mut drawer,
+            &scale,
+            &LineAttrbs::default(),
+            &TextAttrbs::new(|x: &f32| x.to_string()),
+        );
 
         for line in drawer.lines.iter() {
             assert_eq!(line.start[0], width);

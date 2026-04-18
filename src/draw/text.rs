@@ -2,7 +2,6 @@ use std::marker::PhantomData;
 
 use super::{Draw, TextProperties};
 use crate::{
-    chromatic::Color,
     draw::TextAttrbs,
     generator::{Constant, Function, Generator},
 };
@@ -70,26 +69,14 @@ where
     ProjectionY: Generator<Data, Output = f32>,
 {
     /// Draws text on X-values and Y-values by applying the scaler functions respectively.
-    pub fn draw<D, Formatter, FillColor, Attribs>(
-        &self,
-        drawer: &mut D,
-        values: &[Data],
-        text_attrbs: Attribs,
-    ) where
-        D: Draw,
-        Attribs: Into<TextAttrbs<Data, Formatter, FillColor>>,
-        Formatter: Fn(&Data) -> String,
-        FillColor: Generator<Data, Output = Color>,
-        TextAttrbs<Data, Formatter, FillColor>: From<Attribs>,
-    {
-        let text_attrbs: TextAttrbs<Data, Formatter, FillColor> = text_attrbs.into();
+    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], text_attrbs: &TextAttrbs<Data>) {
         for value in values.iter() {
             let x_projected = self.projection_x.generate(value);
             let y_projected = self.projection_y.generate(value);
             drawer.text(TextProperties {
                 position: [x_projected, y_projected],
                 content: (text_attrbs.formatter)(value),
-                color: text_attrbs.color.generate(value),
+                color: (text_attrbs.color)(value),
                 align_x: text_attrbs.align_x.clone(),
                 align_y: text_attrbs.align_y.clone(),
             })
@@ -151,6 +138,7 @@ mod tests {
             .collect();
 
         let mut drawer = Drawer::default();
+        let color = color_scale.clone();
         Text::new(
             |pair: &Pair| x_scale.apply(pair.x),
             |pair: &Pair| y_scale.apply(pair.y),
@@ -158,8 +146,8 @@ mod tests {
         .draw(
             &mut drawer,
             &pairs,
-            TextAttrbs::new(|pair: &Pair| (pair.x * pair.y).to_string())
-                .color_with(|pair| color_scale.apply(pair.y)),
+            &TextAttrbs::new(|pair: &Pair| (pair.x * pair.y).to_string())
+                .color_with(move |pair| color.apply(pair.y)),
         );
 
         assert_eq!(drawer.texts.len(), y_values.len());
@@ -195,7 +183,7 @@ mod tests {
         Text::horizontal(|x| scale.apply(*x), height - margin_bottom).draw(
             &mut drawer,
             &values,
-            TextAttrbs::new(|x: &f32| (*x / 50.).to_string()).color_with(|x| Color([x / 50.; 3])),
+            &TextAttrbs::new(|x: &f32| (*x / 50.).to_string()).color_with(|x| Color([x / 50.; 3])),
         );
 
         assert_eq!(drawer.texts.len(), values.len());
