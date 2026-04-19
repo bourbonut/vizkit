@@ -5,18 +5,17 @@ pub fn text<Data, D: Draw + ?Sized>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
     y: impl Fn(&Data) -> f32,
-    text_attrs: &TextAttrs<Data>,
+    text_attrs: impl Fn(&Data) -> TextAttrs,
 ) {
     for value in values.iter() {
-        let x_projected = (x)(value);
-        let y_projected = (y)(value);
+        let text_values = (text_attrs)(value);
         drawer.draw_text(TextProperties {
-            position: [x_projected, y_projected],
-            content: (text_attrs.formatter)(value),
-            fill_color: (text_attrs.fill_color)(value),
-            font_size: text_attrs.font_size,
-            align_x: text_attrs.align_x.clone(),
-            align_y: text_attrs.align_y.clone(),
+            position: [(x)(value), (y)(value)],
+            content: text_values.content,
+            fill_color: text_values.fill_color,
+            font_size: text_values.font_size,
+            align_x: text_values.align_x,
+            align_y: text_values.align_y,
         })
     }
 }
@@ -83,8 +82,11 @@ mod tests {
             &pairs,
             |pair| x_scale.apply(pair.x),
             |pair| y_scale.apply(pair.y),
-            &TextAttrs::new(|pair: &Pair| (pair.x * pair.y).to_string())
-                .fill_color_with(move |pair| color.apply(pair.y)),
+            |pair| TextAttrs {
+                content: (pair.x * pair.y).to_string(),
+                fill_color: color.apply(pair.y),
+                ..Default::default()
+            },
         );
 
         assert_eq!(drawer.texts.len(), y_values.len());
@@ -121,8 +123,11 @@ mod tests {
             &values,
             |x| scale.apply(*x),
             height - margin_bottom,
-            &TextAttrs::new(|x: &f32| (*x / 50.).to_string())
-                .fill_color_with(|x| Color([x / 50.; 3])),
+            |x| TextAttrs {
+                content: (*x / 50.).to_string(),
+                fill_color: Color([x / 50.; 3]),
+                ..Default::default()
+            },
         );
 
         assert_eq!(drawer.texts.len(), values.len());

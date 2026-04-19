@@ -6,7 +6,7 @@ pub fn grid_vertical<Data, D: Draw + ?Sized>(
     y1: f32,
     y2: f32,
     x: impl Fn(&Data) -> f32,
-    line_attrs: &LineAttrs<Data>,
+    line_attrs: impl Fn(&Data) -> LineAttrs,
 ) {
     grid(drawer, values, Orientation::Same, [y1, y2], x, line_attrs);
 }
@@ -17,7 +17,7 @@ pub fn grid_horizontal<Data, D: Draw + ?Sized>(
     x1: f32,
     x2: f32,
     y: impl Fn(&Data) -> f32,
-    line_attrs: &LineAttrs<Data>,
+    line_attrs: impl Fn(&Data) -> LineAttrs,
 ) {
     grid(drawer, values, Orientation::Flip, [x1, x2], y, line_attrs);
 }
@@ -28,16 +28,17 @@ fn grid<Data, D: Draw + ?Sized>(
     orientation: Orientation,
     boundaries: [f32; 2],
     projection: impl Fn(&Data) -> f32,
-    line_attrs: &LineAttrs<Data>,
+    line_attrs: impl Fn(&Data) -> LineAttrs,
 ) {
     for value in values.iter() {
         let projected = (projection)(value);
+        let line_values = (line_attrs)(value);
         drawer.draw_line(LineProperties {
             start: orientation.apply(projected, boundaries[0]),
             end: orientation.apply(projected, boundaries[1]),
-            stroke_color: (line_attrs.stroke_color)(value),
-            stroke_width: (line_attrs.stroke_width)(value),
-            stroke_opacity: (line_attrs.stroke_opacity)(value),
+            stroke_color: line_values.stroke_color,
+            stroke_width: line_values.stroke_width,
+            stroke_opacity: line_values.stroke_opacity,
         });
     }
 }
@@ -85,10 +86,11 @@ mod tests {
             margin_top,
             height - margin_bottom,
             |x| scale.apply(*x),
-            &LineAttrs::default()
-                .stroke_width_with(|x| x / 50.)
-                .stroke_color_with(|x| Color([x / 50.; 3]))
-                .stroke_opacity_with(|x| x / 50.),
+            |x| LineAttrs {
+                stroke_width: x / 50.,
+                stroke_color: Color([x / 50.; 3]),
+                stroke_opacity: x / 50.,
+            },
         );
 
         assert_eq!(drawer.lines.len(), values.len());

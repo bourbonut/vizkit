@@ -21,9 +21,9 @@ pub fn axis_top<D: Draw + ?Sized, T: Transformer + Tick>(
     drawer: &mut D,
     scaler: &ScaleContinuous<T>,
     y: f32,
+    line_attrs: impl Fn(f32) -> LineAttrs,
+    text_attrs: impl Fn(f32) -> TextAttrs,
     axis_options: &AxisOptions,
-    line_attrbs: &LineAttrs<f32>,
-    text_attrbs: &TextAttrs<f32>,
 ) {
     axis(
         drawer,
@@ -33,9 +33,9 @@ pub fn axis_top<D: Draw + ?Sized, T: Transformer + Tick>(
         -1.,
         Alignment::Center,
         Alignment::End,
+        line_attrs,
+        text_attrs,
         axis_options,
-        line_attrbs,
-        text_attrbs,
     );
 }
 
@@ -43,9 +43,9 @@ pub fn axis_right<D: Draw + ?Sized, T: Transformer + Tick>(
     drawer: &mut D,
     scaler: &ScaleContinuous<T>,
     x: f32,
+    line_attrs: impl Fn(f32) -> LineAttrs,
+    text_attrs: impl Fn(f32) -> TextAttrs,
     axis_options: &AxisOptions,
-    line_attrbs: &LineAttrs<f32>,
-    text_attrbs: &TextAttrs<f32>,
 ) {
     axis(
         drawer,
@@ -55,9 +55,9 @@ pub fn axis_right<D: Draw + ?Sized, T: Transformer + Tick>(
         1.,
         Alignment::Start,
         Alignment::Center,
+        line_attrs,
+        text_attrs,
         axis_options,
-        line_attrbs,
-        text_attrbs,
     );
 }
 
@@ -65,9 +65,9 @@ pub fn axis_bottom<D: Draw + ?Sized, T: Transformer + Tick>(
     drawer: &mut D,
     scaler: &ScaleContinuous<T>,
     y: f32,
+    line_attrs: impl Fn(f32) -> LineAttrs,
+    text_attrs: impl Fn(f32) -> TextAttrs,
     axis_options: &AxisOptions,
-    line_attrbs: &LineAttrs<f32>,
-    text_attrbs: &TextAttrs<f32>,
 ) {
     axis(
         drawer,
@@ -77,9 +77,9 @@ pub fn axis_bottom<D: Draw + ?Sized, T: Transformer + Tick>(
         1.,
         Alignment::Center,
         Alignment::Start,
+        line_attrs,
+        text_attrs,
         axis_options,
-        line_attrbs,
-        text_attrbs,
     );
 }
 
@@ -87,9 +87,9 @@ pub fn axis_left<D: Draw + ?Sized, T: Transformer + Tick>(
     drawer: &mut D,
     scaler: &ScaleContinuous<T>,
     x: f32,
+    line_attrs: impl Fn(f32) -> LineAttrs,
+    text_attrs: impl Fn(f32) -> TextAttrs,
     axis_options: &AxisOptions,
-    line_attrbs: &LineAttrs<f32>,
-    text_attrbs: &TextAttrs<f32>,
 ) {
     axis(
         drawer,
@@ -99,9 +99,9 @@ pub fn axis_left<D: Draw + ?Sized, T: Transformer + Tick>(
         -1.,
         Alignment::End,
         Alignment::Center,
+        line_attrs,
+        text_attrs,
         axis_options,
-        line_attrbs,
-        text_attrbs,
     );
 }
 
@@ -113,27 +113,29 @@ fn axis<D: Draw + ?Sized, T: Transformer + Tick>(
     direction: f32,
     align_x: Alignment,
     align_y: Alignment,
+    line_attrs: impl Fn(f32) -> LineAttrs,
+    text_attrs: impl Fn(f32) -> TextAttrs,
     axis_options: &AxisOptions,
-    line_attrbs: &LineAttrs<f32>,
-    text_attrbs: &TextAttrs<f32>,
 ) {
     for tick_value in scaler.ticks(axis_options.count) {
         let tick_coord = scaler.apply(tick_value);
+        let line_values = (line_attrs)(tick_value);
+        let text_values = (text_attrs)(tick_value);
         drawer.draw_line(LineProperties {
             start: orientation.apply(tick_coord, at),
             end: orientation.apply(tick_coord, at + direction * axis_options.tick_size),
-            stroke_color: (line_attrbs.stroke_color)(&tick_value),
-            stroke_width: (line_attrbs.stroke_width)(&tick_value),
-            stroke_opacity: (line_attrbs.stroke_opacity)(&tick_value),
+            stroke_color: line_values.stroke_color,
+            stroke_width: line_values.stroke_width,
+            stroke_opacity: line_values.stroke_opacity,
         });
         drawer.draw_text(TextProperties {
             position: orientation.apply(
                 tick_coord,
                 at + direction * (axis_options.tick_size + axis_options.offset),
             ),
-            content: (text_attrbs.formatter)(&tick_value),
-            fill_color: (text_attrbs.fill_color)(&tick_value),
-            font_size: text_attrbs.font_size,
+            content: text_values.content,
+            fill_color: text_values.fill_color,
+            font_size: text_values.font_size,
             align_x: align_x.clone(),
             align_y: align_y.clone(),
         });
@@ -180,9 +182,12 @@ mod tests {
         drawer.axis_bottom(
             &scale,
             height,
+            |_| LineAttrs::default(),
+            |x| TextAttrs {
+                content: x.to_string(),
+                ..Default::default()
+            },
             &AxisOptions::default(),
-            &LineAttrs::default(),
-            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
@@ -246,9 +251,12 @@ mod tests {
         drawer.axis_top(
             &scale,
             margin_top,
+            |_| LineAttrs::default(),
+            |x| TextAttrs {
+                content: x.to_string(),
+                ..Default::default()
+            },
             &AxisOptions::default(),
-            &LineAttrs::default(),
-            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
@@ -312,9 +320,12 @@ mod tests {
         drawer.axis_left(
             &scale,
             margin_left,
+            |_| LineAttrs::default(),
+            |x| TextAttrs {
+                content: x.to_string(),
+                ..Default::default()
+            },
             &AxisOptions::default(),
-            &LineAttrs::default(),
-            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
@@ -378,9 +389,12 @@ mod tests {
         drawer.axis_right(
             &scale,
             width,
+            |_| LineAttrs::default(),
+            |x| TextAttrs {
+                content: x.to_string(),
+                ..Default::default()
+            },
             &AxisOptions::default(),
-            &LineAttrs::default(),
-            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
