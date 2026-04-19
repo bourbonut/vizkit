@@ -18,9 +18,9 @@ pub use self::text_attrs::{Alignment, TextAttrs};
 pub struct LineProperties {
     pub start: [f32; 2],
     pub end: [f32; 2],
-    pub color: Color,
-    pub width: f32,
-    pub opacity: f32,
+    pub stroke_color: Color,
+    pub stroke_width: f32,
+    pub stroke_opacity: f32,
 }
 
 impl Default for LineProperties {
@@ -28,20 +28,34 @@ impl Default for LineProperties {
         Self {
             start: [0.; 2],
             end: [0.; 2],
-            color: Color::default(),
-            width: 1.,
-            opacity: 1.,
+            stroke_color: Color::default(),
+            stroke_width: 1.,
+            stroke_opacity: 1.,
         }
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct TextProperties {
     pub content: String,
     pub position: [f32; 2],
-    pub color: Color,
+    pub fill_color: Color,
+    pub font_size: f32,
     pub align_x: Alignment,
     pub align_y: Alignment,
+}
+
+impl Default for TextProperties {
+    fn default() -> Self {
+        Self {
+            content: String::new(),
+            position: [0.; 2],
+            fill_color: Color::default(),
+            font_size: 12.,
+            align_x: Alignment::Center,
+            align_y: Alignment::Center,
+        }
+    }
 }
 
 pub trait Draw {

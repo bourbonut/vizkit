@@ -93,9 +93,9 @@ impl Axis {
                 end: self
                     .orientation
                     .apply(tick_coord, self.at + self.direction * self.tick_size),
-                color: (line_attrbs.color)(&tick_value),
-                width: (line_attrbs.width)(&tick_value),
-                opacity: (line_attrbs.opacity)(&tick_value),
+                stroke_color: (line_attrbs.stroke_color)(&tick_value),
+                stroke_width: (line_attrbs.stroke_width)(&tick_value),
+                stroke_opacity: (line_attrbs.stroke_opacity)(&tick_value),
             });
             drawer.text(TextProperties {
                 position: self.orientation.apply(
@@ -103,7 +103,8 @@ impl Axis {
                     self.at + self.direction * (self.tick_size + self.offset),
                 ),
                 content: (text_attrbs.formatter)(&tick_value),
-                color: (text_attrbs.color)(&tick_value),
+                fill_color: (text_attrbs.fill_color)(&tick_value),
+                font_size: text_attrbs.font_size,
                 align_x: self.align_x.clone(),
                 align_y: self.align_y.clone(),
             });

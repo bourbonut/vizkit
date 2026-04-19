@@ -76,7 +76,8 @@ where
             drawer.text(TextProperties {
                 position: [x_projected, y_projected],
                 content: (text_attrbs.formatter)(value),
-                color: (text_attrbs.color)(value),
+                fill_color: (text_attrbs.fill_color)(value),
+                font_size: text_attrbs.font_size,
                 align_x: text_attrbs.align_x.clone(),
                 align_y: text_attrbs.align_y.clone(),
             })
@@ -147,7 +148,7 @@ mod tests {
             &mut drawer,
             &pairs,
             &TextAttrs::new(|pair: &Pair| (pair.x * pair.y).to_string())
-                .color_with(move |pair| color.apply(pair.y)),
+                .fill_color_with(move |pair| color.apply(pair.y)),
         );
 
         assert_eq!(drawer.texts.len(), y_values.len());
@@ -161,7 +162,7 @@ mod tests {
             let y_scaled = y_scale.apply(*y);
             assert_eq!(text.position, [x_scaled, y_scaled]);
             assert_eq!(text.content, (x * y).to_string());
-            assert_eq!(text.color.0, color_scale.apply::<[f32; 3]>(*y));
+            assert_eq!(text.fill_color.0, color_scale.apply::<[f32; 3]>(*y));
         }
     }
 
@@ -183,7 +184,8 @@ mod tests {
         Text::horizontal(|x| scale.apply(*x), height - margin_bottom).draw(
             &mut drawer,
             &values,
-            &TextAttrs::new(|x: &f32| (*x / 50.).to_string()).color_with(|x| Color([x / 50.; 3])),
+            &TextAttrs::new(|x: &f32| (*x / 50.).to_string())
+                .fill_color_with(|x| Color([x / 50.; 3])),
         );
 
         assert_eq!(drawer.texts.len(), values.len());
@@ -192,7 +194,7 @@ mod tests {
             let scaled = scale.apply(*x);
             assert_eq!(text.position, [scaled, height - margin_bottom]);
             assert_eq!(text.content, (x / 50.).to_string());
-            assert_eq!(text.color.0, [x / 50.; 3]);
+            assert_eq!(text.fill_color.0, [x / 50.; 3]);
         }
     }
 }

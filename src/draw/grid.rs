@@ -40,9 +40,9 @@ where
             drawer.line(LineProperties {
                 start: self.orientation.apply(projected, self.boundaries[0]),
                 end: self.orientation.apply(projected, self.boundaries[1]),
-                color: (line_attrbs.color)(value),
-                width: (line_attrbs.width)(value),
-                opacity: (line_attrbs.opacity)(value),
+                stroke_color: (line_attrbs.stroke_color)(value),
+                stroke_width: (line_attrbs.stroke_width)(value),
+                stroke_opacity: (line_attrbs.stroke_opacity)(value),
             });
         }
     }
@@ -87,18 +87,18 @@ mod tests {
             &mut drawer,
             &values,
             &LineAttrs::default()
-                .width_with(|x| x / 50.)
-                .color_with(|x| Color([x / 50.; 3]))
-                .opacity_with(|x| x / 50.),
+                .stroke_width_with(|x| x / 50.)
+                .stroke_color_with(|x| Color([x / 50.; 3]))
+                .stroke_opacity_with(|x| x / 50.),
         );
 
         assert_eq!(drawer.lines.len(), values.len());
         for (line, x) in drawer.lines.iter().zip(values.iter()) {
             let z = x / 50.;
             let s = scale.apply(*x);
-            assert_eq!(line.width, z);
-            assert_eq!(line.opacity, z);
-            assert_eq!(line.color.0, [z; 3]);
+            assert_eq!(line.stroke_width, z);
+            assert_eq!(line.stroke_opacity, z);
+            assert_eq!(line.stroke_color.0, [z; 3]);
             assert_eq!(line.start, [s, margin_top]);
             assert_eq!(line.end, [s, height - margin_bottom]);
         }

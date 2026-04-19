@@ -15,7 +15,7 @@ impl Default for Alignment {
 
 pub struct TextAttrs<Data> {
     pub(super) formatter: Box<dyn Fn(&Data) -> String>,
-    pub(super) color: Box<dyn Fn(&Data) -> Color>,
+    pub(super) fill_color: Box<dyn Fn(&Data) -> Color>,
     pub(super) font_size: f32,
     pub(super) align_x: Alignment,
     pub(super) align_y: Alignment,
@@ -28,23 +28,23 @@ impl<Data> TextAttrs<Data> {
     {
         Self {
             formatter: Box::new(formatter),
-            color: Box::new(|_| Color::default()),
+            fill_color: Box::new(|_| Color::default()),
             font_size: 12.,
             align_x: Alignment::Center,
             align_y: Alignment::Center,
         }
     }
 
-    pub fn color(mut self, color: Color) -> Self {
-        self.color = Box::new(move |_| color);
+    pub fn fill_color(mut self, color: Color) -> Self {
+        self.fill_color = Box::new(move |_| color);
         self
     }
 
-    pub fn color_with<F>(mut self, color_fn: F) -> Self
+    pub fn fill_color_with<F>(mut self, color_fn: F) -> Self
     where
         F: Fn(&Data) -> Color + 'static,
     {
-        self.color = Box::new(color_fn);
+        self.fill_color = Box::new(color_fn);
         self
     }
 

@@ -64,17 +64,17 @@ impl<'a> DerefMut for IcedFrame<'a> {
 
 impl<'a> Draw for IcedFrame<'a> {
     fn line(&mut self, line: LineProperties) {
-        let [r, g, b] = line.color.into();
+        let [r, g, b] = line.stroke_color.into();
         self.0.stroke(
             &canvas::Path::line(line.start.into(), line.end.into()),
             canvas::Stroke::default()
-                .with_color(iced::Color::from([r, g, b, line.opacity]))
-                .with_width(line.width),
+                .with_color(iced::Color::from([r, g, b, line.stroke_opacity]))
+                .with_width(line.stroke_width),
         );
     }
 
     fn text(&mut self, text: TextProperties) {
-        let color: [f32; 3] = text.color.into();
+        let color: [f32; 3] = text.fill_color.into();
         self.0.fill_text(canvas::Text {
             content: text.content,
             position: text.position.into(),

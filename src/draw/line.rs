@@ -35,9 +35,9 @@ impl Line {
         drawer.line(LineProperties {
             start,
             end,
-            color: self.color,
-            width: self.width,
-            opacity: self.opacity,
+            stroke_color: self.color,
+            stroke_width: self.width,
+            stroke_opacity: self.opacity,
         });
     }
 }
@@ -80,8 +80,8 @@ mod tests {
         let line = &drawer.lines[0];
         assert_eq!(line.start, start);
         assert_eq!(line.end, end);
-        assert_eq!(line.color.0, [0.1, 0.2, 0.3]);
-        assert_eq!(line.width, 1.23);
-        assert_eq!(line.opacity, 0.321);
+        assert_eq!(line.stroke_color.0, [0.1, 0.2, 0.3]);
+        assert_eq!(line.stroke_width, 1.23);
+        assert_eq!(line.stroke_opacity, 0.321);
     }
 }
