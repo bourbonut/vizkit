@@ -7,7 +7,8 @@ use iced::{
     widget::{canvas, column, container, row, space, text, tooltip},
 };
 use vizkit::draw::{
-    Alignment, AxisOptions, Draw, LineAttrs, LineProperties, TextAttrs, TextProperties,
+    Alignment, AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, TextAttrs,
+    TextProperties,
 };
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
@@ -94,6 +95,30 @@ impl<'a> Draw for IcedFrame<'a> {
             },
             ..Default::default()
         })
+    }
+
+    fn draw_circle(&mut self, circle: CircleProperties) {
+        let circle_path = canvas::Path::circle(circle.center.into(), circle.radius);
+        if let Some(fill_color) = circle.fill_color {
+            let fill_color: [f32; 3] = fill_color.into();
+            self.0.fill(
+                &circle_path,
+                canvas::Fill {
+                    style: canvas::Style::Solid(iced::Color::from(fill_color)),
+                    rule: canvas::fill::Rule::EvenOdd,
+                },
+            );
+        }
+
+        if let Some(stroke_color) = circle.stroke_color {
+            let stroke_color: [f32; 3] = stroke_color.into();
+            self.0.stroke(
+                &circle_path,
+                canvas::Stroke::default()
+                    .with_width(circle.stroke_width)
+                    .with_color(iced::Color::from(stroke_color)),
+            );
+        }
     }
 }
 

@@ -47,7 +47,7 @@ mod tests {
     use super::Line;
 
     use crate::chromatic::Color;
-    use crate::draw::{Draw, LineProperties, TextProperties};
+    use crate::draw::{CircleProperties, Draw, LineProperties, TextProperties};
 
     #[derive(Default)]
     struct Drawer {
@@ -60,6 +60,10 @@ mod tests {
         }
 
         fn draw_text(&mut self, _: TextProperties) {
+            todo!()
+        }
+
+        fn draw_circle(&mut self, _: CircleProperties) {
             todo!()
         }
     }

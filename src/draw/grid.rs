@@ -1,5 +1,4 @@
-use super::{Draw, LineProperties};
-use crate::draw::{LineAttrs, Orientation};
+use super::{Draw, LineAttrs, LineProperties, Orientation};
 
 pub fn grid_vertical<Data, D: Draw + ?Sized>(
     drawer: &mut D,
@@ -46,7 +45,7 @@ fn grid<Data, D: Draw + ?Sized>(
 #[cfg(test)]
 mod tests {
     use crate::chromatic::Color;
-    use crate::draw::{Draw, LineAttrs, LineProperties, TextProperties};
+    use crate::draw::{CircleProperties, Draw, LineAttrs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -60,6 +59,10 @@ mod tests {
         }
 
         fn draw_text(&mut self, _: TextProperties) {
+            todo!()
+        }
+
+        fn draw_circle(&mut self, _: CircleProperties) {
             todo!()
         }
     }

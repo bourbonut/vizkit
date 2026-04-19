@@ -1,5 +1,4 @@
-use super::{Draw, TextProperties};
-use crate::draw::TextAttrs;
+use super::{Draw, TextAttrs, TextProperties};
 
 pub fn text<Data, D: Draw + ?Sized>(
     drawer: &mut D,
@@ -25,7 +24,7 @@ pub fn text<Data, D: Draw + ?Sized>(
 #[cfg(test)]
 mod tests {
     use crate::chromatic::{Color, Rainbow};
-    use crate::draw::{Draw, LineProperties, TextAttrs, TextProperties};
+    use crate::draw::{CircleProperties, Draw, LineProperties, TextAttrs, TextProperties};
     use crate::scale::{ScaleColor, ScaleContinuous};
 
     #[derive(Default)]
@@ -40,6 +39,10 @@ mod tests {
 
         fn draw_text(&mut self, text: TextProperties) {
             self.texts.push(text);
+        }
+
+        fn draw_circle(&mut self, _: CircleProperties) {
+            todo!()
         }
     }
 

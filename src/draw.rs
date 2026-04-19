@@ -1,19 +1,19 @@
+mod attrs;
 mod axis;
+mod circle;
 mod grid;
 mod line;
-mod line_attrs;
 mod text;
-mod text_attrs;
 
 use crate::chromatic::Color;
 use crate::scale::{ScaleContinuous, Tick, Transformer};
 
+pub use self::attrs::{Alignment, CircleAttrs, LineAttrs, TextAttrs};
 pub use self::axis::{AxisOptions, axis_bottom, axis_left, axis_right, axis_top};
+pub use self::circle::circle;
 pub use self::grid::{grid_horizontal, grid_vertical};
 pub use self::line::Line;
-pub use self::line_attrs::LineAttrs;
 pub use self::text::text;
-pub use self::text_attrs::{Alignment, TextAttrs};
 
 #[derive(Clone)]
 pub struct LineProperties {
@@ -59,9 +59,75 @@ impl Default for TextProperties {
     }
 }
 
+pub struct CircleProperties {
+    pub center: [f32; 2],
+    pub radius: f32,
+    pub fill_color: Option<Color>,
+    pub fill_opacity: f32,
+    pub stroke_color: Option<Color>,
+    pub stroke_width: f32,
+    pub stroke_opacity: f32,
+}
+
 pub trait Draw {
     fn draw_line(&mut self, line: LineProperties);
     fn draw_text(&mut self, text: TextProperties);
+    fn draw_circle(&mut self, circle: CircleProperties);
+
+    fn axis_top<T: Transformer + Tick>(
+        &mut self,
+        scaler: &ScaleContinuous<T>,
+        y: f32,
+        axis_options: &AxisOptions,
+        line_attrbs: &LineAttrs<f32>,
+        text_attrbs: &TextAttrs<f32>,
+    ) {
+        axis_top(self, scaler, y, axis_options, line_attrbs, text_attrbs);
+    }
+
+    fn axis_right<T: Transformer + Tick>(
+        &mut self,
+        scaler: &ScaleContinuous<T>,
+        x: f32,
+        axis_options: &AxisOptions,
+        line_attrbs: &LineAttrs<f32>,
+        text_attrbs: &TextAttrs<f32>,
+    ) {
+        axis_right(self, scaler, x, axis_options, line_attrbs, text_attrbs);
+    }
+
+    fn axis_bottom<T: Transformer + Tick>(
+        &mut self,
+        scaler: &ScaleContinuous<T>,
+        y: f32,
+        axis_options: &AxisOptions,
+        line_attrbs: &LineAttrs<f32>,
+        text_attrbs: &TextAttrs<f32>,
+    ) {
+        axis_bottom(self, scaler, y, axis_options, line_attrbs, text_attrbs);
+    }
+
+    fn axis_left<T: Transformer + Tick>(
+        &mut self,
+        scaler: &ScaleContinuous<T>,
+        x: f32,
+        axis_options: &AxisOptions,
+        line_attrbs: &LineAttrs<f32>,
+        text_attrbs: &TextAttrs<f32>,
+    ) {
+        axis_left(self, scaler, x, axis_options, line_attrbs, text_attrbs);
+    }
+
+    fn circle<Data>(
+        &mut self,
+        values: &[Data],
+        x: impl Fn(&Data) -> f32,
+        y: impl Fn(&Data) -> f32,
+        r: impl Fn(&Data) -> f32,
+        circle_attrs: &CircleAttrs<Data>,
+    ) {
+        circle(self, values, x, y, r, circle_attrs)
+    }
 
     fn grid_vertical<Data>(
         &mut self,
@@ -113,69 +179,6 @@ pub trait Draw {
         text_attrs: &TextAttrs<Data>,
     ) {
         text(self, values, x, |_| y, text_attrs);
-    }
-
-    fn axis_top<T: Transformer + Tick>(
-        &mut self,
-        scaler: &ScaleContinuous<T>,
-        y: f32,
-        axis_options: &AxisOptions,
-        line_attrbs: &LineAttrs<f32>,
-        text_attrbs: &TextAttrs<f32>,
-    ) {
-        axis_top(self, scaler, y, axis_options, line_attrbs, text_attrbs);
-    }
-
-    fn axis_right<T: Transformer + Tick>(
-        &mut self,
-        scaler: &ScaleContinuous<T>,
-        x: f32,
-        axis_options: &AxisOptions,
-        line_attrbs: &LineAttrs<f32>,
-        text_attrbs: &TextAttrs<f32>,
-    ) {
-        axis_right(self, scaler, x, axis_options, line_attrbs, text_attrbs);
-    }
-
-    fn axis_bottom<T: Transformer + Tick>(
-        &mut self,
-        scaler: &ScaleContinuous<T>,
-        y: f32,
-        axis_options: &AxisOptions,
-        line_attrbs: &LineAttrs<f32>,
-        text_attrbs: &TextAttrs<f32>,
-    ) {
-        axis_bottom(self, scaler, y, axis_options, line_attrbs, text_attrbs);
-    }
-
-    fn axis_left<T: Transformer + Tick>(
-        &mut self,
-        scaler: &ScaleContinuous<T>,
-        x: f32,
-        axis_options: &AxisOptions,
-        line_attrbs: &LineAttrs<f32>,
-        text_attrbs: &TextAttrs<f32>,
-    ) {
-        axis_left(self, scaler, x, axis_options, line_attrbs, text_attrbs);
-    }
-}
-
-pub trait Direction {
-    fn direction(coord1: f32, coord2: f32) -> [f32; 2];
-}
-
-pub struct Vertical;
-pub struct Horizontal;
-
-impl Direction for Vertical {
-    fn direction(coord1: f32, coord2: f32) -> [f32; 2] {
-        [coord1, coord2]
-    }
-}
-
-impl Direction for Horizontal {
-    fn direction(coord1: f32, coord2: f32) -> [f32; 2] {
-        [coord2, coord1]
     }
 }
 

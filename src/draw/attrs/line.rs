@@ -1,9 +1,9 @@
 use crate::chromatic::Color;
 
 pub struct LineAttrs<Data> {
-    pub(super) stroke_color: Box<dyn Fn(&Data) -> Color>,
-    pub(super) stroke_width: Box<dyn Fn(&Data) -> f32>,
-    pub(super) stroke_opacity: Box<dyn Fn(&Data) -> f32>,
+    pub(crate) stroke_color: Box<dyn Fn(&Data) -> Color>,
+    pub(crate) stroke_width: Box<dyn Fn(&Data) -> f32>,
+    pub(crate) stroke_opacity: Box<dyn Fn(&Data) -> f32>,
 }
 
 impl<Data> Default for LineAttrs<Data> {

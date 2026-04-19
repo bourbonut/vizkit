@@ -14,11 +14,11 @@ impl Default for Alignment {
 }
 
 pub struct TextAttrs<Data> {
-    pub(super) formatter: Box<dyn Fn(&Data) -> String>,
-    pub(super) fill_color: Box<dyn Fn(&Data) -> Color>,
-    pub(super) font_size: f32,
-    pub(super) align_x: Alignment,
-    pub(super) align_y: Alignment,
+    pub(crate) formatter: Box<dyn Fn(&Data) -> String>,
+    pub(crate) fill_color: Box<dyn Fn(&Data) -> Color>,
+    pub(crate) font_size: f32,
+    pub(crate) align_x: Alignment,
+    pub(crate) align_y: Alignment,
 }
 
 impl<Data> TextAttrs<Data> {

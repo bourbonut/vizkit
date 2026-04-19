@@ -142,7 +142,9 @@ fn axis<D: Draw + ?Sized, T: Transformer + Tick>(
 
 #[cfg(test)]
 mod tests {
-    use crate::draw::{AxisOptions, Draw, LineAttrs, LineProperties, TextAttrs, TextProperties};
+    use crate::draw::{
+        AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, TextAttrs, TextProperties,
+    };
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -158,6 +160,10 @@ mod tests {
 
         fn draw_text(&mut self, text: TextProperties) {
             self.texts.push(text);
+        }
+
+        fn draw_circle(&mut self, _: CircleProperties) {
+            todo!()
         }
     }
 
