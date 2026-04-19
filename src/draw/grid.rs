@@ -1,56 +1,50 @@
 use super::{Draw, LineProperties};
 use crate::draw::{LineAttrs, Orientation};
-use std::marker::PhantomData;
 
-pub struct Grid<Data, Projection>
-where
-    Projection: Fn(&Data) -> f32,
-{
-    projection: Projection,
-    orientation: Orientation,
-    boundaries: [f32; 2],
-    marker: PhantomData<Data>,
+pub fn grid_vertical<Data, D: Draw + ?Sized>(
+    drawer: &mut D,
+    values: &[Data],
+    y1: f32,
+    y2: f32,
+    x: impl Fn(&Data) -> f32,
+    line_attrs: &LineAttrs<Data>,
+) {
+    grid(drawer, values, Orientation::Same, [y1, y2], x, line_attrs);
 }
 
-impl<Data, Projection> Grid<Data, Projection>
-where
-    Projection: Fn(&Data) -> f32,
-{
-    pub fn vertical(top: f32, down: f32, projection: Projection) -> Self {
-        Self {
-            orientation: Orientation::Same,
-            boundaries: [top, down],
-            projection: projection,
-            marker: PhantomData,
-        }
-    }
+pub fn grid_horizontal<Data, D: Draw + ?Sized>(
+    drawer: &mut D,
+    values: &[Data],
+    x1: f32,
+    x2: f32,
+    y: impl Fn(&Data) -> f32,
+    line_attrs: &LineAttrs<Data>,
+) {
+    grid(drawer, values, Orientation::Flip, [x1, x2], y, line_attrs);
+}
 
-    pub fn horizontal(left: f32, right: f32, projection: Projection) -> Self {
-        Self {
-            orientation: Orientation::Flip,
-            boundaries: [left, right],
-            projection: projection,
-            marker: PhantomData,
-        }
-    }
-
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], line_attrbs: &LineAttrs<Data>) {
-        for value in values.iter() {
-            let projected = (self.projection)(value);
-            drawer.line(LineProperties {
-                start: self.orientation.apply(projected, self.boundaries[0]),
-                end: self.orientation.apply(projected, self.boundaries[1]),
-                stroke_color: (line_attrbs.stroke_color)(value),
-                stroke_width: (line_attrbs.stroke_width)(value),
-                stroke_opacity: (line_attrbs.stroke_opacity)(value),
-            });
-        }
+fn grid<Data, D: Draw + ?Sized>(
+    drawer: &mut D,
+    values: &[Data],
+    orientation: Orientation,
+    boundaries: [f32; 2],
+    projection: impl Fn(&Data) -> f32,
+    line_attrs: &LineAttrs<Data>,
+) {
+    for value in values.iter() {
+        let projected = (projection)(value);
+        drawer.draw_line(LineProperties {
+            start: orientation.apply(projected, boundaries[0]),
+            end: orientation.apply(projected, boundaries[1]),
+            stroke_color: (line_attrs.stroke_color)(value),
+            stroke_width: (line_attrs.stroke_width)(value),
+            stroke_opacity: (line_attrs.stroke_opacity)(value),
+        });
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Grid;
     use crate::chromatic::Color;
     use crate::draw::{Draw, LineAttrs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
@@ -61,11 +55,11 @@ mod tests {
     }
 
     impl<'a> Draw for Drawer {
-        fn line(&mut self, line: LineProperties) {
+        fn draw_line(&mut self, line: LineProperties) {
             self.lines.push(line);
         }
 
-        fn text(&mut self, _: TextProperties) {
+        fn draw_text(&mut self, _: TextProperties) {
             todo!()
         }
     }
@@ -83,9 +77,11 @@ mod tests {
         let values = scale.ticks(None);
 
         let mut drawer = Drawer::default();
-        Grid::vertical(margin_top, height - margin_bottom, |x| scale.apply(*x)).draw(
-            &mut drawer,
+        drawer.grid_vertical(
             &values,
+            margin_top,
+            height - margin_bottom,
+            |x| scale.apply(*x),
             &LineAttrs::default()
                 .stroke_width_with(|x| x / 50.)
                 .stroke_color_with(|x| Color([x / 50.; 3]))

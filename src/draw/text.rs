@@ -1,93 +1,29 @@
-use std::marker::PhantomData;
-
 use super::{Draw, TextProperties};
-use crate::{
-    draw::TextAttrs,
-    generator::{Constant, Function, Generator},
-};
+use crate::draw::TextAttrs;
 
-/// It distributes text in two directions jointly.
-pub struct Text<Data, ProjectionX, ProjectionY>
-where
-    ProjectionX: Generator<Data, Output = f32>,
-    ProjectionY: Generator<Data, Output = f32>,
-{
-    projection_x: ProjectionX,
-    projection_y: ProjectionY,
-    marker: PhantomData<Data>,
-}
-
-impl<Data, ProjectionX, ProjectionY>
-    Text<Data, Function<ProjectionX, Data, f32>, Function<ProjectionY, Data, f32>>
-where
-    ProjectionX: Fn(&Data) -> f32,
-    ProjectionY: Fn(&Data) -> f32,
-{
-    pub fn new(projection_x: ProjectionX, projection_y: ProjectionY) -> Self {
-        Text {
-            projection_x: Function::new(projection_x),
-            projection_y: Function::new(projection_y),
-            marker: PhantomData,
-        }
-    }
-}
-
-impl<Data, ProjectionY> Text<Data, Constant<f32>, Function<ProjectionY, Data, f32>>
-where
-    ProjectionY: Fn(&Data) -> f32,
-{
-    /// Creates a vertical text distribution drawer.
-    pub fn vertical(x_value: f32, projection_y: ProjectionY) -> Self {
-        Text {
-            projection_x: Constant(x_value),
-            projection_y: Function::new(projection_y),
-            marker: PhantomData,
-        }
-    }
-}
-
-impl<Data, ProjectionX> Text<Data, Function<ProjectionX, Data, f32>, Constant<f32>>
-where
-    ProjectionX: Fn(&Data) -> f32,
-{
-    /// Creates an horizontal text distribution drawer.
-    pub fn horizontal(
-        projection_x: ProjectionX,
-        y_value: f32,
-    ) -> Text<Data, Function<ProjectionX, Data, f32>, Constant<f32>> {
-        Text {
-            projection_x: Function::new(projection_x),
-            projection_y: Constant(y_value),
-            marker: PhantomData,
-        }
-    }
-}
-
-impl<Data, ProjectionX, ProjectionY> Text<Data, ProjectionX, ProjectionY>
-where
-    ProjectionX: Generator<Data, Output = f32>,
-    ProjectionY: Generator<Data, Output = f32>,
-{
-    /// Draws text on X-values and Y-values by applying the scaler functions respectively.
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], text_attrbs: &TextAttrs<Data>) {
-        for value in values.iter() {
-            let x_projected = self.projection_x.generate(value);
-            let y_projected = self.projection_y.generate(value);
-            drawer.text(TextProperties {
-                position: [x_projected, y_projected],
-                content: (text_attrbs.formatter)(value),
-                fill_color: (text_attrbs.fill_color)(value),
-                font_size: text_attrbs.font_size,
-                align_x: text_attrbs.align_x.clone(),
-                align_y: text_attrbs.align_y.clone(),
-            })
-        }
+pub fn text<Data, D: Draw + ?Sized>(
+    drawer: &mut D,
+    values: &[Data],
+    x: impl Fn(&Data) -> f32,
+    y: impl Fn(&Data) -> f32,
+    text_attrs: &TextAttrs<Data>,
+) {
+    for value in values.iter() {
+        let x_projected = (x)(value);
+        let y_projected = (y)(value);
+        drawer.draw_text(TextProperties {
+            position: [x_projected, y_projected],
+            content: (text_attrs.formatter)(value),
+            fill_color: (text_attrs.fill_color)(value),
+            font_size: text_attrs.font_size,
+            align_x: text_attrs.align_x.clone(),
+            align_y: text_attrs.align_y.clone(),
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Text;
     use crate::chromatic::{Color, Rainbow};
     use crate::draw::{Draw, LineProperties, TextAttrs, TextProperties};
     use crate::scale::{ScaleColor, ScaleContinuous};
@@ -98,11 +34,11 @@ mod tests {
     }
 
     impl<'a> Draw for Drawer {
-        fn line(&mut self, _: LineProperties) {
+        fn draw_line(&mut self, _: LineProperties) {
             todo!()
         }
 
-        fn text(&mut self, text: TextProperties) {
+        fn draw_text(&mut self, text: TextProperties) {
             self.texts.push(text);
         }
     }
@@ -140,13 +76,10 @@ mod tests {
 
         let mut drawer = Drawer::default();
         let color = color_scale.clone();
-        Text::new(
-            |pair: &Pair| x_scale.apply(pair.x),
-            |pair: &Pair| y_scale.apply(pair.y),
-        )
-        .draw(
-            &mut drawer,
+        drawer.text(
             &pairs,
+            |pair| x_scale.apply(pair.x),
+            |pair| y_scale.apply(pair.y),
             &TextAttrs::new(|pair: &Pair| (pair.x * pair.y).to_string())
                 .fill_color_with(move |pair| color.apply(pair.y)),
         );
@@ -181,9 +114,10 @@ mod tests {
         let values = scale.ticks(None);
 
         let mut drawer = Drawer::default();
-        Text::horizontal(|x| scale.apply(*x), height - margin_bottom).draw(
-            &mut drawer,
+        drawer.text_horizontal(
             &values,
+            |x| scale.apply(*x),
+            height - margin_bottom,
             &TextAttrs::new(|x: &f32| (*x / 50.).to_string())
                 .fill_color_with(|x| Color([x / 50.; 3])),
         );

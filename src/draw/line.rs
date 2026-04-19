@@ -32,7 +32,7 @@ impl Line {
     }
 
     pub fn draw<D: Draw>(&self, drawer: &mut D, start: [f32; 2], end: [f32; 2]) {
-        drawer.line(LineProperties {
+        drawer.draw_line(LineProperties {
             start,
             end,
             stroke_color: self.color,
@@ -55,11 +55,11 @@ mod tests {
     }
 
     impl<'a> Draw for Drawer {
-        fn line(&mut self, line: LineProperties) {
+        fn draw_line(&mut self, line: LineProperties) {
             self.lines.push(line);
         }
 
-        fn text(&mut self, _: TextProperties) {
+        fn draw_text(&mut self, _: TextProperties) {
             todo!()
         }
     }

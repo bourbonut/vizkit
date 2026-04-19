@@ -43,6 +43,5 @@
 
 pub mod chromatic;
 pub mod draw;
-pub mod generator;
 pub mod scale;
 pub mod time;
