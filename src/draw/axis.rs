@@ -148,6 +148,7 @@ mod tests {
         AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, TextAttrs, TextProperties,
     };
     use crate::scale::ScaleContinuous;
+    use rstest::rstest;
 
     #[derive(Default)]
     struct Drawer {
@@ -169,279 +170,69 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_axis_bottom() {
-        let height = 100.;
-        let width = 400.;
-        let xmax = 50.;
-        let scale = ScaleContinuous::linear()
-            .domain([0., xmax])
-            .range([0., width]);
+    const WIDTH: f32 = 400.;
+    const HEIGHT: f32 = 100.;
 
+    const MARGIN_LEFT: f32 = 10.;
+    const MARGIN_TOP: f32 = 10.;
+
+    const XMAX: f32 = 50.;
+    const YMAX: f32 = 50.;
+
+    #[rstest]
+    #[case("bottom", 0, [0., XMAX], [0., WIDTH], HEIGHT, HEIGHT, HEIGHT + 7.5, HEIGHT + 7.5 + 0.5)]
+    #[case("top", 0, [0., XMAX], [0., WIDTH], MARGIN_TOP, MARGIN_TOP, MARGIN_TOP - 7.5, MARGIN_TOP - 7.5 - 0.5)]
+    #[case("left", 1, [0., YMAX], [HEIGHT, 0.], MARGIN_LEFT, MARGIN_LEFT, MARGIN_LEFT - 7.5, MARGIN_LEFT - 7.5 - 0.5)]
+    #[case("right", 1, [0., YMAX], [HEIGHT, 0.], WIDTH, WIDTH, WIDTH + 7.5, WIDTH + 7.5 + 0.5)]
+    fn test_axis(
+        #[case] title: &str,
+        #[case] index: usize,
+        #[case] domain: [f32; 2],
+        #[case] range: [f32; 2],
+        #[case] at: f32,
+        #[case] start: f32,
+        #[case] end: f32,
+        #[case] position: f32,
+    ) {
         let mut drawer = Drawer::default();
-        drawer.axis_bottom(
-            &scale,
-            height,
-            |_| LineAttrs::default(),
-            |x| TextAttrs {
-                content: x.to_string(),
-                ..Default::default()
-            },
-            &AxisOptions::default(),
-        );
+        let scale = ScaleContinuous::linear().domain(domain).range(range);
 
-        for line in drawer.lines.iter() {
-            assert_eq!(line.start[0], line.end[0]);
-            assert_eq!(line.start[1], height);
-            assert_eq!(line.end[1], height + 7.5);
+        let line_fn = |_| LineAttrs::default();
+        let text_fn = |x: f32| TextAttrs {
+            content: x.to_string(),
+            ..Default::default()
+        };
+        let options = AxisOptions::default();
+        match title {
+            "bottom" => drawer.axis_bottom(&scale, at, line_fn, text_fn, &options),
+            "top" => drawer.axis_top(&scale, at, line_fn, text_fn, &options),
+            "left" => drawer.axis_left(&scale, at, line_fn, text_fn, &options),
+            "right" => drawer.axis_right(&scale, at, line_fn, text_fn, &options),
+            _ => unreachable!(),
         }
 
-        let scale_ticks = scale
-            .ticks(None)
-            .into_iter()
-            .map(|tick| scale.apply(tick))
-            .collect::<Vec<f32>>();
+        // Indices
+        let a = index;
+        let b = (index + 1) % 2;
 
-        assert_eq!(
-            drawer
-                .lines
-                .iter()
-                .map(|line| line.start[0])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
+        // Expected values
+        let tick_fn = |&tick: &f32| scale.apply(tick);
+        let scale_ticks: Vec<f32> = scale.ticks(None).iter().map(tick_fn).collect();
+        let string_ticks: Vec<String> = scale.ticks(None).iter().map(ToString::to_string).collect();
 
-        for text in drawer.texts.iter() {
-            assert_eq!(text.position[1], height + 7.5 + 0.5);
+        // Test line properties
+        for (i, line) in drawer.lines.iter().enumerate() {
+            assert_eq!(line.start[a], line.end[a], "{}", title);
+            assert_eq!(line.start[b], start, "{}", title);
+            assert_eq!(line.end[b], end, "{}", title);
+            assert_eq!(line.start[a], scale_ticks[i], "{}", title);
         }
 
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.position[0])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.content.clone())
-                .collect::<Vec<String>>(),
-            scale
-                .ticks(None)
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-        );
-    }
-
-    #[test]
-    fn test_axis_top() {
-        let margin_top = 10.;
-        let width = 400.;
-        let xmax = 50.;
-        let scale = ScaleContinuous::linear()
-            .domain([0., xmax])
-            .range([0., width]);
-
-        let mut drawer = Drawer::default();
-        drawer.axis_top(
-            &scale,
-            margin_top,
-            |_| LineAttrs::default(),
-            |x| TextAttrs {
-                content: x.to_string(),
-                ..Default::default()
-            },
-            &AxisOptions::default(),
-        );
-
-        for line in drawer.lines.iter() {
-            assert_eq!(line.start[0], line.end[0]);
-            assert_eq!(line.start[1], margin_top);
-            assert_eq!(line.end[1], margin_top - 7.5);
+        // Test text properties
+        for (i, text) in drawer.texts.iter().enumerate() {
+            assert_eq!(text.position[b], position, "{}", title);
+            assert_eq!(text.position[a], scale_ticks[i], "{}", title);
+            assert_eq!(text.content, string_ticks[i], "{}", title);
         }
-
-        let scale_ticks = scale
-            .ticks(None)
-            .into_iter()
-            .map(|tick| scale.apply(tick))
-            .collect::<Vec<f32>>();
-
-        assert_eq!(
-            drawer
-                .lines
-                .iter()
-                .map(|line| line.start[0])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        for text in drawer.texts.iter() {
-            assert_eq!(text.position[1], margin_top - 7.5 - 0.5);
-        }
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.position[0])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.content.clone())
-                .collect::<Vec<String>>(),
-            scale
-                .ticks(None)
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-        );
-    }
-
-    #[test]
-    fn test_axis_left() {
-        let height = 100.;
-        let margin_left = 10.;
-        let ymax = 50.;
-        let scale = ScaleContinuous::linear()
-            .domain([0., ymax])
-            .range([height, 0.]);
-
-        let mut drawer = Drawer::default();
-        drawer.axis_left(
-            &scale,
-            margin_left,
-            |_| LineAttrs::default(),
-            |x| TextAttrs {
-                content: x.to_string(),
-                ..Default::default()
-            },
-            &AxisOptions::default(),
-        );
-
-        for line in drawer.lines.iter() {
-            assert_eq!(line.start[0], margin_left);
-            assert_eq!(line.end[0], margin_left - 7.5);
-            assert_eq!(line.start[1], line.end[1]);
-        }
-
-        let scale_ticks = scale
-            .ticks(None)
-            .into_iter()
-            .map(|tick| scale.apply(tick))
-            .collect::<Vec<f32>>();
-
-        assert_eq!(
-            drawer
-                .lines
-                .iter()
-                .map(|line| line.start[1])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        for text in drawer.texts.iter() {
-            assert_eq!(text.position[0], margin_left - 7.5 - 0.5);
-        }
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.position[1])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.content.clone())
-                .collect::<Vec<String>>(),
-            scale
-                .ticks(None)
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-        );
-    }
-
-    #[test]
-    fn test_axis_right() {
-        let height = 100.;
-        let width = 400.;
-        let ymax = 50.;
-        let scale = ScaleContinuous::linear()
-            .domain([0., ymax])
-            .range([height, 0.]);
-
-        let mut drawer = Drawer::default();
-        drawer.axis_right(
-            &scale,
-            width,
-            |_| LineAttrs::default(),
-            |x| TextAttrs {
-                content: x.to_string(),
-                ..Default::default()
-            },
-            &AxisOptions::default(),
-        );
-
-        for line in drawer.lines.iter() {
-            assert_eq!(line.start[0], width);
-            assert_eq!(line.end[0], width + 7.5);
-            assert_eq!(line.start[1], line.end[1]);
-        }
-
-        let scale_ticks = scale
-            .ticks(None)
-            .into_iter()
-            .map(|tick| scale.apply(tick))
-            .collect::<Vec<f32>>();
-
-        assert_eq!(
-            drawer
-                .lines
-                .iter()
-                .map(|line| line.start[1])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        for text in drawer.texts.iter() {
-            assert_eq!(text.position[0], width + 7.5 + 0.5);
-        }
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.position[1])
-                .collect::<Vec<f32>>(),
-            scale_ticks,
-        );
-
-        assert_eq!(
-            drawer
-                .texts
-                .iter()
-                .map(|text| text.content.clone())
-                .collect::<Vec<String>>(),
-            scale
-                .ticks(None)
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<String>>()
-        );
     }
 }
