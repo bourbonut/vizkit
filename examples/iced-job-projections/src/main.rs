@@ -212,9 +212,12 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         frame.axis_bottom(
             &state.x_scale,
             height - self.margin.bottom,
+            |_| LineAttrs::default(),
+            |tick| TextAttrs {
+                content: format!("{}%", (tick * 100.).round()),
+                ..Default::default()
+            },
             &AxisOptions::default(),
-            &LineAttrs::default(),
-            &TextAttrs::new(|tick: &f32| format!("{}%", (tick * 100.).round())),
         );
 
         // Grid lines
@@ -255,9 +258,12 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         frame.axis_left(
             &state.y_scale,
             self.margin.left,
+            |_| LineAttrs::default(),
+            |tick| TextAttrs {
+                content: format!("${}k", (tick / 1000.).round()),
+                ..Default::default()
+            },
             &AxisOptions::default(),
-            &LineAttrs::default(),
-            &TextAttrs::new(|tick: &f32| format!("${}k", (tick / 1000.).round())),
         );
 
         // Grid lines
