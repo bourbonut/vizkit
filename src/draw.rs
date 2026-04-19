@@ -1,18 +1,18 @@
 mod axis;
 mod grid;
 mod line;
-mod line_attrbs;
+mod line_attrs;
 mod text;
-mod text_attrbs;
+mod text_attrs;
 
 use crate::chromatic::Color;
 
 pub use self::axis::Axis;
 pub use self::grid::Grid;
 pub use self::line::Line;
-pub use self::line_attrbs::LineAttrbs;
+pub use self::line_attrs::LineAttrs;
 pub use self::text::Text;
-pub use self::text_attrbs::{Alignment, TextAttrbs};
+pub use self::text_attrs::{Alignment, TextAttrs};
 
 #[derive(Clone)]
 pub struct LineProperties {

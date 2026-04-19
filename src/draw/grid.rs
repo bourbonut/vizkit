@@ -1,5 +1,5 @@
 use super::{Draw, LineProperties};
-use crate::draw::{LineAttrbs, Orientation};
+use crate::draw::{LineAttrs, Orientation};
 use std::marker::PhantomData;
 
 pub struct Grid<Data, Projection>
@@ -34,7 +34,7 @@ where
         }
     }
 
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], line_attrbs: &LineAttrbs<Data>) {
+    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], line_attrbs: &LineAttrs<Data>) {
         for value in values.iter() {
             let projected = (self.projection)(value);
             drawer.line(LineProperties {
@@ -52,7 +52,7 @@ where
 mod tests {
     use super::Grid;
     use crate::chromatic::Color;
-    use crate::draw::{Draw, LineAttrbs, LineProperties, TextProperties};
+    use crate::draw::{Draw, LineAttrs, LineProperties, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -86,7 +86,7 @@ mod tests {
         Grid::vertical(margin_top, height - margin_bottom, |x| scale.apply(*x)).draw(
             &mut drawer,
             &values,
-            &LineAttrbs::default()
+            &LineAttrs::default()
                 .width_with(|x| x / 50.)
                 .color_with(|x| Color([x / 50.; 3]))
                 .opacity_with(|x| x / 50.),

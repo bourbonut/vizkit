@@ -1,12 +1,12 @@
 use crate::chromatic::Color;
 
-pub struct LineAttrbs<Data> {
+pub struct LineAttrs<Data> {
     pub(super) color: Box<dyn Fn(&Data) -> Color>,
     pub(super) width: Box<dyn Fn(&Data) -> f32>,
     pub(super) opacity: Box<dyn Fn(&Data) -> f32>,
 }
 
-impl<Data> Default for LineAttrbs<Data> {
+impl<Data> Default for LineAttrs<Data> {
     fn default() -> Self {
         Self {
             color: Box::new(|_| Color::default()),
@@ -16,7 +16,7 @@ impl<Data> Default for LineAttrbs<Data> {
     }
 }
 
-impl<Data> LineAttrbs<Data> {
+impl<Data> LineAttrs<Data> {
     pub fn color(mut self, color: Color) -> Self {
         self.color = Box::new(move |_| color);
         self

@@ -1,4 +1,4 @@
-use super::{Alignment, Draw, LineAttrbs, LineProperties, Orientation, TextAttrbs, TextProperties};
+use super::{Alignment, Draw, LineAttrs, LineProperties, Orientation, TextAttrs, TextProperties};
 use crate::scale::{ScaleContinuous, Tick, Transformer};
 
 pub struct Axis {
@@ -83,8 +83,8 @@ impl Axis {
         &self,
         drawer: &mut D,
         scaler: &ScaleContinuous<T>,
-        line_attrbs: &LineAttrbs<f32>,
-        text_attrbs: &TextAttrbs<f32>,
+        line_attrbs: &LineAttrs<f32>,
+        text_attrbs: &TextAttrs<f32>,
     ) {
         for tick_value in scaler.ticks(self.count) {
             let tick_coord = scaler.apply(tick_value);
@@ -114,7 +114,7 @@ impl Axis {
 #[cfg(test)]
 mod tests {
     use super::Axis;
-    use crate::draw::{Draw, LineAttrbs, LineProperties, TextAttrbs, TextProperties};
+    use crate::draw::{Draw, LineAttrs, LineProperties, TextAttrs, TextProperties};
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -146,8 +146,8 @@ mod tests {
         Axis::bottom(height).draw(
             &mut drawer,
             &scale,
-            &LineAttrbs::default(),
-            &TextAttrbs::new(|x: &f32| x.to_string()),
+            &LineAttrs::default(),
+            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
@@ -211,8 +211,8 @@ mod tests {
         Axis::top(margin_top).draw(
             &mut drawer,
             &scale,
-            &LineAttrbs::default(),
-            &TextAttrbs::new(|x: &f32| x.to_string()),
+            &LineAttrs::default(),
+            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
@@ -276,8 +276,8 @@ mod tests {
         Axis::left(margin_left).draw(
             &mut drawer,
             &scale,
-            &LineAttrbs::default(),
-            &TextAttrbs::new(|x: &f32| x.to_string()),
+            &LineAttrs::default(),
+            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {
@@ -341,8 +341,8 @@ mod tests {
         Axis::right(width).draw(
             &mut drawer,
             &scale,
-            &LineAttrbs::default(),
-            &TextAttrbs::new(|x: &f32| x.to_string()),
+            &LineAttrs::default(),
+            &TextAttrs::new(|x: &f32| x.to_string()),
         );
 
         for line in drawer.lines.iter() {

@@ -13,7 +13,7 @@ impl Default for Alignment {
     }
 }
 
-pub struct TextAttrbs<Data> {
+pub struct TextAttrs<Data> {
     pub(super) formatter: Box<dyn Fn(&Data) -> String>,
     pub(super) color: Box<dyn Fn(&Data) -> Color>,
     pub(super) font_size: f32,
@@ -21,7 +21,7 @@ pub struct TextAttrbs<Data> {
     pub(super) align_y: Alignment,
 }
 
-impl<Data> TextAttrbs<Data> {
+impl<Data> TextAttrs<Data> {
     pub fn new<F>(formatter: F) -> Self
     where
         F: Fn(&Data) -> String + 'static,

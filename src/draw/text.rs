@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use super::{Draw, TextProperties};
 use crate::{
-    draw::TextAttrbs,
+    draw::TextAttrs,
     generator::{Constant, Function, Generator},
 };
 
@@ -69,7 +69,7 @@ where
     ProjectionY: Generator<Data, Output = f32>,
 {
     /// Draws text on X-values and Y-values by applying the scaler functions respectively.
-    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], text_attrbs: &TextAttrbs<Data>) {
+    pub fn draw<D: Draw>(&self, drawer: &mut D, values: &[Data], text_attrbs: &TextAttrs<Data>) {
         for value in values.iter() {
             let x_projected = self.projection_x.generate(value);
             let y_projected = self.projection_y.generate(value);
@@ -88,7 +88,7 @@ where
 mod tests {
     use super::Text;
     use crate::chromatic::{Color, Rainbow};
-    use crate::draw::{Draw, LineProperties, TextAttrbs, TextProperties};
+    use crate::draw::{Draw, LineProperties, TextAttrs, TextProperties};
     use crate::scale::{ScaleColor, ScaleContinuous};
 
     #[derive(Default)]
@@ -146,7 +146,7 @@ mod tests {
         .draw(
             &mut drawer,
             &pairs,
-            &TextAttrbs::new(|pair: &Pair| (pair.x * pair.y).to_string())
+            &TextAttrs::new(|pair: &Pair| (pair.x * pair.y).to_string())
                 .color_with(move |pair| color.apply(pair.y)),
         );
 
@@ -183,7 +183,7 @@ mod tests {
         Text::horizontal(|x| scale.apply(*x), height - margin_bottom).draw(
             &mut drawer,
             &values,
-            &TextAttrbs::new(|x: &f32| (*x / 50.).to_string()).color_with(|x| Color([x / 50.; 3])),
+            &TextAttrs::new(|x: &f32| (*x / 50.).to_string()).color_with(|x| Color([x / 50.; 3])),
         );
 
         assert_eq!(drawer.texts.len(), values.len());
