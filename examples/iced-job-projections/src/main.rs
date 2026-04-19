@@ -6,7 +6,9 @@ use iced::{
     Element,
     widget::{canvas, column, container, row, space, text, tooltip},
 };
-use vizkit::draw::{Alignment, Axis, Draw, LineAttrs, LineProperties, TextAttrs, TextProperties};
+use vizkit::draw::{
+    Alignment, AxisOptions, Draw, LineAttrs, LineProperties, TextAttrs, TextProperties,
+};
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
@@ -63,7 +65,7 @@ impl<'a> DerefMut for IcedFrame<'a> {
 }
 
 impl<'a> Draw for IcedFrame<'a> {
-    fn line(&mut self, line: LineProperties) {
+    fn draw_line(&mut self, line: LineProperties) {
         let [r, g, b] = line.stroke_color.into();
         self.0.stroke(
             &canvas::Path::line(line.start.into(), line.end.into()),
@@ -73,7 +75,7 @@ impl<'a> Draw for IcedFrame<'a> {
         );
     }
 
-    fn text(&mut self, text: TextProperties) {
+    fn draw_text(&mut self, text: TextProperties) {
         let color: [f32; 3] = text.fill_color.into();
         self.0.fill_text(canvas::Text {
             content: text.content,
@@ -182,9 +184,10 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [width - self.margin.right, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        Axis::bottom(height - self.margin.bottom).draw(
-            &mut frame,
+        frame.axis_bottom(
             &state.x_scale,
+            height - self.margin.bottom,
+            &AxisOptions::default(),
             &LineAttrs::default(),
             &TextAttrs::new(|tick: &f32| format!("{}%", (tick * 100.).round())),
         );
@@ -224,9 +227,10 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let end = [self.margin.left, height - self.margin.bottom];
         frame.stroke(&line(start, end), stroke_color);
 
-        Axis::left(self.margin.left).draw(
-            &mut frame,
+        frame.axis_left(
             &state.y_scale,
+            self.margin.left,
+            &AxisOptions::default(),
             &LineAttrs::default(),
             &TextAttrs::new(|tick: &f32| format!("${}k", (tick / 1000.).round())),
         );
