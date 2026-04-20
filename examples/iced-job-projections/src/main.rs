@@ -82,7 +82,7 @@ impl<'a> Draw for IcedFrame<'a> {
             content: text.content,
             position: text.position.into(),
             color: iced::Color::from(color),
-            size: iced::Pixels(10.),
+            size: iced::Pixels(text.font_size),
             align_x: match text.align_x {
                 Alignment::Start => iced::Alignment::Start.into(),
                 Alignment::Center => iced::Alignment::Center.into(),
@@ -120,10 +120,6 @@ impl<'a> Draw for IcedFrame<'a> {
             );
         }
     }
-}
-
-fn line(from: [f32; 2], to: [f32; 2]) -> canvas::Path {
-    canvas::Path::line(from.into(), to.into())
 }
 
 enum Message {
@@ -184,7 +180,6 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         let height = bounds.height;
 
         let text_color = theme.palette().text;
-        let stroke_color = canvas::Stroke::default().with_color(text_color);
         let bold_font = iced::Font {
             weight: iced::font::Weight::Bold,
             ..Default::default()
@@ -205,9 +200,11 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         frame.fill_text(text);
 
         // X axis domain line
-        let start = [self.margin.left, height - self.margin.bottom];
-        let end = [width - self.margin.right, height - self.margin.bottom];
-        frame.stroke(&line(start, end), stroke_color);
+        frame.draw_line(LineProperties {
+            start: [self.margin.left, height - self.margin.bottom],
+            end: [width - self.margin.right, height - self.margin.bottom],
+            ..Default::default()
+        });
 
         frame.axis_bottom(
             &state.x_scale,
@@ -221,12 +218,13 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         );
 
         // Grid lines
-        for tick in state.x_scale.ticks(None) {
-            let x_pos = state.x_scale.apply(tick);
-            let start = [x_pos, self.margin.top];
-            let end = [x_pos, height - self.margin.bottom];
-            frame.stroke(&line(start, end), stroke_color);
-        }
+        frame.grid_vertical(
+            &state.x_scale.ticks(None),
+            self.margin.top,
+            height - self.margin.bottom,
+            |&x| state.x_scale.apply(x),
+            |_| LineAttrs::default(),
+        );
 
         // Y label
         let text = canvas::Text {
@@ -251,9 +249,11 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         });
 
         // Y axis domain line
-        let start = [self.margin.left, self.margin.top];
-        let end = [self.margin.left, height - self.margin.bottom];
-        frame.stroke(&line(start, end), stroke_color);
+        frame.draw_line(LineProperties {
+            start: [self.margin.left, self.margin.top],
+            end: [self.margin.left, height - self.margin.bottom],
+            ..Default::default()
+        });
 
         frame.axis_left(
             &state.y_scale,
@@ -267,12 +267,13 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         );
 
         // Grid lines
-        for tick in state.y_scale.ticks(Some(5)) {
-            let y_pos = state.y_scale.apply(tick);
-            let start = [self.margin.left, y_pos];
-            let end = [width - self.margin.right, y_pos];
-            frame.stroke(&line(start, end), stroke_color);
-        }
+        frame.grid_horizontal(
+            &state.y_scale.ticks(None),
+            self.margin.left,
+            width - self.margin.right,
+            |&y| state.y_scale.apply(y),
+            |_| LineAttrs::default(),
+        );
 
         // Circles
         for plot_circle in state.circles.iter() {
@@ -294,16 +295,13 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         }
 
         // Y reference (horizontal line)
-        let start = [self.margin.left, state.y_scale.apply(33_900.0)];
-        let end = [width - self.margin.right, state.y_scale.apply(33_900.0)];
-        frame.stroke(
-            &line(start, end),
-            canvas::Stroke::default().with_width(1.5).with_color(
-                iced::Color::from_str("#666")
-                    .unwrap_or_default()
-                    .scale_alpha(0.75),
-            ),
-        );
+        frame.draw_line(LineProperties {
+            start: [self.margin.left, state.y_scale.apply(33_900.0)],
+            end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
+            stroke_color: vizkit::chromatic::Color::from("666"),
+            stroke_width: 1.5,
+            stroke_opacity: 0.75,
+        });
 
         vec![iced_frame.into_geometry()]
     }
