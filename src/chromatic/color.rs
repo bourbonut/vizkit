@@ -17,7 +17,7 @@ impl Default for Color {
     }
 }
 
-/// Converts a string formated in hex color to this type. If the string has more than 6 characters,
+/// Converts a string formated in hex color to this type. If the string has not 3 or 6 characters,
 /// it returns a color filled with `0.`. If a channel cannot be converted, the channel defaults to
 /// `0.`.
 ///
@@ -25,21 +25,29 @@ impl Default for Color {
 /// use vizkit::chromatic::Color;
 ///
 /// assert_eq!(Color::from("ffffff").0, [1., 1., 1.]);
-/// assert_eq!(Color::from("#ffffff").0, [0., 0., 0.]); // invalid: len > 6
+/// assert_eq!(Color::from("#ffffff").0, [0., 0., 0.]); // invalid: len != 6
+/// assert_eq!(Color::from("fff").0, [1., 1., 1.]);
+/// assert_eq!(Color::from("666").0, [102. / 255.; 3]); // 6 => 0x66 = 102
+/// assert_eq!(Color::from("#fff").0, [0., 0., 0.]); // invalid len != 3
 /// assert_eq!(Color::from("ZZFFFF").0, [0., 1., 1.]);
 /// assert_eq!(Color::from("zzzzzz").0, [0., 0., 0.]);
 /// assert_eq!(Color::from("4I9820842908490").0, [0., 0., 0.]);
 /// ```
 impl From<&str> for Color {
     fn from(string: &str) -> Self {
-        if string.len() > 6 {
-            return Color([0.; 3]);
+        match string.len() {
+            3 => Color([
+                u8::from_str_radix(&string[0..1].repeat(2), 16).unwrap_or_default() as f32 / 255.,
+                u8::from_str_radix(&string[1..2].repeat(2), 16).unwrap_or_default() as f32 / 255.,
+                u8::from_str_radix(&string[2..3].repeat(2), 16).unwrap_or_default() as f32 / 255.,
+            ]),
+            6 => Color([
+                u8::from_str_radix(&string[0..2], 16).unwrap_or_default() as f32 / 255.,
+                u8::from_str_radix(&string[2..4], 16).unwrap_or_default() as f32 / 255.,
+                u8::from_str_radix(&string[4..6], 16).unwrap_or_default() as f32 / 255.,
+            ]),
+            _ => Color([0.; 3]),
         }
-        Color([
-            u8::from_str_radix(&string[0..2], 16).unwrap_or_default() as f32 / 255.,
-            u8::from_str_radix(&string[2..4], 16).unwrap_or_default() as f32 / 255.,
-            u8::from_str_radix(&string[4..6], 16).unwrap_or_default() as f32 / 255.,
-        ])
     }
 }
 
