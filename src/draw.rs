@@ -3,7 +3,14 @@
 //! change attributes given a specific row of data.
 //!
 //! ```
-//! use vizkit::draw::{Draw, AxisOptions, CircleProperties, LineProperties, TextProperties};
+//! use vizkit::draw::{
+//!     Draw,
+//!     AxisOptions,
+//!     CircleProperties,
+//!     LineProperties,
+//!     TextProperties,
+//!     RectProperties
+//! };
 //! use vizkit::scale::ScaleContinuous;
 //!
 //! #[derive(Default)]
@@ -22,6 +29,10 @@
 //!     }
 //
 //!     fn draw_circle(&mut self, _: CircleProperties) {
+//!         todo!()
+//!     }
+//!
+//!     fn draw_rect(&mut self, _: RectProperties) {
 //!         todo!()
 //!     }
 //! }
@@ -52,18 +63,18 @@ mod attrs;
 mod axis;
 mod circle;
 mod grid;
-mod line;
 mod properties;
+mod rect;
 mod text;
 
 use crate::scale::{ScaleContinuous, Tick, Transformer};
 
-pub use self::attrs::{Alignment, CircleAttrs, LineAttrs, TextAttrs};
+pub use self::attrs::{Alignment, LineAttrs, ShapeAttrs, TextAttrs};
 pub use self::axis::{AxisOptions, axis_bottom, axis_left, axis_right, axis_top};
 pub use self::circle::circle_iter;
 pub use self::grid::{grid_horizontal_iter, grid_vertical_iter};
-pub use self::line::Line;
-pub use self::properties::{CircleProperties, LineProperties, TextProperties};
+pub use self::properties::{CircleProperties, LineProperties, RectProperties, TextProperties};
+pub use self::rect::rect_iter;
 pub use self::text::text_iter;
 
 enum Orientation {
@@ -81,9 +92,10 @@ impl Orientation {
 }
 
 pub trait Draw {
-    fn draw_line(&mut self, line: LineProperties);
-    fn draw_text(&mut self, text: TextProperties);
     fn draw_circle(&mut self, circle: CircleProperties);
+    fn draw_line(&mut self, line: LineProperties);
+    fn draw_rect(&mut self, rect: RectProperties);
+    fn draw_text(&mut self, text: TextProperties);
 
     fn axis_top<T: Transformer + Tick>(
         &mut self,
@@ -131,17 +143,13 @@ pub trait Draw {
         x: impl Fn(&Data) -> f32,
         y: impl Fn(&Data) -> f32,
         r: impl Fn(&Data) -> f32,
-        circle_attrs: impl Fn(&Data) -> CircleAttrs,
+        shape_attrs: impl Fn(&Data) -> ShapeAttrs,
     ) {
-        self.circle_from_props(circle_iter(values, x, y, r, circle_attrs));
+        self.circle_from_props(circle_iter(values, x, y, r, shape_attrs));
     }
 
     fn circle_from_props<I: IntoIterator<Item = CircleProperties>>(&mut self, iter: I) {
         iter.into_iter().for_each(|circle| self.draw_circle(circle));
-    }
-
-    fn line_from_props<I: IntoIterator<Item = LineProperties>>(&mut self, iter: I) {
-        iter.into_iter().for_each(|line| self.draw_line(line));
     }
 
     fn grid_vertical<Data>(
@@ -164,6 +172,35 @@ pub trait Draw {
         line_attrs: impl Fn(&Data) -> LineAttrs,
     ) {
         self.line_from_props(grid_horizontal_iter(values, x1, x2, y, line_attrs));
+    }
+
+    fn line_from_props<I: IntoIterator<Item = LineProperties>>(&mut self, iter: I) {
+        iter.into_iter().for_each(|line| self.draw_line(line));
+    }
+
+    fn rect<Data>(
+        &mut self,
+        values: &[Data],
+        x: impl Fn(&Data) -> f32,
+        y: impl Fn(&Data) -> f32,
+        width: impl Fn(&Data) -> f32,
+        height: impl Fn(&Data) -> f32,
+        corner_radius: Option<f32>,
+        shape_attrs: impl Fn(&Data) -> ShapeAttrs,
+    ) {
+        self.rect_from_props(rect_iter(
+            values,
+            x,
+            y,
+            width,
+            height,
+            corner_radius,
+            shape_attrs,
+        ));
+    }
+
+    fn rect_from_props<I: IntoIterator<Item = RectProperties>>(&mut self, iter: I) {
+        iter.into_iter().for_each(|rect| self.draw_rect(rect));
     }
 
     fn text<Data>(

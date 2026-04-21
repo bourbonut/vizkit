@@ -22,7 +22,9 @@ pub fn text_iter<Data>(
 #[cfg(test)]
 mod tests {
     use crate::chromatic::{Color, Rainbow};
-    use crate::draw::{CircleProperties, Draw, LineProperties, TextAttrs, TextProperties};
+    use crate::draw::{
+        CircleProperties, Draw, LineProperties, RectProperties, TextAttrs, TextProperties,
+    };
     use crate::scale::{ScaleColor, ScaleContinuous};
 
     #[derive(Default)]
@@ -40,6 +42,10 @@ mod tests {
         }
 
         fn draw_circle(&mut self, _: CircleProperties) {
+            todo!()
+        }
+
+        fn draw_rect(&mut self, _: RectProperties) {
             todo!()
         }
     }

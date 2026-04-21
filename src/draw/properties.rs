@@ -55,3 +55,15 @@ pub struct CircleProperties {
     pub stroke_width: f32,
     pub stroke_opacity: f32,
 }
+
+#[derive(Clone)]
+pub struct RectProperties {
+    pub top_left: [f32; 2],
+    pub size: [f32; 2],
+    pub corner_radius: Option<f32>,
+    pub fill_color: Option<Color>,
+    pub fill_opacity: f32,
+    pub stroke_color: Option<Color>,
+    pub stroke_width: f32,
+    pub stroke_opacity: f32,
+}

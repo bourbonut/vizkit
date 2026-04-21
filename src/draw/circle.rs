@@ -1,14 +1,14 @@
-use super::{CircleAttrs, CircleProperties};
+use super::{CircleProperties, ShapeAttrs};
 
 pub fn circle_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
     y: impl Fn(&Data) -> f32,
     r: impl Fn(&Data) -> f32,
-    circle_attrs: impl Fn(&Data) -> CircleAttrs,
+    shape_attrs: impl Fn(&Data) -> ShapeAttrs,
 ) -> impl Iterator<Item = CircleProperties> {
     values.iter().map(move |value| {
-        let circle_values = (circle_attrs)(value);
+        let circle_values = (shape_attrs)(value);
         CircleProperties {
             center: [x(value), y(value)],
             radius: r(value),

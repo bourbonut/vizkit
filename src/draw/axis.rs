@@ -140,7 +140,9 @@ fn axis<D: Draw + ?Sized, T: Transformer + Tick>(
 
 #[cfg(test)]
 mod tests {
-    use crate::draw::{AxisOptions, CircleProperties, Draw, LineProperties, TextProperties};
+    use crate::draw::{
+        AxisOptions, CircleProperties, Draw, LineProperties, RectProperties, TextProperties,
+    };
     use crate::scale::ScaleContinuous;
     use rstest::rstest;
 
@@ -160,6 +162,10 @@ mod tests {
         }
 
         fn draw_circle(&mut self, _: CircleProperties) {
+            todo!()
+        }
+
+        fn draw_rect(&mut self, _: RectProperties) {
             todo!()
         }
     }

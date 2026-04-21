@@ -1,6 +1,6 @@
 use crate::chromatic::Color;
 
-pub struct CircleAttrs {
+pub struct ShapeAttrs {
     pub fill_color: Option<Color>,
     pub fill_opacity: f32,
     pub stroke_color: Option<Color>,
@@ -8,7 +8,7 @@ pub struct CircleAttrs {
     pub stroke_opacity: f32,
 }
 
-impl Default for CircleAttrs {
+impl Default for ShapeAttrs {
     fn default() -> Self {
         Self {
             fill_color: None,
@@ -20,7 +20,7 @@ impl Default for CircleAttrs {
     }
 }
 
-impl CircleAttrs {
+impl ShapeAttrs {
     pub fn fill_default() -> Self {
         Self {
             fill_color: Some(Color::default()),

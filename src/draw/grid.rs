@@ -43,7 +43,9 @@ fn grid_iter<Data>(
 #[cfg(test)]
 mod tests {
     use crate::chromatic::Color;
-    use crate::draw::{CircleProperties, Draw, LineAttrs, LineProperties, TextProperties};
+    use crate::draw::{
+        CircleProperties, Draw, LineAttrs, LineProperties, RectProperties, TextProperties,
+    };
     use crate::scale::ScaleContinuous;
 
     #[derive(Default)]
@@ -61,6 +63,10 @@ mod tests {
         }
 
         fn draw_circle(&mut self, _: CircleProperties) {
+            todo!()
+        }
+
+        fn draw_rect(&mut self, _: RectProperties) {
             todo!()
         }
     }
