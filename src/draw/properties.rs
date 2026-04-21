@@ -45,6 +45,7 @@ impl Default for TextProperties {
     }
 }
 
+#[derive(Clone)]
 pub struct CircleProperties {
     pub center: [f32; 2],
     pub radius: f32,
