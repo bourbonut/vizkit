@@ -5,7 +5,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-chrono = "0.4.40"
+chrono = { version = "0.4.40", optional = true }
+
+[features]
+time = ["dep:chrono"]
 
 [workspace]
 members = ["examples/*"]
