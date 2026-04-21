@@ -114,7 +114,7 @@ where
 /// use vizkit::scale::ScaleBand;
 ///
 /// // The method `apply` needs `&mut self`.
-/// let mut scale = ScaleBand::default()
+/// let scale = ScaleBand::default()
 ///     .domain(&["a", "b", "c"])
 ///     .range([0., 960.]);
 ///
