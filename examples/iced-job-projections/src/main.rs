@@ -6,13 +6,14 @@ use iced::{
     Element,
     widget::{canvas, column, container, row, space, text, tooltip},
 };
+use vizkit::chromatic::Color;
 use vizkit::draw::{
-    Alignment, AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, TextAttrs,
-    TextProperties,
+    Alignment, AxisOptions, CircleAttrs, CircleProperties, Draw, LineAttrs, LineProperties,
+    TextProperties, circle_iter,
 };
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
-use crate::manual_processing::Data;
+use crate::manual_processing::{Data, Row};
 
 const COLOR_DOMAIN: [&str; 7] = [
     "Natural Resources",
@@ -104,7 +105,9 @@ impl<'a> Draw for IcedFrame<'a> {
             self.0.fill(
                 &circle_path,
                 canvas::Fill {
-                    style: canvas::Style::Solid(iced::Color::from(fill_color)),
+                    style: canvas::Style::Solid(
+                        iced::Color::from(fill_color).scale_alpha(circle.fill_opacity),
+                    ),
                     rule: canvas::fill::Rule::EvenOdd,
                 },
             );
@@ -127,30 +130,10 @@ enum Message {
     None,
 }
 
-struct PlotCircle {
-    center: [f32; 2],
-    radius: f32,
-    fill_color: iced::Color,
-    stroke_color: iced::Color,
-}
-
-impl PlotCircle {
-    fn new(center: [f32; 2], radius: f32, fill_color: &str, stroke_color: &str) -> Self {
-        Self {
-            center,
-            radius,
-            fill_color: iced::Color::from_str(fill_color)
-                .unwrap_or_default()
-                .scale_alpha(0.5),
-            stroke_color: iced::Color::from_str(stroke_color).unwrap_or_default(),
-        }
-    }
-}
-
 struct PlotState {
     x_scale: ScaleContinuous<Linear>,
     y_scale: ScaleContinuous<Linear>,
-    circles: Vec<PlotCircle>,
+    circles: Vec<CircleProperties>,
 }
 
 impl Default for PlotState {
@@ -274,23 +257,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         );
 
         // Circles
-        for plot_circle in state.circles.iter() {
-            let circle = canvas::Path::circle(plot_circle.center.into(), plot_circle.radius);
-            frame.fill(
-                &circle,
-                canvas::Fill {
-                    style: canvas::Style::Solid(plot_circle.fill_color),
-                    rule: canvas::fill::Rule::EvenOdd,
-                },
-            );
-
-            frame.stroke(
-                &circle,
-                canvas::Stroke::default()
-                    .with_width(0.75)
-                    .with_color(plot_circle.stroke_color),
-            );
-        }
+        frame.circle_from_props(state.circles.iter().cloned());
 
         // Y reference (horizontal line)
         frame.draw_line(LineProperties {
@@ -328,22 +295,24 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             .domain(self.data.radius_domain)
             .range(RRANGE);
 
-        let mut color = ScaleOrdinal::default()
+        let color = ScaleOrdinal::default()
             .domain(&COLOR_DOMAIN)
             .range(&COLOR_RANGE);
 
-        state.circles = self
-            .data
-            .into_iter()
-            .map(|row| {
-                let cx = state.x_scale.apply(row.turnover);
-                let cy = state.y_scale.apply(row.median_wage);
-                let r = r_scale.apply(row.openings);
-                let fill_color = color.apply(&row.sector_cat).map_or("", |v| v);
-                let stroke_color = color.apply(&row.sector_cat).map_or("", |v| v);
-                PlotCircle::new([cx, cy], r, fill_color, stroke_color)
-            })
-            .collect();
+        let rows: Vec<Row> = self.data.into_iter().collect();
+        state.circles = circle_iter(
+            &rows,
+            |d| state.x_scale.apply(d.turnover),
+            |d| state.y_scale.apply(d.median_wage),
+            |d| r_scale.apply(d.openings),
+            |d| CircleAttrs {
+                fill_color: color.apply(d.sector_cat).map(|s| Color::from(&s[1..])),
+                fill_opacity: 0.5,
+                stroke_color: color.apply(d.sector_cat).map(|s| Color::from(&s[1..])),
+                ..Default::default()
+            },
+        )
+        .collect();
 
         if let Some(position) = cursor.position() {
             let argmin = state
@@ -398,7 +367,7 @@ fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
         .domain(data.radius_domain)
         .range(RRANGE);
 
-    let mut color = ScaleOrdinal::default()
+    let color = ScaleOrdinal::default()
         .domain(&COLOR_DOMAIN)
         .range(&COLOR_RANGE);
 
