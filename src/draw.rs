@@ -1,3 +1,53 @@
+//! This module provides basic functionalities to draw fundamental elements such as axis, grid,
+//! circles, lines ... It is based on row-oriented data structures and it offers a simple API to
+//! change attributes given a specific row of data.
+//!
+//! ```
+//! use vizkit::draw::{Draw, AxisOptions, CircleProperties, LineProperties, TextProperties};
+//! use vizkit::scale::ScaleContinuous;
+//!
+//! #[derive(Default)]
+//! struct Drawer {
+//!     lines: Vec<LineProperties>,
+//!     texts: Vec<TextProperties>,
+//! }
+//
+//! impl Draw for Drawer {
+//!     fn draw_line(&mut self, line: LineProperties) {
+//!         self.lines.push(line);
+//!     }
+//
+//!     fn draw_text(&mut self, text: TextProperties) {
+//!         self.texts.push(text);
+//!     }
+//
+//!     fn draw_circle(&mut self, _: CircleProperties) {
+//!         todo!()
+//!     }
+//! }
+//!
+//! let margin_left = 50.;
+//! let margin_right = 10.;
+//! let margin_bottom = 40.;
+//! let width = 500.;
+//! let height = 200.;
+//! let scale = ScaleContinuous::linear()
+//!     .domain([0., 50.])
+//!     .range([margin_left, width - margin_right]);
+//!
+//! let mut drawer = Drawer::default();
+//!
+//! drawer.axis_bottom(
+//!     &scale,
+//!     height - margin_bottom,
+//!     |tick: f32| tick.to_string(),
+//!     &AxisOptions::default()
+//! );
+//!
+//! assert_eq!(drawer.lines.len(), scale.ticks(None).len());
+//! assert_eq!(drawer.texts.len(), scale.ticks(None).len());
+//! ```
+
 mod attrs;
 mod axis;
 mod circle;
@@ -39,44 +89,40 @@ pub trait Draw {
         &mut self,
         scaler: &ScaleContinuous<T>,
         y: f32,
-        line_attrs: impl Fn(f32) -> LineAttrs,
-        text_attrs: impl Fn(f32) -> TextAttrs,
+        formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_top(self, scaler, y, line_attrs, text_attrs, axis_options);
+        axis_top(self, scaler, y, formatter, axis_options);
     }
 
     fn axis_right<T: Transformer + Tick>(
         &mut self,
         scaler: &ScaleContinuous<T>,
         x: f32,
-        line_attrs: impl Fn(f32) -> LineAttrs,
-        text_attrs: impl Fn(f32) -> TextAttrs,
+        formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_right(self, scaler, x, line_attrs, text_attrs, axis_options);
+        axis_right(self, scaler, x, formatter, axis_options);
     }
 
     fn axis_bottom<T: Transformer + Tick>(
         &mut self,
         scaler: &ScaleContinuous<T>,
         y: f32,
-        line_attrs: impl Fn(f32) -> LineAttrs,
-        text_attrs: impl Fn(f32) -> TextAttrs,
+        formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_bottom(self, scaler, y, line_attrs, text_attrs, axis_options);
+        axis_bottom(self, scaler, y, formatter, axis_options);
     }
 
     fn axis_left<T: Transformer + Tick>(
         &mut self,
         scaler: &ScaleContinuous<T>,
         x: f32,
-        line_attrs: impl Fn(f32) -> LineAttrs,
-        text_attrs: impl Fn(f32) -> TextAttrs,
+        formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_left(self, scaler, x, line_attrs, text_attrs, axis_options);
+        axis_left(self, scaler, x, formatter, axis_options);
     }
 
     fn circle<Data>(
