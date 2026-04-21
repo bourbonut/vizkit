@@ -16,11 +16,11 @@ use std::hash::Hash;
 ///         "a" => assert_eq!(scale.apply(c), Some("red").as_ref()),
 ///         "b" => assert_eq!(scale.apply(c), Some("green").as_ref()),
 ///         "c" => assert_eq!(scale.apply(c), Some("blue").as_ref()),
-///         "d" => assert_eq!(scale.apply(c), Some("red").as_ref()),
-///         "e" => assert_eq!(scale.apply(c), Some("green").as_ref()),
-///         "f" => assert_eq!(scale.apply(c), Some("blue").as_ref()),
-///         "g" => assert_eq!(scale.apply(c), Some("red").as_ref()),
-///         "h" => assert_eq!(scale.apply(c), Some("green").as_ref()),
+///         "d" => assert_eq!(scale.apply(c), None),
+///         "e" => assert_eq!(scale.apply(c), None),
+///         "f" => assert_eq!(scale.apply(c), None),
+///         "g" => assert_eq!(scale.apply(c), None),
+///         "h" => assert_eq!(scale.apply(c), None),
 ///         "" => (),
 ///         x => unreachable!("char {} should not exist", x),
 ///     }
@@ -75,20 +75,23 @@ where
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
     /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
     /// it returns `None` (invalid value or empty range).
-    pub fn apply(&mut self, x: D) -> Option<&R>
+    pub fn apply(&self, x: D) -> Option<&R>
     where
         D: Clone,
     {
         match self.index.get(&x) {
             None => {
-                self.domain.push(x.clone());
-                let i = self.domain.len() - 1;
-                self.index.insert(x.clone(), i);
-                if self.range.is_empty() {
-                    return None;
-                }
-                let index = i % self.range.len();
-                self.range.get(index)
+                // For non deterministic behavior, this code must be uncommented.
+                // Howewer it implies to set `self` as `&mut self` which is not flexible.
+                // self.domain.push(x.clone());
+                // let i = self.domain.len() - 1;
+                // self.index.insert(x.clone(), i);
+                // if self.range.is_empty() {
+                //     return None;
+                // }
+                // let index = i % self.range.len();
+                // self.range.get(index)
+                None
             }
             Some(i) => {
                 if self.range.is_empty() {
@@ -205,7 +208,7 @@ where
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
     /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
     /// it returns `None` (invalid value or empty range).
-    pub fn apply(&mut self, x: D) -> Option<&f32> {
+    pub fn apply(&self, x: D) -> Option<&f32> {
         self.scale_ordinal.index.get(&x).and_then(|i| {
             if self.scale_ordinal.range.is_empty() {
                 return None;
