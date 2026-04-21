@@ -29,9 +29,9 @@ const COLOR_RANGE: [&str; 7] = [
     "#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d",
 ];
 
-const RRANGE: [f32; 2] = [4., 40.];
+const RADIUS_RANGE: [f32; 2] = [4., 40.];
 
-const RBASE: f32 = 10.;
+const RADIUS_BASE: f32 = 10.;
 
 struct Margin {
     top: f32,
@@ -157,8 +157,8 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         bounds: iced::Rectangle,
         _cursor: iced::mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
-        let mut iced_frame = canvas::Frame::new(renderer, bounds.size());
-        let mut frame = IcedFrame(&mut iced_frame);
+        let mut frame = canvas::Frame::new(renderer, bounds.size());
+        let mut iced_frame = IcedFrame(&mut frame);
         let width = bounds.width;
         let height = bounds.height;
 
@@ -168,7 +168,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             ..Default::default()
         };
 
-        // X label
+        // X label with bold weight
         let tx = (self.margin.left + width - self.margin.right) * 0.5;
         let ty = self.margin.bottom * 0.5;
         let text = canvas::Text {
@@ -180,16 +180,16 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             align_x: iced::Alignment::Center.into(),
             ..Default::default()
         };
-        frame.fill_text(text);
+        iced_frame.fill_text(text);
 
         // X axis domain line
-        frame.draw_line(LineProperties {
+        iced_frame.draw_line(LineProperties {
             start: [self.margin.left, height - self.margin.bottom],
             end: [width - self.margin.right, height - self.margin.bottom],
             ..Default::default()
         });
 
-        frame.axis_bottom(
+        iced_frame.axis_bottom(
             &state.x_scale,
             height - self.margin.bottom,
             |tick| format!("{}%", (tick * 100.).round()),
@@ -200,7 +200,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         );
 
         // Grid lines
-        frame.grid_vertical(
+        iced_frame.grid_vertical(
             &state.x_scale.ticks(None),
             self.margin.top,
             height - self.margin.bottom,
@@ -208,7 +208,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             |_| LineAttrs::default(),
         );
 
-        // Y label
+        // Y label with bold weight
         let text = canvas::Text {
             content: String::from("Median wage, 2018"),
             position: [0., 0.].into(),
@@ -220,7 +220,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         };
 
         // Rotate the text (Y label)
-        frame.with_save(|frame| {
+        iced_frame.with_save(|frame| {
             frame.rotate(-std::f32::consts::PI * 0.5);
 
             let tx = self.margin.left * 0.9;
@@ -231,13 +231,13 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         });
 
         // Y axis domain line
-        frame.draw_line(LineProperties {
+        iced_frame.draw_line(LineProperties {
             start: [self.margin.left, self.margin.top],
             end: [self.margin.left, height - self.margin.bottom],
             ..Default::default()
         });
 
-        frame.axis_left(
+        iced_frame.axis_left(
             &state.y_scale,
             self.margin.left,
             |tick| format!("${}k", (tick / 1000.).round()),
@@ -248,7 +248,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         );
 
         // Grid lines
-        frame.grid_horizontal(
+        iced_frame.grid_horizontal(
             &state.y_scale.ticks(None),
             self.margin.left,
             width - self.margin.right,
@@ -257,10 +257,10 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         );
 
         // Circles
-        frame.circle_from_props(state.circles.iter().cloned());
+        iced_frame.circle_from_props(state.circles.iter().cloned());
 
         // Y reference (horizontal line)
-        frame.draw_line(LineProperties {
+        iced_frame.draw_line(LineProperties {
             start: [self.margin.left, state.y_scale.apply(33_900.0)],
             end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
             stroke_color: vizkit::chromatic::Color::from("666"),
@@ -268,7 +268,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             stroke_opacity: 0.75,
         });
 
-        vec![iced_frame.into_geometry()]
+        vec![frame.into_geometry()]
     }
 
     fn update(
@@ -293,12 +293,13 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
 
         let r_scale = ScaleContinuous::sqrt()
             .domain(self.data.radius_domain)
-            .range(RRANGE);
+            .range(RADIUS_RANGE);
 
         let color = ScaleOrdinal::default()
             .domain(&COLOR_DOMAIN)
             .range(&COLOR_RANGE);
 
+        // Note that color has the format "#******" and `Color::from` accepts strings without "#"
         let rows: Vec<Row> = self.data.into_iter().collect();
         state.circles = circle_iter(
             &rows,
@@ -315,6 +316,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         .collect();
 
         if let Some(position) = cursor.position() {
+            // Computes the index of the closest circle to the cursor position
             let argmin = state
                 .circles
                 .iter()
@@ -365,7 +367,7 @@ impl<Message> canvas::Program<Message> for Circle {
 fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
     let radius = ScaleContinuous::sqrt()
         .domain(data.radius_domain)
-        .range(RRANGE);
+        .range(RADIUS_RANGE);
 
     let color = ScaleOrdinal::default()
         .domain(&COLOR_DOMAIN)
@@ -415,11 +417,11 @@ fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
                 row![
                     canvas(Circle {
                         color: iced::Color::from_str(color_str).unwrap_or_default(),
-                        radius: RBASE,
-                        center: [RBASE, RBASE].into(),
+                        radius: RADIUS_BASE,
+                        center: [RADIUS_BASE, RADIUS_BASE].into(),
                     })
-                    .width(iced::Length::Fixed(RBASE * 2.0))
-                    .height(iced::Length::Fixed(RBASE * 2.0)),
+                    .width(iced::Length::Fixed(RADIUS_BASE * 2.0))
+                    .height(iced::Length::Fixed(RADIUS_BASE * 2.0)),
                     text(*value),
                 ]
                 .spacing(15.)
