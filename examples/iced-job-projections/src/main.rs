@@ -9,7 +9,7 @@ use iced::{
 use vizkit::chromatic::Color;
 use vizkit::draw::{
     Alignment, AxisOptions, CircleAttrs, CircleProperties, Draw, LineAttrs, LineProperties,
-    TextProperties, circle_iter,
+    RectProperties, TextProperties, circle_iter,
 };
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
@@ -122,6 +122,10 @@ impl<'a> Draw for IcedFrame<'a> {
                     .with_color(iced::Color::from(stroke_color)),
             );
         }
+    }
+
+    fn draw_rect(&mut self, _: RectProperties) {
+        todo!()
     }
 }
 
