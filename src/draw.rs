@@ -60,11 +60,11 @@ use crate::scale::{ScaleContinuous, Tick, Transformer};
 
 pub use self::attrs::{Alignment, CircleAttrs, LineAttrs, TextAttrs};
 pub use self::axis::{AxisOptions, axis_bottom, axis_left, axis_right, axis_top};
-pub use self::circle::circle;
-pub use self::grid::{grid_horizontal, grid_vertical};
+pub use self::circle::circle_iter;
+pub use self::grid::{grid_horizontal_iter, grid_vertical_iter};
 pub use self::line::Line;
 pub use self::properties::{CircleProperties, LineProperties, TextProperties};
-pub use self::text::text;
+pub use self::text::text_iter;
 
 enum Orientation {
     Flip,
@@ -133,7 +133,15 @@ pub trait Draw {
         r: impl Fn(&Data) -> f32,
         circle_attrs: impl Fn(&Data) -> CircleAttrs,
     ) {
-        circle(self, values, x, y, r, circle_attrs)
+        self.circle_from_props(circle_iter(values, x, y, r, circle_attrs));
+    }
+
+    fn circle_from_props<I: IntoIterator<Item = CircleProperties>>(&mut self, iter: I) {
+        iter.into_iter().for_each(|circle| self.draw_circle(circle));
+    }
+
+    fn line_from_props<I: IntoIterator<Item = LineProperties>>(&mut self, iter: I) {
+        iter.into_iter().for_each(|line| self.draw_line(line));
     }
 
     fn grid_vertical<Data>(
@@ -144,7 +152,7 @@ pub trait Draw {
         x: impl Fn(&Data) -> f32,
         line_attrs: impl Fn(&Data) -> LineAttrs,
     ) {
-        grid_vertical(self, values, y1, y2, x, line_attrs);
+        self.line_from_props(grid_vertical_iter(values, y1, y2, x, line_attrs));
     }
 
     fn grid_horizontal<Data>(
@@ -155,7 +163,7 @@ pub trait Draw {
         y: impl Fn(&Data) -> f32,
         line_attrs: impl Fn(&Data) -> LineAttrs,
     ) {
-        grid_horizontal(self, values, x1, x2, y, line_attrs);
+        self.line_from_props(grid_horizontal_iter(values, x1, x2, y, line_attrs));
     }
 
     fn text<Data>(
@@ -165,7 +173,7 @@ pub trait Draw {
         y: impl Fn(&Data) -> f32,
         text_attrs: impl Fn(&Data) -> TextAttrs,
     ) {
-        text(self, values, x, y, text_attrs)
+        self.text_from_props(text_iter(values, x, y, text_attrs))
     }
 
     fn text_vertical<Data>(
@@ -175,7 +183,7 @@ pub trait Draw {
         y: impl Fn(&Data) -> f32,
         text_attrs: impl Fn(&Data) -> TextAttrs,
     ) {
-        text(self, values, |_| x, y, text_attrs);
+        self.text_from_props(text_iter(values, |_| x, y, text_attrs))
     }
 
     fn text_horizontal<Data>(
@@ -185,6 +193,10 @@ pub trait Draw {
         y: f32,
         text_attrs: impl Fn(&Data) -> TextAttrs,
     ) {
-        text(self, values, x, |_| y, text_attrs);
+        self.text_from_props(text_iter(values, x, |_| y, text_attrs))
+    }
+
+    fn text_from_props<I: IntoIterator<Item = TextProperties>>(&mut self, iter: I) {
+        iter.into_iter().for_each(|text| self.draw_text(text));
     }
 }

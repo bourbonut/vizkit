@@ -1,23 +1,22 @@
-use super::{Draw, TextAttrs, TextProperties};
+use super::{TextAttrs, TextProperties};
 
-pub fn text<Data, D: Draw + ?Sized>(
-    drawer: &mut D,
+pub fn text_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
     y: impl Fn(&Data) -> f32,
     text_attrs: impl Fn(&Data) -> TextAttrs,
-) {
-    for value in values.iter() {
+) -> impl Iterator<Item = TextProperties> {
+    values.iter().map(move |value| {
         let text_values = (text_attrs)(value);
-        drawer.draw_text(TextProperties {
+        TextProperties {
             position: [(x)(value), (y)(value)],
             content: text_values.content,
             fill_color: text_values.fill_color,
             font_size: text_values.font_size,
             align_x: text_values.align_x,
             align_y: text_values.align_y,
-        })
-    }
+        }
+    })
 }
 
 #[cfg(test)]

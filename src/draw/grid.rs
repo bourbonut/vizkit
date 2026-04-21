@@ -1,46 +1,43 @@
-use super::{Draw, LineAttrs, LineProperties, Orientation};
+use super::{LineAttrs, LineProperties, Orientation};
 
-pub fn grid_vertical<Data, D: Draw + ?Sized>(
-    drawer: &mut D,
+pub fn grid_vertical_iter<Data>(
     values: &[Data],
     y1: f32,
     y2: f32,
     x: impl Fn(&Data) -> f32,
     line_attrs: impl Fn(&Data) -> LineAttrs,
-) {
-    grid(drawer, values, Orientation::Same, [y1, y2], x, line_attrs);
+) -> impl Iterator<Item = LineProperties> {
+    grid_iter(values, Orientation::Same, [y1, y2], x, line_attrs)
 }
 
-pub fn grid_horizontal<Data, D: Draw + ?Sized>(
-    drawer: &mut D,
+pub fn grid_horizontal_iter<Data>(
     values: &[Data],
     x1: f32,
     x2: f32,
     y: impl Fn(&Data) -> f32,
     line_attrs: impl Fn(&Data) -> LineAttrs,
-) {
-    grid(drawer, values, Orientation::Flip, [x1, x2], y, line_attrs);
+) -> impl Iterator<Item = LineProperties> {
+    grid_iter(values, Orientation::Flip, [x1, x2], y, line_attrs)
 }
 
-fn grid<Data, D: Draw + ?Sized>(
-    drawer: &mut D,
+fn grid_iter<Data>(
     values: &[Data],
     orientation: Orientation,
     boundaries: [f32; 2],
     projection: impl Fn(&Data) -> f32,
     line_attrs: impl Fn(&Data) -> LineAttrs,
-) {
-    for value in values.iter() {
+) -> impl Iterator<Item = LineProperties> {
+    values.iter().map(move |value| {
         let projected = (projection)(value);
         let line_values = (line_attrs)(value);
-        drawer.draw_line(LineProperties {
+        LineProperties {
             start: orientation.apply(projected, boundaries[0]),
             end: orientation.apply(projected, boundaries[1]),
             stroke_color: line_values.stroke_color,
             stroke_width: line_values.stroke_width,
             stroke_opacity: line_values.stroke_opacity,
-        });
-    }
+        }
+    })
 }
 
 #[cfg(test)]
