@@ -1,3 +1,5 @@
+// This file contains "manual" processing for data because I found that polars is heavy and adds
+// many dependencies and compilation time.
 use serde::Deserialize;
 use std::{collections::HashMap, fs};
 

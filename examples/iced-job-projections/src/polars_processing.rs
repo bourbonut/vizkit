@@ -1,3 +1,5 @@
+// This file contains processing for data using polars for those who prefer using it.
+// Some parts may require updates.
 use polars::prelude::*;
 use std::fs::File;
 
