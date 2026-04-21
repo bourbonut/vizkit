@@ -1,4 +1,5 @@
-mod data;
+// mod polars_processing;
+mod manual_processing;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
@@ -12,7 +13,7 @@ use vizkit::draw::{
 };
 use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
-use crate::data::Data;
+use crate::manual_processing::Data;
 
 const COLOR_DOMAIN: [&str; 7] = [
     "Natural Resources",
@@ -212,6 +213,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             |_| LineAttrs::default(),
             |tick| TextAttrs {
                 content: format!("{}%", (tick * 100.).round()),
+                font_size: 10.,
                 ..Default::default()
             },
             &AxisOptions::default(),
@@ -261,6 +263,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             |_| LineAttrs::default(),
             |tick| TextAttrs {
                 content: format!("${}k", (tick / 1000.).round()),
+                font_size: 10.,
                 ..Default::default()
             },
             &AxisOptions::default(),
@@ -470,7 +473,7 @@ struct App {
 impl App {
     fn new() -> Self {
         Self {
-            data: Data::new().unwrap(),
+            data: Data::new(),
             hovered_index: None,
         }
     }
