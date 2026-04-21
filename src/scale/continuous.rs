@@ -303,87 +303,95 @@ impl ScaleContinuous<Sqrt> {
 #[cfg(test)]
 mod tests {
     use super::ScaleContinuous;
+    use rstest::rstest;
 
-    #[rustfmt::skip]
-    #[test]
-    fn test_scale_linear_nice() {
-        assert_eq!(ScaleContinuous::linear().domain([0., 0.96]).nice(None).domain, [0., 1.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., 96.]).nice(None).domain, [0., 100.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., 0.96]).nice(Some(10)).domain, [0., 1.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., 96.]).nice(Some(10)).domain, [0., 100.]);
-        assert_eq!(ScaleContinuous::linear().domain([0.96, 0.]).nice(Some(10)).domain, [1., 0.]);
-        assert_eq!(ScaleContinuous::linear().domain([96., 0.]).nice(Some(10)).domain, [100., 0.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., -0.96]).nice(Some(10)).domain, [0., -1.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., -96.]).nice(Some(10)).domain, [0., -100.]);
-        assert_eq!(ScaleContinuous::linear().domain([-0.96, 0.]).nice(Some(10)).domain, [-1., 0.]);
-        assert_eq!(ScaleContinuous::linear().domain([-96., 0.]).nice(Some(10)).domain, [-100., 0.]);
-        assert_eq!(ScaleContinuous::linear().domain([-0.1, 51.1]).nice(Some(8)).domain, [-10., 60.]);
-        assert_eq!(ScaleContinuous::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
-        assert_eq!(ScaleContinuous::linear().domain([10.9, 1.1]).nice(Some(10)).domain, [11., 1.]);
-        assert_eq!(ScaleContinuous::linear().domain([0.7, 11.001]).nice(Some(10)).domain, [0., 12.]);
-        assert_eq!(ScaleContinuous::linear().domain([123.1, 6.7]).nice(Some(10)).domain, [130., 0.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., 0.49]).nice(Some(10)).domain, [0., 0.5]);
-        assert_eq!(ScaleContinuous::linear().domain([0., 14.1]).nice(Some(5)).domain, [0., 20.]);
-        assert_eq!(ScaleContinuous::linear().domain([0., 15.]).nice(Some(5)).domain, [0., 20.]);
-        assert_eq!(ScaleContinuous::linear().domain([1.1, 10.9]).nice(Some(10)).domain, [1., 11.]);
-        assert_eq!(ScaleContinuous::linear().domain([123.1, -0.9]).nice(Some(10)).domain, [130., -10.]);
-        assert_eq!(ScaleContinuous::linear().domain([12., 87.]).nice(Some(5)).domain, [0., 100.]);
-        assert_eq!(ScaleContinuous::linear().domain([12., 87.]).nice(Some(10)).domain, [10., 90.]);
-        assert_eq!(ScaleContinuous::linear().domain([12., 87.]).nice(Some(100)).domain, [12., 87.]);
+    fn reverse(slice: &[f32]) -> Vec<f32> {
+        slice.into_iter().rev().copied().collect()
     }
 
-    #[rustfmt::skip]
-    #[test]
-    fn test_scale_linear_ticks() {
-        let s = ScaleContinuous::linear();
-        let round_epsilon = |vec: Vec<f32>| vec.iter().map(|x| (x * 1e12).round() / 1e12).collect::<Vec<f32>>();
-        let reverse = |arr: Vec<f32>| arr.into_iter().rev().collect::<Vec<f32>>();
-        assert_eq!(round_epsilon(s.ticks(Some(10))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(9))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(8))), [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(7))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(6))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(5))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(4))), [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(3))), [0.0, 0.5, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(2))), [0.0, 0.5, 1.0]);
-        assert_eq!(round_epsilon(s.ticks(Some(1))), [0.0, 1.0]);
+    fn round(vec: Vec<f32>) -> Vec<f32> {
+        vec.iter().map(|x| (x * 10.).round() / 10.).collect()
+    }
 
-        let s = s.domain([-100., 100.]);
-        assert_eq!(s.ticks(Some(10)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
-        assert_eq!(s.ticks(Some(9)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
-        assert_eq!(s.ticks(Some(8)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
-        assert_eq!(s.ticks(Some(7)), [-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]);
-        assert_eq!(s.ticks(Some(6)), [-100., -50., 0., 50., 100.]);
-        assert_eq!(s.ticks(Some(5)), [-100., -50., 0., 50., 100.]);
-        assert_eq!(s.ticks(Some(4)), [-100., -50., 0., 50., 100.]);
-        assert_eq!(s.ticks(Some(3)), [-100., -50., 0., 50., 100.]);
-        assert_eq!(s.ticks(Some(2)), [-100., 0., 100.]);
-        assert_eq!(s.ticks(Some(1)), [0.]);
+    fn round_epsilon(vec: Vec<f32>) -> Vec<f32> {
+        vec.iter().map(|x| (x * 1e12).round() / 1e12).collect()
+    }
+
+    #[rstest]
+    #[case([0., 0.96], None, [0., 1.])]
+    #[case([0., 96.], None, [0., 100.])]
+    #[case([0., 0.96], Some(10), [0., 1.])]
+    #[case([0., 96.], Some(10), [0., 100.])]
+    #[case([0.96, 0.], Some(10), [1., 0.])]
+    #[case([96., 0.], Some(10), [100., 0.])]
+    #[case([0., -0.96], Some(10), [0., -1.])]
+    #[case([0., -96.], Some(10), [0., -100.])]
+    #[case([-0.96, 0.], Some(10), [-1., 0.])]
+    #[case([-96., 0.], Some(10), [-100., 0.])]
+    #[case([-0.1, 51.1], Some(8), [-10., 60.])]
+    #[case([1.1, 10.9], Some(10), [1., 11.])]
+    #[case([10.9, 1.1], Some(10), [11., 1.])]
+    #[case([0.7, 11.001], Some(10), [0., 12.])]
+    #[case([123.1, 6.7], Some(10), [130., 0.])]
+    #[case([0., 0.49], Some(10), [0., 0.5])]
+    #[case([0., 14.1], Some(5), [0., 20.])]
+    #[case([0., 15.], Some(5), [0., 20.])]
+    #[case([1.1, 10.9], Some(10), [1., 11.])]
+    #[case([123.1, -0.9], Some(10), [130., -10.])]
+    #[case([12., 87.], Some(5), [0., 100.])]
+    #[case([12., 87.], Some(10), [10., 90.])]
+    #[case([12., 87.], Some(100), [12., 87.])]
+    fn test_scale_linear_nice(
+        #[case] domain: [f32; 2],
+        #[case] count: Option<usize>,
+        #[case] expected: [f32; 2],
+    ) {
+        let s = ScaleContinuous::linear().domain(domain).nice(count);
+        assert_eq!(s.domain, expected);
+    }
+
+    #[rstest]
+    #[case(Some(10), &[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])]
+    #[case(Some(9), &[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])]
+    #[case(Some(8), &[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])]
+    #[case(Some(7), &[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])]
+    #[case(Some(6), &[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])]
+    #[case(Some(5), &[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])]
+    #[case(Some(4), &[0.0, 0.2, 0.4, 0.6, 0.8, 1.0])]
+    #[case(Some(3), &[0.0, 0.5, 1.0])]
+    #[case(Some(2), &[0.0, 0.5, 1.0])]
+    #[case(Some(1), &[0.0, 1.0])]
+    fn test_scale_linear_ticks_defaut_domain(
+        #[case] count: Option<usize>,
+        #[case] expected: &[f32],
+    ) {
+        let s = ScaleContinuous::linear();
+        assert_eq!(round_epsilon(s.ticks(count)), expected);
 
         let s = ScaleContinuous::linear().domain([1., 0.]);
-        assert_eq!(round_epsilon(s.ticks(Some(10))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(9))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(8))), reverse(vec![0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(7))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(6))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(5))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(4))), reverse(vec![0.0, 0.2, 0.4, 0.6, 0.8, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(3))), reverse(vec![0.0, 0.5, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(2))), reverse(vec![0.0, 0.5, 1.0]));
-        assert_eq!(round_epsilon(s.ticks(Some(1))), reverse(vec![0.0, 1.0]));
+        assert_eq!(round_epsilon(s.ticks(count)), reverse(expected));
+    }
 
-        let s = s.domain([100., -100.]);
-        assert_eq!(s.ticks(Some(10)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
-        assert_eq!(s.ticks(Some(9)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
-        assert_eq!(s.ticks(Some(8)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
-        assert_eq!(s.ticks(Some(7)), reverse(vec![-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.]));
-        assert_eq!(s.ticks(Some(6)), reverse(vec![-100., -50., 0., 50., 100.]));
-        assert_eq!(s.ticks(Some(5)), reverse(vec![-100., -50., 0., 50., 100.]));
-        assert_eq!(s.ticks(Some(4)), reverse(vec![-100., -50., 0., 50., 100.]));
-        assert_eq!(s.ticks(Some(3)), reverse(vec![-100., -50., 0., 50., 100.]));
-        assert_eq!(s.ticks(Some(2)), reverse(vec![-100., 0., 100.]));
-        assert_eq!(s.ticks(Some(1)), vec![0.]);
+    #[rstest]
+    #[case(Some(10), &[-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.])]
+    #[case(Some(9), &[-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.])]
+    #[case(Some(8), &[-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.])]
+    #[case(Some(7), &[-100., -80., -60., -40., -20., 0., 20., 40., 60., 80., 100.])]
+    #[case(Some(6), &[-100., -50., 0., 50., 100.])]
+    #[case(Some(5), &[-100., -50., 0., 50., 100.])]
+    #[case(Some(4), &[-100., -50., 0., 50., 100.])]
+    #[case(Some(3), &[-100., -50., 0., 50., 100.])]
+    #[case(Some(2), &[-100., 0., 100.])]
+    #[case(Some(1), &[0.])]
+    fn test_scale_linear_ticks_specific_domain(
+        #[case] count: Option<usize>,
+        #[case] expected: &[f32],
+    ) {
+        let s = ScaleContinuous::linear().domain([-100., 100.]);
+        assert_eq!(s.ticks(count), expected);
+
+        let s = ScaleContinuous::linear().domain([100., -100.]);
+        assert_eq!(s.ticks(count), reverse(expected));
     }
 
     #[rustfmt::skip]
@@ -410,69 +418,62 @@ mod tests {
         assert_eq!(x.domain([-123.1, -0.5]).nice(None).domain, [-1000., -0.1])
     }
 
-    #[rustfmt::skip]
+    #[rstest]
+    #[case([0.15, 0.68], None, &[0.2, 0.3, 0.4, 0.5, 0.6])]
+    #[case([0.68, 0.15], None, &[0.6, 0.5, 0.4, 0.3, 0.2])]
+    #[case([-0.15, -0.68], None, &[-0.2, -0.3, -0.4, -0.5, -0.6])]
+    #[case([-0.68, -0.15], None, &[-0.6, -0.5, -0.4, -0.3, -0.2])]
+    #[case([1., 5.], None, &[1., 2., 3., 4., 5.])]
+    #[case([5., 1.], None, &[5., 4., 3., 2., 1.])]
+    #[case([-1., -5.], None, &[-1., -2., -3., -4., -5.])]
+    #[case([-5., -1.], None, &[-5., -4., -3., -2., -1.])]
+    #[case([286.9252014, 329.4978332], Some(1), &[300.])]
+    #[case([286.9252014, 329.4978332], Some(2), &[300.])]
+    #[case([286.9252014, 329.4978332], Some(3), &[300., 320.])]
+    #[case([286.9252014, 329.4978332], Some(4), &[290., 300., 310., 320.])]
+    #[case([286.9252014, 329.4978332], None, &[290., 295., 300., 305., 310., 315., 320., 325.])]
+    #[case([41., 42.], None, &[41., 41.1, 41.2, 41.3, 41.4, 41.5, 41.6, 41.7, 41.8, 41.9, 42.])]
+    #[case([42., 41.], None, &[42., 41.9, 41.8, 41.7, 41.6, 41.5, 41.4, 41.3, 41.2, 41.1, 41.])]
+    #[case([1600., 1400.], None, &[1600., 1580., 1560., 1540., 1520., 1500., 1480., 1460., 1440., 1420., 1400.])]
+    fn test_scale_log10_ticks(
+        #[case] domain: [f32; 2],
+        #[case] count: Option<usize>,
+        #[case] expected: &[f32],
+    ) {
+        assert_eq!(
+            ScaleContinuous::log10().domain(domain).ticks(count),
+            expected
+        );
+    }
+
+    #[rstest]
+    #[case([1e-1, 1e1], &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.])]
+    #[case([1e-1, 1e0], &[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])]
+    #[case([-1e0, -1e-1], &[-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])]
+    #[case([-1e-1, -1e1], &reverse(&[-10., -9., -8., -7., -6., -5., -4., -3., -2., -1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1]))]
+    #[case([-1e-1, -1e0], &reverse(&[-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
+    )]
+    #[case([1e0, 1e-1], &reverse(&[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]))]
+    fn test_scale_log_ticks_round(#[case] domain: [f32; 2], #[case] expected: &[f32]) {
+        assert_eq!(
+            round(ScaleContinuous::log10().domain(domain).ticks(None)),
+            expected
+        );
+    }
+
     #[test]
-    fn test_scale_log_ticks() {
-        let round = |vec: Vec<f32>| vec.iter().map(|x| (x * 10.).round() / 10.).collect::<Vec<f32>>();
-        let reverse = |arr: Vec<f32>| arr.into_iter().rev().collect::<Vec<f32>>();
-        assert_eq!(ScaleContinuous::log10().domain([0.15, 0.68]).ticks(None), [0.2, 0.3, 0.4, 0.5, 0.6]);
-        assert_eq!(ScaleContinuous::log10().domain([0.68, 0.15]).ticks(None), [0.6, 0.5, 0.4, 0.3, 0.2]);
-        assert_eq!(ScaleContinuous::log10().domain([-0.15, -0.68]).ticks(None), [-0.2, -0.3, -0.4, -0.5, -0.6]);
-        assert_eq!(ScaleContinuous::log10().domain([-0.68, -0.15]).ticks(None), [-0.6, -0.5, -0.4, -0.3, -0.2]);
-
+    fn test_scale_ln_ticks() {
         assert_eq!(
-            round(ScaleContinuous::log10().domain([1e-1, 1e1]).ticks(None)),
-            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
-        );
-        assert_eq!(
-            round(ScaleContinuous::log10().domain([1e-1, 1e0]).ticks(None)),
-            [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.]
-        );
-        assert_eq!(
-            round(ScaleContinuous::log10().domain([-1e0, -1e-1]).ticks(None)),
-            [-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1]
-        );
-
-        assert_eq!(
-            round(ScaleContinuous::log10().domain([-1e-1, -1e1]).ticks(None)),
-            reverse(vec![-10., -9., -8., -7., -6., -5., -4., -3., -2., -1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
-        );
-        assert_eq!(
-            round(ScaleContinuous::log10().domain([-1e-1, -1e0]).ticks(None)),
-            reverse(vec![-1., -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1])
-        );
-        assert_eq!(
-            round(ScaleContinuous::log10().domain([1e0, 1e-1]).ticks(None)),
-            reverse(vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.])
-        );
-
-        assert_eq!(ScaleContinuous::log10().domain([1., 5.]).ticks(None), [1., 2., 3., 4., 5.]);
-        assert_eq!(ScaleContinuous::log10().domain([5., 1.]).ticks(None), [5., 4., 3., 2., 1.]);
-        assert_eq!(ScaleContinuous::log10().domain([-1., -5.]).ticks(None), [-1., -2., -3., -4., -5.]);
-        assert_eq!(ScaleContinuous::log10().domain([-5., -1.]).ticks(None), [-5., -4., -3., -2., -1.]);
-        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(1)), [300.]);
-        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(2)), [300.]);
-        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(3)), [300., 320.]);
-        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(Some(4)), [290., 300., 310., 320.]);
-        assert_eq!(ScaleContinuous::log10().domain([286.9252014, 329.4978332]).ticks(None), [290., 295., 300., 305., 310., 315., 320., 325.]);
-
-        assert_eq!(
-            ScaleContinuous::log10().domain([41., 42.]).ticks(None),
-            [41., 41.1, 41.2, 41.3, 41.4, 41.5, 41.6, 41.7, 41.8, 41.9, 42.]
-        );
-        assert_eq!(
-            ScaleContinuous::log10().domain([42., 41.]).ticks(None),
-            [42., 41.9, 41.8, 41.7, 41.6, 41.5, 41.4, 41.3, 41.2, 41.1, 41.]
-        );
-        assert_eq!(
-            ScaleContinuous::log10().domain([1600., 1400.]).ticks(None),
-            [1600., 1580., 1560., 1540., 1520., 1500., 1480., 1460., 1440., 1420., 1400.]
-        );
-
-        let round = |vec: Vec<f32>| vec.iter().map(|x| (x * 1e12).round() * 1e-12).collect::<Vec<f32>>();
-        assert_eq!(
-            round(ScaleContinuous::ln().domain([0.1, 100.]).ticks(None)),
-            [0.135335283237, 0.367879441171, 1., 2.718281828459, 7.389056098931, 20.085536923188, 54.598150033144]
+            round_epsilon(ScaleContinuous::ln().domain([0.1, 100.]).ticks(None)),
+            [
+                0.135335283237,
+                0.367879441171,
+                1.,
+                2.718281828459,
+                7.389056098931,
+                20.085536923188,
+                54.598150033144
+            ]
         );
     }
 }
