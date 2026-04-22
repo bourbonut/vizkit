@@ -51,6 +51,18 @@ impl From<&str> for Color {
     }
 }
 
+impl ToString for Color {
+    fn to_string(&self) -> String {
+        let [r, g, b] = self.0;
+        format!(
+            "#{:02x}{:02x}{:02x}",
+            (255. * r) as u8,
+            (255. * g) as u8,
+            (255. * b) as u8
+        )
+    }
+}
+
 /// Converts a string into a color in hex format.
 ///
 /// ```
