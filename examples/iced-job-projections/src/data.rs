@@ -89,67 +89,19 @@ fn load_transform_data() -> Vec<Item> {
         .collect()
 }
 
-struct Item {
-    turnover: f32,
-    median_wage: f32,
-    openings: f32,
-    sector_cat: String,
-    soc_title: String,
-    sector: String,
-}
-
-pub struct Data {
-    items: Vec<Item>,
-    pub radius_domain: [f32; 2],
-    pub x_domain: [f32; 2],
-}
-
-pub struct Row<'a> {
+pub struct Item {
     pub turnover: f32,
     pub median_wage: f32,
     pub openings: f32,
-    pub sector_cat: &'a str,
-    pub soc_title: &'a str,
-    pub sector: &'a str,
+    pub sector_cat: String,
+    pub soc_title: String,
+    pub sector: String,
 }
 
-pub struct DataIterator<'a> {
-    data: &'a Data,
-    index: usize,
-}
-
-impl<'a> Iterator for DataIterator<'a> {
-    type Item = Row<'a>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.index < self.data.len() {
-            let item = &self.data.items[self.index];
-            let row = Row {
-                turnover: item.turnover,
-                median_wage: item.median_wage,
-                openings: item.openings,
-                sector_cat: &item.sector_cat,
-                soc_title: &item.soc_title,
-                sector: &item.sector,
-            };
-            self.index += 1;
-            Some(row)
-        } else {
-            None
-        }
-    }
-}
-
-impl<'a> IntoIterator for &'a Data {
-    type Item = Row<'a>;
-    type IntoIter = DataIterator<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        DataIterator {
-            data: self,
-            index: 0,
-        }
-    }
+pub struct Data {
+    pub items: Vec<Item>,
+    pub radius_domain: [f32; 2],
+    pub x_domain: [f32; 2],
 }
 
 impl Data {
@@ -178,21 +130,5 @@ impl Data {
             ],
             items,
         }
-    }
-
-    pub fn row(&self, index: usize) -> Row<'_> {
-        let item = &self.items[index];
-        Row {
-            turnover: item.turnover,
-            median_wage: item.median_wage,
-            openings: item.openings,
-            sector_cat: &item.sector_cat,
-            soc_title: &item.soc_title,
-            sector: &item.sector,
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        self.items.len()
     }
 }

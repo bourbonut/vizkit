@@ -1,19 +1,16 @@
-mod manual_processing;
-use std::ops::{Deref, DerefMut};
-use std::str::FromStr;
+mod data;
+mod iced_frame;
+mod legend;
+mod plot;
 
 use iced::{
     Element,
-    widget::{canvas, column, container, row, space, text, tooltip},
+    widget::{canvas, column, container, row, text, tooltip},
 };
-use vizkit::chromatic::Color;
-use vizkit::draw::{
-    Alignment, AxisOptions, CircleAttrs, CircleProperties, Draw, LineAttrs, LineProperties,
-    RectProperties, TextProperties, circle_iter,
-};
-use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
 
-use crate::manual_processing::{Data, Row};
+use crate::data::Data;
+use crate::legend::legend;
+use crate::plot::Plot;
 
 const COLOR_DOMAIN: [&str; 7] = [
     "Natural Resources",
@@ -40,399 +37,9 @@ struct Margin {
     left: f32,
 }
 
-struct Plot<'a> {
-    data: &'a Data,
-    margin: Margin,
-}
-
-impl<'a> Plot<'a> {
-    fn new(data: &'a Data, margin: Margin) -> Self {
-        Self { data: data, margin }
-    }
-}
-
-struct IcedFrame<'a>(&'a mut canvas::Frame);
-
-impl<'a> Deref for IcedFrame<'a> {
-    type Target = canvas::Frame;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<'a> DerefMut for IcedFrame<'a> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl<'a> Draw for IcedFrame<'a> {
-    fn draw_line(&mut self, line: LineProperties) {
-        let [r, g, b] = line.stroke_color.into();
-        self.0.stroke(
-            &canvas::Path::line(line.start.into(), line.end.into()),
-            canvas::Stroke::default()
-                .with_color(iced::Color::from([r, g, b, line.stroke_opacity]))
-                .with_width(line.stroke_width),
-        );
-    }
-
-    fn draw_text(&mut self, text: TextProperties) {
-        let color: [f32; 3] = text.fill_color.into();
-        self.0.fill_text(canvas::Text {
-            content: text.content,
-            position: text.position.into(),
-            color: iced::Color::from(color),
-            size: iced::Pixels(text.font_size),
-            align_x: match text.align_x {
-                Alignment::Start => iced::Alignment::Start.into(),
-                Alignment::Center => iced::Alignment::Center.into(),
-                Alignment::End => iced::Alignment::End.into(),
-            },
-            align_y: match text.align_y {
-                Alignment::Start => iced::Alignment::Start.into(),
-                Alignment::Center => iced::Alignment::Center.into(),
-                Alignment::End => iced::Alignment::End.into(),
-            },
-            ..Default::default()
-        })
-    }
-
-    fn draw_circle(&mut self, circle: CircleProperties) {
-        let circle_path = canvas::Path::circle(circle.center.into(), circle.radius);
-        if let Some(fill_color) = circle.fill_color {
-            let fill_color: [f32; 3] = fill_color.into();
-            self.0.fill(
-                &circle_path,
-                canvas::Fill {
-                    style: canvas::Style::Solid(
-                        iced::Color::from(fill_color).scale_alpha(circle.fill_opacity),
-                    ),
-                    rule: canvas::fill::Rule::EvenOdd,
-                },
-            );
-        }
-
-        if let Some(stroke_color) = circle.stroke_color {
-            let stroke_color: [f32; 3] = stroke_color.into();
-            self.0.stroke(
-                &circle_path,
-                canvas::Stroke::default()
-                    .with_width(circle.stroke_width)
-                    .with_color(iced::Color::from(stroke_color)),
-            );
-        }
-    }
-
-    fn draw_rect(&mut self, _: RectProperties) {
-        todo!()
-    }
-}
-
 enum Message {
     HoverCircle(usize),
     None,
-}
-
-struct PlotState {
-    x_scale: ScaleContinuous<Linear>,
-    y_scale: ScaleContinuous<Linear>,
-    circles: Vec<CircleProperties>,
-}
-
-impl Default for PlotState {
-    fn default() -> Self {
-        Self {
-            x_scale: ScaleContinuous::linear(),
-            y_scale: ScaleContinuous::linear(),
-            circles: Vec::new(),
-        }
-    }
-}
-
-impl<'a> canvas::Program<Message> for Plot<'a> {
-    type State = PlotState;
-
-    fn draw(
-        &self,
-        state: &Self::State,
-        renderer: &iced::Renderer,
-        theme: &iced::Theme,
-        bounds: iced::Rectangle,
-        _cursor: iced::mouse::Cursor,
-    ) -> Vec<canvas::Geometry> {
-        let mut frame = canvas::Frame::new(renderer, bounds.size());
-        let mut iced_frame = IcedFrame(&mut frame);
-        let width = bounds.width;
-        let height = bounds.height;
-
-        let text_color = theme.palette().text;
-        let bold_font = iced::Font {
-            weight: iced::font::Weight::Bold,
-            ..Default::default()
-        };
-
-        // X label with bold weight
-        let tx = (self.margin.left + width - self.margin.right) * 0.5;
-        let ty = self.margin.bottom * 0.5;
-        let text = canvas::Text {
-            content: String::from("Occupation annual turnover rate"),
-            position: [tx, height - self.margin.bottom + ty].into(),
-            color: text_color,
-            size: iced::Pixels(12.),
-            font: bold_font,
-            align_x: iced::Alignment::Center.into(),
-            ..Default::default()
-        };
-        iced_frame.fill_text(text);
-
-        // X axis domain line
-        iced_frame.draw_line(LineProperties {
-            start: [self.margin.left, height - self.margin.bottom],
-            end: [width - self.margin.right, height - self.margin.bottom],
-            ..Default::default()
-        });
-
-        iced_frame.axis_bottom(
-            &state.x_scale,
-            height - self.margin.bottom,
-            |tick| format!("{}%", (tick * 100.).round()),
-            &AxisOptions {
-                font_size: 10.,
-                ..Default::default()
-            },
-        );
-
-        // Grid lines
-        iced_frame.grid_vertical(
-            &state.x_scale.ticks(None),
-            self.margin.top,
-            height - self.margin.bottom,
-            |&x| state.x_scale.apply(x),
-            |_| LineAttrs::default(),
-        );
-
-        // Y label with bold weight
-        let text = canvas::Text {
-            content: String::from("Median wage, 2018"),
-            position: [0., 0.].into(),
-            color: text_color,
-            size: iced::Pixels(12.),
-            font: bold_font,
-            align_x: iced::Alignment::Center.into(),
-            ..Default::default()
-        };
-
-        // Rotate the text (Y label)
-        iced_frame.with_save(|frame| {
-            frame.rotate(-std::f32::consts::PI * 0.5);
-
-            let tx = self.margin.left * 0.9;
-            let ty = (height - self.margin.bottom + self.margin.top) * 0.5;
-            frame.translate([-ty, self.margin.left - tx].into());
-
-            frame.fill_text(text);
-        });
-
-        // Y axis domain line
-        iced_frame.draw_line(LineProperties {
-            start: [self.margin.left, self.margin.top],
-            end: [self.margin.left, height - self.margin.bottom],
-            ..Default::default()
-        });
-
-        iced_frame.axis_left(
-            &state.y_scale,
-            self.margin.left,
-            |tick| format!("${}k", (tick / 1000.).round()),
-            &AxisOptions {
-                font_size: 10.,
-                ..Default::default()
-            },
-        );
-
-        // Grid lines
-        iced_frame.grid_horizontal(
-            &state.y_scale.ticks(None),
-            self.margin.left,
-            width - self.margin.right,
-            |&y| state.y_scale.apply(y),
-            |_| LineAttrs::default(),
-        );
-
-        // Circles
-        iced_frame.circle_from_props(state.circles.iter().cloned());
-
-        // Y reference (horizontal line)
-        iced_frame.draw_line(LineProperties {
-            start: [self.margin.left, state.y_scale.apply(33_900.0)],
-            end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
-            stroke_color: vizkit::chromatic::Color::from("666"),
-            stroke_width: 1.5,
-            stroke_opacity: 0.75,
-        });
-
-        vec![frame.into_geometry()]
-    }
-
-    fn update(
-        &self,
-        state: &mut Self::State,
-        _event: &iced::Event,
-        bounds: iced::Rectangle,
-        cursor: iced::mouse::Cursor,
-    ) -> Option<canvas::Action<Message>> {
-        let width = bounds.width;
-        let height = bounds.height;
-
-        state.x_scale = ScaleContinuous::linear()
-            .domain(self.data.x_domain)
-            .range([self.margin.left, width - self.margin.right])
-            .nice(None);
-
-        state.y_scale = ScaleContinuous::linear()
-            .domain([0., 140_000.])
-            .range([height - self.margin.bottom, self.margin.top])
-            .nice(None);
-
-        let r_scale = ScaleContinuous::sqrt()
-            .domain(self.data.radius_domain)
-            .range(RADIUS_RANGE);
-
-        let color = ScaleOrdinal::default()
-            .domain(&COLOR_DOMAIN)
-            .range(&COLOR_RANGE);
-
-        // Note that color has the format "#******" and `Color::from` accepts strings without "#"
-        let rows: Vec<Row> = self.data.into_iter().collect();
-        state.circles = circle_iter(
-            &rows,
-            |d| state.x_scale.apply(d.turnover),
-            |d| state.y_scale.apply(d.median_wage),
-            |d| r_scale.apply(d.openings),
-            |d| CircleAttrs {
-                fill_color: color.apply(d.sector_cat).map(|s| Color::from(&s[1..])),
-                fill_opacity: 0.5,
-                stroke_color: color.apply(d.sector_cat).map(|s| Color::from(&s[1..])),
-                ..Default::default()
-            },
-        )
-        .collect();
-
-        if let Some(position) = cursor.position() {
-            // Computes the index of the closest circle to the cursor position
-            let argmin = state
-                .circles
-                .iter()
-                .enumerate()
-                .filter_map(|(idx, circle)| {
-                    let center = iced::Point::from(circle.center);
-                    let r = circle.radius;
-                    let delta = position - center;
-                    let x = delta.x;
-                    let y = delta.y;
-                    let h = x.hypot(y);
-                    if h > r { None } else { Some((r - h, idx)) }
-                })
-                .min_by(|(a, _), (b, _)| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-            match argmin {
-                Some((_, idx)) => Some(iced::widget::Action::publish(Message::HoverCircle(idx))),
-                None => Some(iced::widget::Action::publish(Message::None)),
-            }
-        } else {
-            Some(iced::widget::Action::publish(Message::None))
-        }
-    }
-}
-
-struct Circle {
-    color: iced::Color,
-    radius: f32,
-    center: iced::Point,
-}
-
-impl<Message> canvas::Program<Message> for Circle {
-    type State = ();
-
-    fn draw(
-        &self,
-        _state: &Self::State,
-        renderer: &iced::Renderer,
-        _theme: &iced::Theme,
-        bounds: iced::Rectangle,
-        _cursor: iced::mouse::Cursor,
-    ) -> Vec<canvas::Geometry> {
-        let mut frame = canvas::Frame::new(renderer, bounds.size());
-        frame.fill(&canvas::Path::circle(self.center, self.radius), self.color);
-        vec![frame.into_geometry()]
-    }
-}
-
-fn legend<'a>(data: &Data) -> iced::widget::Column<'a, Message> {
-    let radius = ScaleContinuous::sqrt()
-        .domain(data.radius_domain)
-        .range(RADIUS_RANGE);
-
-    let color = ScaleOrdinal::default()
-        .domain(&COLOR_DOMAIN)
-        .range(&COLOR_RANGE);
-
-    // Section with different radii values
-    let column_element = column![
-        text("Openings projected").font(iced::Font {
-            weight: iced::font::Weight::Bold,
-            ..Default::default()
-        }),
-        space().height(10.),
-    ];
-
-    let rmax = radius.apply(2000.);
-    let column_element = [10.0, 100.0, 500.0, 1_000.0, 2_000.0]
-        .into_iter()
-        .fold(column_element, |col, r| {
-            let string = r.to_string();
-            let r = radius.apply(r);
-            col.push(
-                row![
-                    canvas(Circle {
-                        color: iced::Color::WHITE,
-                        radius: r,
-                        center: [rmax, r].into(),
-                    })
-                    .width(iced::Length::Fixed(rmax * 2.0))
-                    .height(iced::Length::Fixed(r * 2.0)),
-                    text(string),
-                ]
-                .spacing(15.)
-                .align_y(iced::Alignment::Center),
-            )
-        })
-        .push(space().height(10.)) // Add the next title
-        .push(text("Occupation sector").font(iced::Font {
-            weight: iced::font::Weight::Bold,
-            ..Default::default()
-        }));
-
-    COLOR_DOMAIN // Section with different colors
-        .iter()
-        .fold(column_element, |col, value| {
-            let color_str = color.apply(value).map_or("", |v| v);
-            col.push(
-                row![
-                    canvas(Circle {
-                        color: iced::Color::from_str(color_str).unwrap_or_default(),
-                        radius: RADIUS_BASE,
-                        center: [RADIUS_BASE, RADIUS_BASE].into(),
-                    })
-                    .width(iced::Length::Fixed(RADIUS_BASE * 2.0))
-                    .height(iced::Length::Fixed(RADIUS_BASE * 2.0)),
-                    text(*value),
-                ]
-                .spacing(15.)
-                .align_y(iced::Alignment::Center),
-            )
-        })
-        .spacing(5.)
 }
 
 struct App {
@@ -447,9 +54,7 @@ impl App {
             hovered_index: None,
         }
     }
-}
 
-impl App {
     fn update(&mut self, message: Message) {
         match message {
             Message::HoverCircle(idx) => self.hovered_index = Some(idx),
@@ -472,14 +77,14 @@ impl App {
                 .padding(20.)
         ];
         if let Some(idx) = self.hovered_index {
-            let row_data = self.data.row(idx);
+            let row_data = &self.data.items[idx];
             tooltip(
                 row_element,
                 container(column![
                     "Occupation",
-                    row_data.soc_title,
+                    row_data.soc_title.as_str(),
                     "Sector",
-                    row_data.sector,
+                    row_data.sector.as_str(),
                     "Median Wage 2018",
                     text(format!("${}k", (row_data.median_wage / 1000.).round())),
                     "Turnover",

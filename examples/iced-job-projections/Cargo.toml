@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 iced = { version = "0.14.0", features = ["canvas"] }
-# polars = { version = "0.53.0", features = ["json", "lazy", "replace", "round_series"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 vizkit = { path = "../.." }
