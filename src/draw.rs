@@ -70,7 +70,9 @@ mod text;
 use crate::scale::{ScaleContinuous, Tick, Transformer};
 
 pub use self::attrs::{Alignment, LineAttrs, ShapeAttrs, TextAttrs};
-pub use self::axis::{AxisOptions, axis_bottom, axis_left, axis_right, axis_top};
+pub use self::axis::{
+    AxisOptions, axis_bottom_iter, axis_left_iter, axis_right_iter, axis_top_iter,
+};
 pub use self::circle::circle_iter;
 pub use self::grid::{grid_horizontal_iter, grid_vertical_iter};
 pub use self::properties::{CircleProperties, LineProperties, RectProperties, TextProperties};
@@ -104,7 +106,10 @@ pub trait Draw {
         formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_top(self, scaler, y, formatter, axis_options);
+        axis_top_iter(scaler, y, formatter, axis_options).for_each(|(line, text)| {
+            self.draw_line(line);
+            self.draw_text(text);
+        });
     }
 
     fn axis_right<T: Transformer + Tick>(
@@ -114,7 +119,10 @@ pub trait Draw {
         formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_right(self, scaler, x, formatter, axis_options);
+        axis_right_iter(scaler, x, formatter, axis_options).for_each(|(line, text)| {
+            self.draw_line(line);
+            self.draw_text(text);
+        });
     }
 
     fn axis_bottom<T: Transformer + Tick>(
@@ -124,7 +132,10 @@ pub trait Draw {
         formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_bottom(self, scaler, y, formatter, axis_options);
+        axis_bottom_iter(scaler, y, formatter, axis_options).for_each(|(line, text)| {
+            self.draw_line(line);
+            self.draw_text(text);
+        });
     }
 
     fn axis_left<T: Transformer + Tick>(
@@ -134,7 +145,10 @@ pub trait Draw {
         formatter: impl Fn(f32) -> String,
         axis_options: &AxisOptions,
     ) {
-        axis_left(self, scaler, x, formatter, axis_options);
+        axis_left_iter(scaler, x, formatter, axis_options).for_each(|(line, text)| {
+            self.draw_line(line);
+            self.draw_text(text);
+        });
     }
 
     fn circle<Data>(

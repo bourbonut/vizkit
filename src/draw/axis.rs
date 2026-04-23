@@ -1,4 +1,4 @@
-use super::{Alignment, Draw, LineAttrs, LineProperties, Orientation, TextProperties};
+use super::{Alignment, LineAttrs, LineProperties, Orientation, TextProperties};
 use crate::chromatic::Color;
 use crate::scale::{ScaleContinuous, Tick, Transformer};
 
@@ -24,15 +24,13 @@ impl Default for AxisOptions {
     }
 }
 
-pub fn axis_top<D: Draw + ?Sized, T: Transformer + Tick>(
-    drawer: &mut D,
+pub fn axis_top_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     y: f32,
     formatter: impl Fn(f32) -> String,
     axis_options: &AxisOptions,
-) {
+) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
-        drawer,
         scaler,
         y,
         Orientation::Same,
@@ -41,18 +39,16 @@ pub fn axis_top<D: Draw + ?Sized, T: Transformer + Tick>(
         Alignment::End,
         formatter,
         axis_options,
-    );
+    )
 }
 
-pub fn axis_right<D: Draw + ?Sized, T: Transformer + Tick>(
-    drawer: &mut D,
+pub fn axis_right_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     x: f32,
     formatter: impl Fn(f32) -> String,
     axis_options: &AxisOptions,
-) {
+) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
-        drawer,
         scaler,
         x,
         Orientation::Flip,
@@ -61,18 +57,16 @@ pub fn axis_right<D: Draw + ?Sized, T: Transformer + Tick>(
         Alignment::Center,
         formatter,
         axis_options,
-    );
+    )
 }
 
-pub fn axis_bottom<D: Draw + ?Sized, T: Transformer + Tick>(
-    drawer: &mut D,
+pub fn axis_bottom_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     y: f32,
     formatter: impl Fn(f32) -> String,
     axis_options: &AxisOptions,
-) {
+) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
-        drawer,
         scaler,
         y,
         Orientation::Same,
@@ -81,18 +75,16 @@ pub fn axis_bottom<D: Draw + ?Sized, T: Transformer + Tick>(
         Alignment::Start,
         formatter,
         axis_options,
-    );
+    )
 }
 
-pub fn axis_left<D: Draw + ?Sized, T: Transformer + Tick>(
-    drawer: &mut D,
+pub fn axis_left_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     x: f32,
     formatter: impl Fn(f32) -> String,
     axis_options: &AxisOptions,
-) {
+) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
-        drawer,
         scaler,
         x,
         Orientation::Flip,
@@ -101,11 +93,10 @@ pub fn axis_left<D: Draw + ?Sized, T: Transformer + Tick>(
         Alignment::Center,
         formatter,
         axis_options,
-    );
+    )
 }
 
-fn axis<D: Draw + ?Sized, T: Transformer + Tick>(
-    drawer: &mut D,
+fn axis<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     at: f32,
     orientation: Orientation,
@@ -114,28 +105,31 @@ fn axis<D: Draw + ?Sized, T: Transformer + Tick>(
     align_y: Alignment,
     formatter: impl Fn(f32) -> String,
     axis_options: &AxisOptions,
-) {
-    for tick in scaler.ticks(axis_options.count) {
+) -> impl Iterator<Item = (LineProperties, TextProperties)> {
+    let ticks = scaler.ticks(axis_options.count);
+    ticks.into_iter().map(move |tick| {
         let pos = scaler.apply(tick);
-        drawer.draw_line(LineProperties {
-            start: orientation.apply(pos, at),
-            end: orientation.apply(pos, at + direction * axis_options.tick_size),
-            stroke_color: axis_options.line_attrs.stroke_color,
-            stroke_width: axis_options.line_attrs.stroke_width,
-            stroke_opacity: axis_options.line_attrs.stroke_opacity,
-        });
-        drawer.draw_text(TextProperties {
-            position: orientation.apply(
-                pos,
-                at + direction * (axis_options.tick_size + axis_options.offset),
-            ),
-            content: formatter(tick),
-            fill_color: axis_options.text_fill_color,
-            font_size: axis_options.font_size,
-            align_x: align_x.clone(),
-            align_y: align_y.clone(),
-        });
-    }
+        (
+            LineProperties {
+                start: orientation.apply(pos, at),
+                end: orientation.apply(pos, at + direction * axis_options.tick_size),
+                stroke_color: axis_options.line_attrs.stroke_color,
+                stroke_width: axis_options.line_attrs.stroke_width,
+                stroke_opacity: axis_options.line_attrs.stroke_opacity,
+            },
+            TextProperties {
+                position: orientation.apply(
+                    pos,
+                    at + direction * (axis_options.tick_size + axis_options.offset),
+                ),
+                content: formatter(tick),
+                fill_color: axis_options.text_fill_color,
+                font_size: axis_options.font_size,
+                align_x: align_x.clone(),
+                align_y: align_y.clone(),
+            },
+        )
+    })
 }
 
 #[cfg(test)]
