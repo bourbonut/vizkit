@@ -59,6 +59,7 @@
 //! assert_eq!(drawer.texts.len(), scale.ticks(None).len());
 //! ```
 
+mod arrow;
 mod attrs;
 mod axis;
 mod circle;
@@ -69,13 +70,16 @@ mod text;
 
 use crate::scale::{ScaleContinuous, Tick, Transformer};
 
-pub use self::attrs::{Alignment, LineAttrs, ShapeAttrs, TextAttrs};
+pub use self::arrow::{arrow_iter, vector_iter};
+pub use self::attrs::{Alignment, ArrowAttrs, LineAttrs, ShapeAttrs, TextAttrs};
 pub use self::axis::{
     AxisOptions, axis_bottom_iter, axis_left_iter, axis_right_iter, axis_top_iter,
 };
 pub use self::circle::circle_iter;
 pub use self::grid::{grid_horizontal_iter, grid_vertical_iter};
-pub use self::properties::{CircleProperties, LineProperties, RectProperties, TextProperties};
+pub use self::properties::{
+    ArrowProperties, CircleProperties, LineProperties, RectProperties, TextProperties,
+};
 pub use self::rect::rect_iter;
 pub use self::text::text_iter;
 

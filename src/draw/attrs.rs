@@ -85,3 +85,25 @@ impl Default for TextAttrs {
         }
     }
 }
+
+pub struct ArrowAttrs {
+    pub bend_angle: f32,
+    pub head_angle: f32,
+    pub head_length: f32,
+    pub stroke_color: Color,
+    pub stroke_width: f32,
+    pub stroke_opacity: f32,
+}
+
+impl Default for ArrowAttrs {
+    fn default() -> Self {
+        Self {
+            bend_angle: 0.,
+            head_angle: 60.,
+            head_length: 8.,
+            stroke_color: Color::default(),
+            stroke_width: 1.,
+            stroke_opacity: 1.,
+        }
+    }
+}

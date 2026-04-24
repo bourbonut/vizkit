@@ -56,6 +56,20 @@ pub struct CircleProperties {
     pub stroke_opacity: f32,
 }
 
+impl Default for CircleProperties {
+    fn default() -> Self {
+        Self {
+            center: [0.; 2],
+            radius: 1.,
+            fill_color: None,
+            fill_opacity: 1.,
+            stroke_color: None,
+            stroke_width: 1.,
+            stroke_opacity: 1.,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct RectProperties {
     pub top_left: [f32; 2],
@@ -66,4 +80,40 @@ pub struct RectProperties {
     pub stroke_color: Option<Color>,
     pub stroke_width: f32,
     pub stroke_opacity: f32,
+}
+
+impl Default for RectProperties {
+    fn default() -> Self {
+        Self {
+            top_left: [0.; 2],
+            size: [0.; 2],
+            corner_radius: None,
+            fill_color: None,
+            fill_opacity: 1.,
+            stroke_color: None,
+            stroke_width: 1.,
+            stroke_opacity: 1.,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct ArrowProperties {
+    pub points: [[f32; 2]; 5],
+    pub radius: f32,
+    pub stroke_color: Color,
+    pub stroke_width: f32,
+    pub stroke_opacity: f32,
+}
+
+impl Default for ArrowProperties {
+    fn default() -> Self {
+        Self {
+            points: [[0.; 2]; 5],
+            radius: 1.,
+            stroke_color: Color::default(),
+            stroke_width: 1.,
+            stroke_opacity: 1.,
+        }
+    }
 }
