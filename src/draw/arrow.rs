@@ -73,26 +73,26 @@ pub fn vector_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
     y: impl Fn(&Data) -> f32,
+    length: impl Fn(&Data) -> f32,
     rotate: impl Fn(&Data) -> f32,
     arrow_attrs: impl Fn(&Data) -> ArrowAttrs,
 ) -> impl Iterator<Item = ArrowProperties> {
     values.iter().map(move |value| {
-        let arrow_values = arrow_attrs(value);
-        let head_length = arrow_values.head_length;
+        let line_length = length(value);
         let angle = rotate(value);
         let cos = angle.cos();
         let sin = angle.sin();
 
         let x = x(value);
         let y = y(value);
-        let half = head_length * 0.5;
+        let half = line_length * 0.5;
 
         arrow_builder(
             half * cos + x,
             -half * sin + y,
             -half * cos + x,
             half * sin + y,
-            arrow_values,
+            arrow_attrs(value),
         )
     })
 }
