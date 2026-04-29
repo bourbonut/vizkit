@@ -24,6 +24,7 @@ impl Default for AxisOptions {
     }
 }
 
+/// Creates an iterator of properties used for axis positioned on the top of the chart.
 pub fn axis_top_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     y: f32,
@@ -42,6 +43,7 @@ pub fn axis_top_iter<T: Transformer + Tick>(
     )
 }
 
+/// Creates an iterator of properties used for axis positioned on the right of the chart.
 pub fn axis_right_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     x: f32,
@@ -60,6 +62,7 @@ pub fn axis_right_iter<T: Transformer + Tick>(
     )
 }
 
+/// Creates an iterator of properties used for axis positioned on the bottom of the chart.
 pub fn axis_bottom_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     y: f32,
@@ -78,6 +81,7 @@ pub fn axis_bottom_iter<T: Transformer + Tick>(
     )
 }
 
+/// Creates an iterator of properties used for axis positioned on the left of the chart.
 pub fn axis_left_iter<T: Transformer + Tick>(
     scaler: &ScaleContinuous<T>,
     x: f32,

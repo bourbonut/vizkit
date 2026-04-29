@@ -1,5 +1,6 @@
 use super::{TextAttrs, TextProperties};
 
+/// Creates an iterator of properties used for text.
 pub fn text_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,

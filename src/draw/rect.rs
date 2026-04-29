@@ -1,5 +1,6 @@
 use crate::draw::{RectProperties, ShapeAttrs};
 
+/// Creates an iterator of properties used for rectangles.
 pub fn rect_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
