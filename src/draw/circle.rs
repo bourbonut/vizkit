@@ -21,3 +21,53 @@ pub fn circle_iter<Data>(
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::scale::ScaleContinuous;
+
+    #[test]
+    fn test_rect_iter() {
+        let width = 928.;
+        let height = 500.;
+        let margin_top = 30.;
+        let margin_right = 0.;
+        let margin_bottom = 30.;
+        let margin_left = 40.;
+        let x = ScaleContinuous::linear()
+            .domain([0., 50.])
+            .range([margin_left, width - margin_right]);
+
+        let y = ScaleContinuous::linear()
+            .domain([0., 200.])
+            .range([height - margin_bottom, margin_top]);
+
+        let values = [
+            (5., 90.),
+            (20., 30.),
+            (30., 120.),
+            (40., 20.),
+            (45., 50.),
+            (50., 200.),
+        ];
+
+        for circle_property in circle_iter(
+            &values,
+            |d| x.apply(d.0),
+            |d| y.apply(d.1),
+            |_| 5.,
+            |_| ShapeAttrs::stroke_default(),
+        ) {
+            assert!(
+                circle_property.center[0] >= margin_left
+                    && circle_property.center[0] <= width - margin_right
+            );
+            assert!(
+                circle_property.center[1] >= margin_top
+                    && circle_property.center[1] <= height - margin_bottom
+            );
+            assert_eq!(circle_property.radius, 5.);
+        }
+    }
+}

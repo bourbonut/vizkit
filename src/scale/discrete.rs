@@ -184,6 +184,35 @@ where
         Self { r0, r1, ..self }.rescale()
     }
 
+    /// Returns a new [`ScaleBand`] in which inner and outer paddings are set to the same padding
+    /// value.
+    pub fn padding(self, padding: f32) -> Self {
+        Self {
+            padding_outer: padding,
+            padding_inner: padding.min(1.),
+            ..self
+        }
+        .rescale()
+    }
+
+    /// Returns a new [`ScaleBand`] in which inner padding is set to the padding value.
+    pub fn padding_inner(self, padding_inner: f32) -> Self {
+        Self {
+            padding_inner: padding_inner.min(1.),
+            ..self
+        }
+        .rescale()
+    }
+
+    /// Returns a new [`ScaleBand`] in which outer padding is set to the padding value.
+    pub fn padding_outer(self, padding_outer: f32) -> Self {
+        Self {
+            padding_outer: padding_outer,
+            ..self
+        }
+        .rescale()
+    }
+
     fn rescale(self) -> Self {
         let n = self.scale_ordinal.domain.len();
         let reverse = self.r1 < self.r0;
