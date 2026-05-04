@@ -78,7 +78,7 @@ pub use self::axis::{
 };
 pub use self::circle::circle_iter;
 pub use self::grid::{grid_horizontal_iter, grid_vertical_iter};
-pub use self::path::{Linear, path};
+pub use self::path::{PathCommand, path_iter};
 pub use self::properties::{
     ArrowProperties, CircleProperties, LineProperties, RectProperties, TextProperties,
 };
