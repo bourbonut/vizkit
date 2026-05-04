@@ -6,11 +6,11 @@ fn main() {
     let dest = Path::new("src/athletes.csv");
     if !dest.exists() {
         let content = reqwest::blocking::get(url)
-            .expect("Failed to request 'athletes.json'")
+            .expect("Failed to request 'athletes.csv'")
             .text()
             .expect("Failed to read the body of the request");
 
-        fs::write(dest, content).expect("Failed to write the content in 'src/athletes.json'");
+        fs::write(dest, content).expect("Failed to write the content in 'src/athletes.csv'");
     }
 
     println!("cargo:rerun-if-changed=build.rs");
