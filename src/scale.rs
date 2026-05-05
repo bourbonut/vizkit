@@ -32,6 +32,8 @@ mod linear;
 mod log;
 mod pow;
 mod ticks;
+#[cfg(feature = "time")]
+mod time;
 
 pub use self::{
     color::ScaleColor,
@@ -41,4 +43,5 @@ pub use self::{
     log::{Ln, Log, Log2, Log10},
     pow::{Power, Sqrt},
     ticks::Tick,
+    time::ScaleTime,
 };
