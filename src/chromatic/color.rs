@@ -1,3 +1,4 @@
+use std::fmt;
 const A: f32 = -0.14861;
 const B: f32 = 1.78277;
 const C: f32 = -0.29227;
@@ -51,10 +52,11 @@ impl From<&str> for Color {
     }
 }
 
-impl ToString for Color {
-    fn to_string(&self) -> String {
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let [r, g, b] = self.0;
-        format!(
+        write!(
+            f,
             "#{:02x}{:02x}{:02x}",
             (255. * r) as u8,
             (255. * g) as u8,

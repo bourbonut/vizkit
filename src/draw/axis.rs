@@ -100,6 +100,7 @@ pub fn axis_left_iter<A: Axis>(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn axis<A: Axis>(
     scaler: &A,
     at: f32,
@@ -113,7 +114,7 @@ fn axis<A: Axis>(
     let ticks = scaler.ticks(axis_options.count);
     ticks.into_iter().map(move |tick| {
         let content = formatter(&tick);
-        let pos: f32 = scaler.tick_position(tick).into();
+        let pos = scaler.tick_position(tick);
         (
             LineProperties {
                 start: orientation.apply(pos, at),

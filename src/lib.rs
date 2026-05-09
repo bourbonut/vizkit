@@ -6,7 +6,7 @@
 //!
 //! The main structures to use are:
 //! - [`ScaleContinuous`][`crate::scale::ScaleContinuous`] for continuous domain with continuous
-//! values. It supports:
+//!   values. It supports:
 //!     - [linear][`crate::scale::ScaleContinuous::linear`] transformation
 //!     - [natural logarithm][`crate::scale::ScaleContinuous::ln`] transformation
 //!     - [logarithm in base 2][`crate::scale::ScaleContinuous::log2`] transformation
@@ -17,7 +17,7 @@
 //! - [`ScaleOrdinal`][`crate::scale::ScaleOrdinal`] for discrete domain with discrete range
 //! - [`ScaleBand`][`crate::scale::ScaleOrdinal`] for discrete domain with continuous range
 //! - [`ScaleColor`][`crate::scale::ScaleColor`] for color maps which maps a continuous domain to a
-//! continuous color range. It supports:
+//!   continuous color range. It supports:
 //!     - [linear][`crate::scale::ScaleColor::linear`] transformation
 //!     - [natural logarithm][`crate::scale::ScaleColor::ln`] transformation
 //!     - [logarithm in base 2][`crate::scale::ScaleColor::log2`] transformation

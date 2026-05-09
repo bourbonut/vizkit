@@ -1,5 +1,6 @@
 use crate::draw::{RectProperties, ShapeAttrs};
 
+#[allow(clippy::too_many_arguments)]
 /// Creates an iterator of properties used for rectangles.
 pub fn rect_iter<Data>(
     values: &[Data],

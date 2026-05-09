@@ -67,7 +67,7 @@ where
         R: Clone,
     {
         Self {
-            range: range.iter().cloned().collect(),
+            range: range.to_vec(),
             ..self
         }
     }
