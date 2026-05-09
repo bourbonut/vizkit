@@ -26,7 +26,7 @@ mod tests {
     use crate::draw::{
         CircleProperties, Draw, LineProperties, RectProperties, TextAttrs, TextProperties,
     };
-    use crate::scale::{ScaleColor, ScaleContinuous};
+    use crate::scale::{Axis, ScaleColor, ScaleContinuous};
 
     #[derive(Default)]
     struct Drawer {
@@ -86,8 +86,8 @@ mod tests {
         let color = color_scale.clone();
         drawer.text(
             &pairs,
-            |pair| x_scale.apply(pair.x),
-            |pair| y_scale.apply(pair.y),
+            |pair| x_scale.tick_position(pair.x),
+            |pair| y_scale.tick_position(pair.y),
             |pair| TextAttrs {
                 content: (pair.x * pair.y).to_string(),
                 fill_color: color.apply(pair.y),
@@ -102,8 +102,8 @@ mod tests {
             .iter()
             .zip(x_values.iter().zip(y_values.iter()))
         {
-            let x_scaled = x_scale.apply(*x);
-            let y_scaled = y_scale.apply(*y);
+            let x_scaled = x_scale.tick_position(*x);
+            let y_scaled = y_scale.tick_position(*y);
             assert_eq!(text.position, [x_scaled, y_scaled]);
             assert_eq!(text.content, (x * y).to_string());
             assert_eq!(text.fill_color.0, color_scale.apply::<[f32; 3]>(*y));
@@ -127,7 +127,7 @@ mod tests {
         let mut drawer = Drawer::default();
         drawer.text_horizontal(
             &values,
-            |x| scale.apply(*x),
+            |x| scale.tick_position(*x),
             height - margin_bottom,
             |x| TextAttrs {
                 content: (*x / 50.).to_string(),
@@ -139,7 +139,7 @@ mod tests {
         assert_eq!(drawer.texts.len(), values.len());
 
         for (text, x) in drawer.texts.iter().zip(values.iter()) {
-            let scaled = scale.apply(*x);
+            let scaled = scale.tick_position(*x);
             assert_eq!(text.position, [scaled, height - margin_bottom]);
             assert_eq!(text.content, (x / 50.).to_string());
             assert_eq!(text.fill_color.0, [x / 50.; 3]);

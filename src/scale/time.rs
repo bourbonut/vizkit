@@ -1,6 +1,7 @@
 use std::array::from_fn;
 
 use super::ticks::ticks_f64;
+use crate::scale::Axis;
 
 use chrono::{DateTime, FixedOffset, Local, TimeDelta, TimeZone, Utc};
 
@@ -88,12 +89,20 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
         }
         DateTime::from_timestamp_nanos(x as i64)
     }
+}
 
-    pub fn ticks(&self, count: Option<usize>) -> Vec<DateTime<Utc>> {
+impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
+    type Tick = DateTime<Utc>;
+
+    fn ticks(&self, count: Option<usize>) -> Vec<Self::Tick> {
         let [start, stop]: [f64; 2] = from_fn(|i| self.domain[i].timestamp() as f64);
         ticks_f64(start, stop, count.unwrap_or(10))
             .into_iter()
             .map(|tick| DateTime::from_timestamp_nanos(tick as i64))
             .collect()
+    }
+
+    fn tick_position(&self, x: Self::Tick) -> f32 {
+        self.apply(x.with_timezone(&self.domain[0].timezone())) as f32
     }
 }

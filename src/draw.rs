@@ -11,7 +11,7 @@
 //!     TextProperties,
 //!     RectProperties
 //! };
-//! use vizkit::scale::ScaleContinuous;
+//! use vizkit::scale::{Axis, ScaleContinuous};
 //!
 //! #[derive(Default)]
 //! struct Drawer {
@@ -51,7 +51,7 @@
 //! drawer.axis_bottom(
 //!     &scale,
 //!     height - margin_bottom,
-//!     |tick: f32| tick.to_string(),
+//!     |tick: &f32| tick.to_string(),
 //!     &AxisOptions::default()
 //! );
 //!
@@ -69,7 +69,7 @@ mod properties;
 mod rect;
 mod text;
 
-use crate::scale::{ScaleContinuous, Tick, Transformer};
+use crate::scale::Axis;
 
 pub use self::arrow::{arrow_iter, vector_iter};
 pub use self::attrs::{Alignment, ArrowAttrs, LineAttrs, ShapeAttrs, TextAttrs};
@@ -105,11 +105,11 @@ pub trait Draw {
     fn draw_rect(&mut self, rect: RectProperties);
     fn draw_text(&mut self, text: TextProperties);
 
-    fn axis_top<T: Transformer + Tick>(
+    fn axis_top<A: Axis>(
         &mut self,
-        scaler: &ScaleContinuous<T>,
+        scaler: &A,
         y: f32,
-        formatter: impl Fn(f32) -> String,
+        formatter: impl Fn(&A::Tick) -> String,
         axis_options: &AxisOptions,
     ) {
         axis_top_iter(scaler, y, formatter, axis_options).for_each(|(line, text)| {
@@ -118,11 +118,11 @@ pub trait Draw {
         });
     }
 
-    fn axis_right<T: Transformer + Tick>(
+    fn axis_right<A: Axis>(
         &mut self,
-        scaler: &ScaleContinuous<T>,
+        scaler: &A,
         x: f32,
-        formatter: impl Fn(f32) -> String,
+        formatter: impl Fn(&A::Tick) -> String,
         axis_options: &AxisOptions,
     ) {
         axis_right_iter(scaler, x, formatter, axis_options).for_each(|(line, text)| {
@@ -131,11 +131,11 @@ pub trait Draw {
         });
     }
 
-    fn axis_bottom<T: Transformer + Tick>(
+    fn axis_bottom<A: Axis>(
         &mut self,
-        scaler: &ScaleContinuous<T>,
+        scaler: &A,
         y: f32,
-        formatter: impl Fn(f32) -> String,
+        formatter: impl Fn(&A::Tick) -> String,
         axis_options: &AxisOptions,
     ) {
         axis_bottom_iter(scaler, y, formatter, axis_options).for_each(|(line, text)| {
@@ -144,11 +144,11 @@ pub trait Draw {
         });
     }
 
-    fn axis_left<T: Transformer + Tick>(
+    fn axis_left<A: Axis>(
         &mut self,
-        scaler: &ScaleContinuous<T>,
+        scaler: &A,
         x: f32,
-        formatter: impl Fn(f32) -> String,
+        formatter: impl Fn(&A::Tick) -> String,
         axis_options: &AxisOptions,
     ) {
         axis_left_iter(scaler, x, formatter, axis_options).for_each(|(line, text)| {

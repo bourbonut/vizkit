@@ -35,6 +35,9 @@ mod ticks;
 #[cfg(feature = "time")]
 mod time;
 
+#[cfg(feature = "time")]
+pub use self::time::ScaleTime;
+
 pub use self::{
     color::ScaleColor,
     continuous::{ScaleContinuous, Transformer},
@@ -43,5 +46,10 @@ pub use self::{
     log::{Ln, Log, Log2, Log10},
     pow::{Power, Sqrt},
     ticks::Tick,
-    time::ScaleTime,
 };
+
+pub trait Axis {
+    type Tick;
+    fn ticks(&self, count: Option<usize>) -> Vec<Self::Tick>;
+    fn tick_position(&self, x: Self::Tick) -> f32;
+}

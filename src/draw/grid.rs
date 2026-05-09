@@ -48,7 +48,7 @@ mod tests {
     use crate::draw::{
         CircleProperties, Draw, LineAttrs, LineProperties, RectProperties, TextProperties,
     };
-    use crate::scale::ScaleContinuous;
+    use crate::scale::{Axis, ScaleContinuous};
 
     #[derive(Default)]
     struct Drawer {
@@ -90,7 +90,7 @@ mod tests {
             &values,
             margin_top,
             height - margin_bottom,
-            |x| scale.apply(*x),
+            |x| scale.tick_position(*x),
             |x| LineAttrs {
                 stroke_width: x / 50.,
                 stroke_color: Color([x / 50.; 3]),
@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(drawer.lines.len(), values.len());
         for (line, x) in drawer.lines.iter().zip(values.iter()) {
             let z = x / 50.;
-            let s = scale.apply(*x);
+            let s = scale.tick_position(*x);
             assert_eq!(line.stroke_width, z);
             assert_eq!(line.stroke_opacity, z);
             assert_eq!(line.stroke_color.0, [z; 3]);

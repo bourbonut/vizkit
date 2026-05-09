@@ -1,6 +1,6 @@
 use super::{Alignment, LineAttrs, LineProperties, Orientation, TextProperties};
 use crate::chromatic::Color;
-use crate::scale::{ScaleContinuous, Tick, Transformer};
+use crate::scale::Axis;
 
 pub struct AxisOptions {
     pub tick_size: f32,
@@ -25,10 +25,10 @@ impl Default for AxisOptions {
 }
 
 /// Creates an iterator of properties used for axis positioned on the top of the chart.
-pub fn axis_top_iter<T: Transformer + Tick>(
-    scaler: &ScaleContinuous<T>,
+pub fn axis_top_iter<A: Axis>(
+    scaler: &A,
     y: f32,
-    formatter: impl Fn(f32) -> String,
+    formatter: impl Fn(&A::Tick) -> String,
     axis_options: &AxisOptions,
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
@@ -44,10 +44,10 @@ pub fn axis_top_iter<T: Transformer + Tick>(
 }
 
 /// Creates an iterator of properties used for axis positioned on the right of the chart.
-pub fn axis_right_iter<T: Transformer + Tick>(
-    scaler: &ScaleContinuous<T>,
+pub fn axis_right_iter<A: Axis>(
+    scaler: &A,
     x: f32,
-    formatter: impl Fn(f32) -> String,
+    formatter: impl Fn(&A::Tick) -> String,
     axis_options: &AxisOptions,
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
@@ -63,10 +63,10 @@ pub fn axis_right_iter<T: Transformer + Tick>(
 }
 
 /// Creates an iterator of properties used for axis positioned on the bottom of the chart.
-pub fn axis_bottom_iter<T: Transformer + Tick>(
-    scaler: &ScaleContinuous<T>,
+pub fn axis_bottom_iter<A: Axis>(
+    scaler: &A,
     y: f32,
-    formatter: impl Fn(f32) -> String,
+    formatter: impl Fn(&A::Tick) -> String,
     axis_options: &AxisOptions,
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
@@ -82,10 +82,10 @@ pub fn axis_bottom_iter<T: Transformer + Tick>(
 }
 
 /// Creates an iterator of properties used for axis positioned on the left of the chart.
-pub fn axis_left_iter<T: Transformer + Tick>(
-    scaler: &ScaleContinuous<T>,
+pub fn axis_left_iter<A: Axis>(
+    scaler: &A,
     x: f32,
-    formatter: impl Fn(f32) -> String,
+    formatter: impl Fn(&A::Tick) -> String,
     axis_options: &AxisOptions,
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
@@ -100,19 +100,20 @@ pub fn axis_left_iter<T: Transformer + Tick>(
     )
 }
 
-fn axis<T: Transformer + Tick>(
-    scaler: &ScaleContinuous<T>,
+fn axis<A: Axis>(
+    scaler: &A,
     at: f32,
     orientation: Orientation,
     direction: f32,
     align_x: Alignment,
     align_y: Alignment,
-    formatter: impl Fn(f32) -> String,
+    formatter: impl Fn(&A::Tick) -> String,
     axis_options: &AxisOptions,
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     let ticks = scaler.ticks(axis_options.count);
     ticks.into_iter().map(move |tick| {
-        let pos = scaler.apply(tick);
+        let content = formatter(&tick);
+        let pos: f32 = scaler.tick_position(tick).into();
         (
             LineProperties {
                 start: orientation.apply(pos, at),
@@ -126,7 +127,7 @@ fn axis<T: Transformer + Tick>(
                     pos,
                     at + direction * (axis_options.tick_size + axis_options.offset),
                 ),
-                content: formatter(tick),
+                content,
                 fill_color: axis_options.text_fill_color,
                 font_size: axis_options.font_size,
                 align_x: align_x.clone(),
@@ -141,7 +142,7 @@ mod tests {
     use crate::draw::{
         AxisOptions, CircleProperties, Draw, LineProperties, RectProperties, TextProperties,
     };
-    use crate::scale::ScaleContinuous;
+    use crate::scale::{Axis, ScaleContinuous};
     use rstest::rstest;
 
     #[derive(Default)]
@@ -195,7 +196,7 @@ mod tests {
         let mut drawer = Drawer::default();
         let scale = ScaleContinuous::linear().domain(domain).range(range);
 
-        let formatter = |x: f32| x.to_string();
+        let formatter = |x: &f32| x.to_string();
         let options = AxisOptions::default();
         match title {
             "bottom" => drawer.axis_bottom(&scale, at, formatter, &options),
@@ -210,7 +211,7 @@ mod tests {
         let b = (index + 1) % 2;
 
         // Expected values
-        let tick_fn = |&tick: &f32| scale.apply(tick);
+        let tick_fn = |&tick: &f32| scale.tick_position(tick);
         let scale_ticks: Vec<f32> = scale.ticks(None).iter().map(tick_fn).collect();
         let string_ticks: Vec<String> = scale.ticks(None).iter().map(ToString::to_string).collect();
 

@@ -207,7 +207,7 @@ where
     /// Returns a new [`ScaleBand`] in which outer padding is set to the padding value.
     pub fn padding_outer(self, padding_outer: f32) -> Self {
         Self {
-            padding_outer: padding_outer,
+            padding_outer,
             ..self
         }
         .rescale()

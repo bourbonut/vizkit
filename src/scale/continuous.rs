@@ -1,6 +1,7 @@
 use std::f32::consts;
 
 use super::{
+    Axis,
     linear::Linear,
     log::{Ln, Log, Log2, Log10},
     pow::{Power, Sqrt},
@@ -157,21 +158,6 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
         }
     }
 
-    /// Returns approximately `count` representative values from the domain where `count` varies
-    /// more or fewer the number of values depending on the domain. Default: `10`.
-    ///
-    /// ```
-    /// use vizkit::scale::ScaleContinuous;
-    ///
-    /// // Default for `count` is `10`
-    /// let scale = ScaleContinuous::linear().domain([20., 100.]).range([0., 1.]);
-    /// assert_eq!(scale.ticks(None), vec![20., 30., 40., 50., 60., 70., 80., 90., 100.]);
-    /// assert_eq!(scale.ticks(Some(5)), vec![20., 40., 60., 80., 100.]);
-    /// ```
-    pub fn ticks(&self, count: Option<usize>) -> Vec<f32> {
-        self.transformer.ticks(&self.domain, count.unwrap_or(10))
-    }
-
     /// Extends the domain so that it starts and ends on nice round values where `count` allows
     /// greater control over the step size used to extend the bounds. Default: `10`.
     ///
@@ -190,6 +176,36 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
     pub fn nice(self, count: Option<usize>) -> Self {
         let domain = self.transformer.nice(&self.domain, count.unwrap_or(10));
         self.domain(domain)
+    }
+}
+
+impl<T: Transformer + Tick> Axis for ScaleContinuous<T> {
+    type Tick = f32;
+
+    /// Returns approximately `count` representative values from the domain where `count` varies
+    /// more or fewer the number of values depending on the domain. Default: `10`.
+    ///
+    /// ```
+    /// use vizkit::scale::{Axis, ScaleContinuous};
+    ///
+    /// // Default for `count` is `10`
+    /// let scale = ScaleContinuous::linear().domain([20., 100.]).range([0., 1.]);
+    /// assert_eq!(scale.ticks(None), vec![20., 30., 40., 50., 60., 70., 80., 90., 100.]);
+    /// assert_eq!(scale.ticks(Some(5)), vec![20., 40., 60., 80., 100.]);
+    /// ```
+    fn ticks(&self, count: Option<usize>) -> Vec<f32> {
+        self.transformer.ticks(&self.domain, count.unwrap_or(10))
+    }
+
+    /// Given the specified value in the domain, it clamps the value, transforms it and returns the
+    /// corresponding value of the range.
+    fn tick_position(&self, x: Self::Tick) -> f32 {
+        self.output.apply(self.transformer.transform(if self.clamp {
+            let [a, b] = self.domain;
+            x.clamp(a, b)
+        } else {
+            x
+        }))
     }
 }
 
@@ -302,7 +318,7 @@ impl ScaleContinuous<Sqrt> {
 
 #[cfg(test)]
 mod tests {
-    use super::ScaleContinuous;
+    use super::{Axis, ScaleContinuous};
     use rstest::rstest;
 
     fn reverse(slice: &[f32]) -> Vec<f32> {
