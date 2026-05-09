@@ -1,21 +1,18 @@
 use crate::draw::{RectProperties, ShapeAttrs};
 
-#[allow(clippy::too_many_arguments)]
 /// Creates an iterator of properties used for rectangles.
 pub fn rect_iter<Data>(
     values: &[Data],
-    x: impl Fn(&Data) -> f32,
-    y: impl Fn(&Data) -> f32,
-    width: impl Fn(&Data) -> f32,
-    height: impl Fn(&Data) -> f32,
+    top_left: impl Fn(&Data) -> [f32; 2],
+    size: impl Fn(&Data) -> [f32; 2],
     corner_radius: Option<f32>,
     shape_attrs: impl Fn(&Data) -> ShapeAttrs,
 ) -> impl Iterator<Item = RectProperties> {
     values.iter().map(move |value| {
         let shape_values = shape_attrs(value);
         RectProperties {
-            top_left: [x(value), y(value)],
-            size: [width(value), height(value)],
+            top_left: top_left(value),
+            size: size(value),
             corner_radius,
             fill_color: shape_values.fill_color,
             fill_opacity: shape_values.fill_opacity,
@@ -59,10 +56,13 @@ mod tests {
 
         for rect_property in rect_iter(
             &values,
-            |d| *x.apply(d.0).expect("Undefined values in x domain"),
-            |d| y.apply(d.1),
-            |_| x.bandwidth(),
-            |d| y.apply(0.) - y.apply(d.1),
+            |d| {
+                [
+                    *x.apply(d.0).expect("Undefined values in x domain"),
+                    y.apply(d.1),
+                ]
+            },
+            |d| [x.bandwidth(), y.apply(0.) - y.apply(d.1)],
             None,
             |_| ShapeAttrs::stroke_default(),
         ) {

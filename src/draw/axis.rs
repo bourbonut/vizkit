@@ -11,6 +11,14 @@ pub struct AxisOptions {
     pub font_size: f32,
 }
 
+struct AxisPlacement {
+    at: f32,
+    orientation: Orientation,
+    direction: f32,
+    align_x: Alignment,
+    align_y: Alignment,
+}
+
 impl Default for AxisOptions {
     fn default() -> Self {
         Self {
@@ -33,11 +41,13 @@ pub fn axis_top_iter<A: Axis>(
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
         scaler,
-        y,
-        Orientation::Same,
-        -1.,
-        Alignment::Center,
-        Alignment::End,
+        AxisPlacement {
+            at: y,
+            orientation: Orientation::Same,
+            direction: -1.,
+            align_x: Alignment::Center,
+            align_y: Alignment::End,
+        },
         formatter,
         axis_options,
     )
@@ -52,11 +62,13 @@ pub fn axis_right_iter<A: Axis>(
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
         scaler,
-        x,
-        Orientation::Flip,
-        1.,
-        Alignment::Start,
-        Alignment::Center,
+        AxisPlacement {
+            at: x,
+            orientation: Orientation::Flip,
+            direction: 1.,
+            align_x: Alignment::Start,
+            align_y: Alignment::Center,
+        },
         formatter,
         axis_options,
     )
@@ -71,11 +83,13 @@ pub fn axis_bottom_iter<A: Axis>(
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
         scaler,
-        y,
-        Orientation::Same,
-        1.,
-        Alignment::Center,
-        Alignment::Start,
+        AxisPlacement {
+            at: y,
+            orientation: Orientation::Same,
+            direction: 1.,
+            align_x: Alignment::Center,
+            align_y: Alignment::Start,
+        },
         formatter,
         axis_options,
     )
@@ -90,28 +104,32 @@ pub fn axis_left_iter<A: Axis>(
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     axis(
         scaler,
-        x,
-        Orientation::Flip,
-        -1.,
-        Alignment::End,
-        Alignment::Center,
+        AxisPlacement {
+            at: x,
+            orientation: Orientation::Flip,
+            direction: -1.,
+            align_x: Alignment::End,
+            align_y: Alignment::Center,
+        },
         formatter,
         axis_options,
     )
 }
 
-#[allow(clippy::too_many_arguments)]
 fn axis<A: Axis>(
     scaler: &A,
-    at: f32,
-    orientation: Orientation,
-    direction: f32,
-    align_x: Alignment,
-    align_y: Alignment,
+    placement: AxisPlacement,
     formatter: impl Fn(&A::Tick) -> String,
     axis_options: &AxisOptions,
 ) -> impl Iterator<Item = (LineProperties, TextProperties)> {
     let ticks = scaler.ticks(axis_options.count);
+    let AxisPlacement {
+        at,
+        orientation,
+        direction,
+        align_x,
+        align_y,
+    } = placement;
     ticks.into_iter().map(move |tick| {
         let content = formatter(&tick);
         let pos = scaler.tick_position(tick);

@@ -201,19 +201,15 @@ pub trait Draw {
     fn rect<Data>(
         &mut self,
         values: &[Data],
-        x: impl Fn(&Data) -> f32,
-        y: impl Fn(&Data) -> f32,
-        width: impl Fn(&Data) -> f32,
-        height: impl Fn(&Data) -> f32,
+        top_left: impl Fn(&Data) -> [f32; 2],
+        size: impl Fn(&Data) -> [f32; 2],
         corner_radius: Option<f32>,
         shape_attrs: impl Fn(&Data) -> ShapeAttrs,
     ) {
         self.rect_from_props(rect_iter(
             values,
-            x,
-            y,
-            width,
-            height,
+            top_left,
+            size,
             corner_radius,
             shape_attrs,
         ));
