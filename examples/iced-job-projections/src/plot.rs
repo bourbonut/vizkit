@@ -3,7 +3,7 @@ use vizkit::chromatic::Color;
 use vizkit::draw::{
     AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, ShapeAttrs, circle_iter,
 };
-use vizkit::scale::{Linear, ScaleContinuous, ScaleOrdinal};
+use vizkit::scale::{Axis, Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
 use crate::iced_frame::IcedFrame;
