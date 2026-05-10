@@ -4,95 +4,84 @@ pub trait Tick {
     /// more or fewer the number of values depending on the domain
     fn ticks(&self, domain: &[f32; 2], count: usize) -> Vec<f32>;
 
-    // fn tick_format(&self, count: Option<usize>, specifier: Option<&str>) -> TickFormatter;
-
     /// Extends the domain so that it starts and ends on nice round values where `count` allows
     /// greater control over the step size used to extend the bounds.
     fn nice(&self, domain: &[f32; 2], count: usize) -> [f32; 2];
 }
 
-macro_rules! impl_ticks {
-    ($name:ident, $name_spec:ident, $name_incr:ident, $precision:ident) => {
-        fn $name_spec(start: $precision, stop: $precision, count: usize) -> [$precision; 3] {
-            let step = (stop - start) / (1 as $precision).max(count as $precision);
-            let power = step.log10().floor();
-            let error = step / (10 as $precision).powf(power);
-            let factor = if error >= (50 as $precision).sqrt() {
-                10
-            } else if error >= (10 as $precision).sqrt() {
-                5
-            } else if error >= (2 as $precision).sqrt() {
-                2
-            } else {
-                1
-            };
-
-            let mut inc;
-            let mut i1;
-            let mut i2;
-            if power < 0. {
-                inc = (10 as $precision).powf(-power) / factor as $precision;
-                i1 = (start * inc).round();
-                i2 = (stop * inc).round();
-                if i1 / inc < start {
-                    i1 += 1.;
-                }
-                if i2 / inc > stop {
-                    i2 -= 1.;
-                }
-                inc = -inc;
-            } else {
-                inc = (10 as $precision).powf(power) * factor as $precision;
-                i1 = (start / inc).round();
-                i2 = (stop / inc).round();
-                if i1 * inc < start {
-                    i1 += 1.;
-                }
-                if i2 * inc > stop {
-                    i2 -= 1.;
-                }
-            }
-            if i2 < i1 && count < 2 {
-                return $name_spec(start, stop, count * 2);
-            }
-            [i1, i2, inc]
-        }
-
-        pub(crate) fn $name(start: $precision, stop: $precision, count: usize) -> Vec<$precision> {
-            if count == 0 {
-                return Vec::new();
-            }
-            if start == stop {
-                return vec![start];
-            }
-            let reverse = stop < start;
-            let [i1, i2, inc] = if reverse {
-                $name_spec(stop, start, count)
-            } else {
-                $name_spec(start, stop, count)
-            };
-            if i2 < i1 {
-                return Vec::new();
-            }
-            let n = (i2 - i1 + 1.) as usize;
-            match (reverse, inc < 0.) {
-                (true, true) => (0..n).map(|i| (i2 - i as $precision) / -inc).collect(),
-                (true, false) => (0..n).map(|i| (i2 - i as $precision) * inc).collect(),
-                (false, true) => (0..n).map(|i| (i1 + i as $precision) / -inc).collect(),
-                (false, false) => (0..n).map(|i| (i1 + i as $precision) * inc).collect(),
-            }
-        }
-
-        #[allow(unused)]
-        pub(crate) fn $name_incr(start: $precision, stop: $precision, count: usize) -> $precision {
-            $name_spec(start, stop, count)[2]
-        }
+fn tick_spec(start: f32, stop: f32, count: usize) -> [f32; 3] {
+    let step = (stop - start) / (1 as f32).max(count as f32);
+    let power = step.log10().floor();
+    let error = step / (10 as f32).powf(power);
+    let factor = if error >= (50 as f32).sqrt() {
+        10
+    } else if error >= (10 as f32).sqrt() {
+        5
+    } else if error >= (2 as f32).sqrt() {
+        2
+    } else {
+        1
     };
+
+    let mut inc;
+    let mut i1;
+    let mut i2;
+    if power < 0. {
+        inc = (10 as f32).powf(-power) / factor as f32;
+        i1 = (start * inc).round();
+        i2 = (stop * inc).round();
+        if i1 / inc < start {
+            i1 += 1.;
+        }
+        if i2 / inc > stop {
+            i2 -= 1.;
+        }
+        inc = -inc;
+    } else {
+        inc = (10 as f32).powf(power) * factor as f32;
+        i1 = (start / inc).round();
+        i2 = (stop / inc).round();
+        if i1 * inc < start {
+            i1 += 1.;
+        }
+        if i2 * inc > stop {
+            i2 -= 1.;
+        }
+    }
+    if i2 < i1 && count < 2 {
+        return tick_spec(start, stop, count * 2);
+    }
+    [i1, i2, inc]
 }
 
-impl_ticks!(ticks, tick_spec, tick_increment, f32);
-#[cfg(feature = "time")]
-impl_ticks!(ticks_f64, tick_spec_f64, tick_increment_f64, f64);
+pub(crate) fn ticks(start: f32, stop: f32, count: usize) -> Vec<f32> {
+    if count == 0 {
+        return Vec::new();
+    }
+    if start == stop {
+        return vec![start];
+    }
+    let reverse = stop < start;
+    let [i1, i2, inc] = if reverse {
+        tick_spec(stop, start, count)
+    } else {
+        tick_spec(start, stop, count)
+    };
+    if i2 < i1 {
+        return Vec::new();
+    }
+    let n = (i2 - i1 + 1.) as usize;
+    match (reverse, inc < 0.) {
+        (true, true) => (0..n).map(|i| (i2 - i as f32) / -inc).collect(),
+        (true, false) => (0..n).map(|i| (i2 - i as f32) * inc).collect(),
+        (false, true) => (0..n).map(|i| (i1 + i as f32) / -inc).collect(),
+        (false, false) => (0..n).map(|i| (i1 + i as f32) * inc).collect(),
+    }
+}
+
+pub(crate) fn tick_increment(start: f32, stop: f32, count: usize) -> f32 {
+    tick_spec(start, stop, count)[2]
+}
 
 #[cfg(test)]
 mod tests {
