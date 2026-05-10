@@ -13,7 +13,12 @@ pub enum PathCommand {
     BezierCurveTo([[f32; 2]; 3]),
 }
 
-struct PathState {
+struct PathIterator<I>
+where
+    I: Iterator<Item = [f32; 2]>,
+{
+    values: I,
+    curve: Curve,
     state: u8,
     x0: f32,
     y0: f32,
@@ -21,11 +26,17 @@ struct PathState {
     y1: f32,
     x2: f32,
     y2: f32,
+    last_point: bool,
 }
 
-impl Default for PathState {
-    fn default() -> Self {
+impl<I> PathIterator<I>
+where
+    I: Iterator<Item = [f32; 2]>,
+{
+    fn new(values: I, curve: Curve) -> Self {
         Self {
+            values,
+            curve,
             state: 0,
             x0: f32::NAN,
             y0: f32::NAN,
@@ -33,11 +44,10 @@ impl Default for PathState {
             y1: f32::NAN,
             x2: f32::NAN,
             y2: f32::NAN,
+            last_point: false,
         }
     }
-}
 
-impl PathState {
     fn update(&mut self, [x, y]: [f32; 2]) {
         self.x0 = self.x1;
         self.x1 = self.x2;
@@ -60,53 +70,80 @@ impl PathState {
     }
 }
 
-pub fn path_iter<Data>(
-    values: &[Data],
-    x: impl Fn(&Data) -> f32,
-    y: impl Fn(&Data) -> f32,
-    curve: Curve,
-) -> impl Iterator<Item = PathCommand> {
-    let mut path_state = PathState::default();
-    values.iter().filter_map(move |value| {
-        let point = [x(value), y(value)];
-        match path_state.state {
-            0 => {
-                path_state.state = 1;
-                path_state.update(point);
-                Some(PathCommand::MoveTo(point))
-            }
-            1 => {
-                path_state.state = 2;
-                match curve {
-                    Curve::Linear => Some(PathCommand::LineTo(point)),
-                    Curve::Cardinal { tension: _ } => {
-                        path_state.x1 = point[0];
-                        path_state.y1 = point[1];
+impl<I> Iterator for PathIterator<I>
+where
+    I: Iterator<Item = [f32; 2]>,
+{
+    type Item = PathCommand;
 
-                        path_state.update(point);
-                        None
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(point) = self.values.next() {
+            match self.state {
+                0 => {
+                    self.state = 1;
+                    self.update(point);
+                    Some(PathCommand::MoveTo(point))
+                }
+                1 => {
+                    self.state = 2;
+                    match self.curve {
+                        Curve::Linear => Some(PathCommand::LineTo(point)),
+                        Curve::Cardinal { tension: _ } => {
+                            self.x1 = point[0];
+                            self.y1 = point[1];
+
+                            self.update(point);
+                            self.next()
+                        }
                     }
                 }
-            }
-            2 => {
-                path_state.state = 3;
-                match curve {
+                2 => {
+                    self.state = 3;
+                    match self.curve {
+                        Curve::Linear => Some(PathCommand::LineTo(point)),
+                        Curve::Cardinal { tension } => {
+                            let path_command = self.bezier_curve_to(tension, point);
+                            self.update(point);
+                            Some(path_command)
+                        }
+                    }
+                }
+                _ => match self.curve {
                     Curve::Linear => Some(PathCommand::LineTo(point)),
                     Curve::Cardinal { tension } => {
-                        let path_command = path_state.bezier_curve_to(tension, point);
-                        path_state.update(point);
+                        let path_command = self.bezier_curve_to(tension, point);
+                        self.update(point);
                         Some(path_command)
                     }
-                }
+                },
             }
-            _ => match curve {
-                Curve::Linear => Some(PathCommand::LineTo(point)),
-                Curve::Cardinal { tension } => {
-                    let path_command = path_state.bezier_curve_to(tension, point);
-                    path_state.update(point);
-                    Some(path_command)
-                }
-            },
+        } else if self.last_point {
+            None
+        } else {
+            match self.curve {
+                Curve::Linear => None,
+                Curve::Cardinal { tension } => match self.state {
+                    2 => {
+                        self.last_point = true;
+                        Some(PathCommand::LineTo([self.x2, self.y2]))
+                    }
+                    3 => {
+                        self.last_point = true;
+                        Some(self.bezier_curve_to(tension, [self.x1, self.y1]))
+                    }
+                    _ => None,
+                },
+            }
         }
-    })
+    }
+}
+
+pub fn path_iter<'a, Data>(
+    values: &'a [Data],
+    x: impl Fn(&Data) -> f32 + 'a,
+    y: impl Fn(&Data) -> f32 + 'a,
+    curve: Curve,
+) -> impl Iterator<Item = PathCommand> + 'a {
+    let points = values.iter().map(move |value| [x(value), y(value)]);
+    PathIterator::new(points, curve)
 }
