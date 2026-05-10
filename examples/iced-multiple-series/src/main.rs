@@ -1,14 +1,16 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use iced::{Element, Length, widget::canvas};
 use std::{collections::HashMap, fs::File};
 use vizkit::{
-    draw::{Curve, PathCommand, path_iter},
+    draw::{
+        Alignment, AxisOptions, Curve, PathCommand, axis_bottom_iter, axis_left_iter, path_iter,
+    },
     scale::{ScaleContinuous, ScaleTime},
 };
 
-const MARGIN_TOP: f32 = 10.;
+const MARGIN_TOP: f32 = 20.;
 const MARGIN_RIGHT: f32 = 30.;
-const MARGIN_BOTTOM: f32 = 30.;
+const MARGIN_BOTTOM: f32 = 50.;
 const MARGIN_LEFT: f32 = 40.;
 
 fn datetime(year: i32, month: u32, day: u32) -> DateTime<Utc> {
@@ -144,6 +146,46 @@ impl canvas::Program<Message> for Plot<'_> {
                 &path,
                 canvas::Stroke::default().with_color(iced::Color::WHITE),
             );
+        });
+
+        axis_bottom_iter(
+            &x_scale,
+            height - MARGIN_BOTTOM,
+            |tick| format!("{}/{}", tick.month(), tick.year()),
+            &AxisOptions::default(),
+        )
+        .chain(axis_left_iter(
+            &y_scale,
+            MARGIN_LEFT,
+            |tick| tick.to_string(),
+            &AxisOptions::default(),
+        ))
+        .for_each(|(line, text)| {
+            let [r, g, b] = line.stroke_color.into();
+            frame.stroke(
+                &canvas::Path::line(line.start.into(), line.end.into()),
+                canvas::Stroke::default()
+                    .with_color(iced::Color::from([r, g, b, line.stroke_opacity]))
+                    .with_width(line.stroke_width),
+            );
+            let color: [f32; 3] = text.fill_color.into();
+            frame.fill_text(canvas::Text {
+                content: text.content,
+                position: text.position.into(),
+                color: iced::Color::from(color),
+                size: iced::Pixels(text.font_size),
+                align_x: match text.align_x {
+                    Alignment::Start => iced::Alignment::Start.into(),
+                    Alignment::Center => iced::Alignment::Center.into(),
+                    Alignment::End => iced::Alignment::End.into(),
+                },
+                align_y: match text.align_y {
+                    Alignment::Start => iced::Alignment::Start.into(),
+                    Alignment::Center => iced::Alignment::Center.into(),
+                    Alignment::End => iced::Alignment::End.into(),
+                },
+                ..Default::default()
+            })
         });
         vec![frame.into_geometry()]
     }
