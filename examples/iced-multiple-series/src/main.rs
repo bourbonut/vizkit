@@ -3,9 +3,10 @@ use iced::{Element, Length, widget::canvas};
 use std::{collections::HashMap, fs::File};
 use vizkit::{
     draw::{
-        Alignment, AxisOptions, Curve, PathCommand, axis_bottom_iter, axis_left_iter, path_iter,
+        Alignment, AxisOptions, Curve, LineProperties, PathCommand, TextProperties,
+        axis_bottom_iter, axis_left_iter, grid_horizontal_iter, path_iter,
     },
-    scale::{ScaleContinuous, ScaleTime},
+    scale::{Axis, ScaleContinuous, ScaleTime},
 };
 
 const MARGIN_TOP: f32 = 20.;
@@ -18,6 +19,37 @@ fn datetime(year: i32, month: u32, day: u32) -> DateTime<Utc> {
         .and_then(|date| date.and_hms_opt(0, 0, 0))
         .expect("invalid time values")
         .and_utc()
+}
+
+fn line_frame(frame: &mut canvas::Frame, line: LineProperties) {
+    let [r, g, b] = line.stroke_color.into();
+    frame.stroke(
+        &canvas::Path::line(line.start.into(), line.end.into()),
+        canvas::Stroke::default()
+            .with_color(iced::Color::from([r, g, b, line.stroke_opacity]))
+            .with_width(line.stroke_width),
+    );
+}
+
+fn text_frame(frame: &mut canvas::Frame, text: TextProperties) {
+    let color: [f32; 3] = text.fill_color.into();
+    frame.fill_text(canvas::Text {
+        content: text.content,
+        position: text.position.into(),
+        color: iced::Color::from(color),
+        size: iced::Pixels(text.font_size),
+        align_x: match text.align_x {
+            Alignment::Start => iced::Alignment::Start.into(),
+            Alignment::Center => iced::Alignment::Center.into(),
+            Alignment::End => iced::Alignment::End.into(),
+        },
+        align_y: match text.align_y {
+            Alignment::Start => iced::Alignment::Start.into(),
+            Alignment::Center => iced::Alignment::Center.into(),
+            Alignment::End => iced::Alignment::End.into(),
+        },
+        ..Default::default()
+    })
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -144,7 +176,8 @@ impl canvas::Program<Message> for Plot<'_> {
             });
             frame.stroke(
                 &path,
-                canvas::Stroke::default().with_color(iced::Color::WHITE),
+                canvas::Stroke::default()
+                    .with_color(iced::Color::from_rgb(0.275, 0.51, 0.706).scale_alpha(0.8)),
             );
         });
 
@@ -161,32 +194,21 @@ impl canvas::Program<Message> for Plot<'_> {
             &AxisOptions::default(),
         ))
         .for_each(|(line, text)| {
-            let [r, g, b] = line.stroke_color.into();
-            frame.stroke(
-                &canvas::Path::line(line.start.into(), line.end.into()),
-                canvas::Stroke::default()
-                    .with_color(iced::Color::from([r, g, b, line.stroke_opacity]))
-                    .with_width(line.stroke_width),
-            );
-            let color: [f32; 3] = text.fill_color.into();
-            frame.fill_text(canvas::Text {
-                content: text.content,
-                position: text.position.into(),
-                color: iced::Color::from(color),
-                size: iced::Pixels(text.font_size),
-                align_x: match text.align_x {
-                    Alignment::Start => iced::Alignment::Start.into(),
-                    Alignment::Center => iced::Alignment::Center.into(),
-                    Alignment::End => iced::Alignment::End.into(),
-                },
-                align_y: match text.align_y {
-                    Alignment::Start => iced::Alignment::Start.into(),
-                    Alignment::Center => iced::Alignment::Center.into(),
-                    Alignment::End => iced::Alignment::End.into(),
-                },
-                ..Default::default()
-            })
+            line_frame(&mut frame, line);
+            text_frame(&mut frame, text);
         });
+
+        grid_horizontal_iter(
+            &y_scale.ticks(None),
+            MARGIN_LEFT,
+            width - MARGIN_RIGHT,
+            |&d| y_scale.apply(d),
+            |_| vizkit::draw::LineAttrs {
+                stroke_opacity: 0.2,
+                ..Default::default()
+            },
+        )
+        .for_each(|line| line_frame(&mut frame, line));
         vec![frame.into_geometry()]
     }
 }
