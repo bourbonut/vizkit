@@ -1,5 +1,7 @@
 use chrono::{DateTime, Datelike, NaiveDate, Utc};
-use iced::{Element, Length, widget::canvas};
+use iced::widget::canvas::Path;
+use iced::{Element, Length, widget::Action, widget::canvas};
+use std::cmp::Ordering;
 use std::{collections::HashMap, fs::File};
 use vizkit::{
     draw::{
@@ -52,6 +54,20 @@ fn text_frame(frame: &mut canvas::Frame, text: TextProperties) {
     })
 }
 
+fn build_path(rows: &[Row], x: impl Fn(&Row) -> f32, y: impl Fn(&Row) -> f32) -> canvas::Path {
+    canvas::Path::new(|builder| {
+        path_iter(rows, x, y, Curve::Cardinal { tension: 0.0 }).for_each(move |path_command| {
+            match path_command {
+                PathCommand::MoveTo(point) => builder.move_to(point.into()),
+                PathCommand::LineTo(point) => builder.line_to(point.into()),
+                PathCommand::BezierCurveTo([p1, p2, p3]) => {
+                    builder.bezier_curve_to(p1.into(), p2.into(), p3.into())
+                }
+            }
+        })
+    })
+}
+
 #[derive(Debug, serde::Deserialize)]
 struct Record {
     cbsatitle: String,
@@ -72,6 +88,7 @@ struct Record {
     unemp_mar21: f32,
 }
 
+#[derive(Debug)]
 struct Row {
     date: DateTime<Utc>,
     unemp_value: f32,
@@ -138,10 +155,10 @@ struct Plot<'a> {
 }
 
 impl canvas::Program<Message> for Plot<'_> {
-    type State = ();
+    type State = Option<iced::Point>;
     fn draw(
         &self,
-        _state: &Self::State,
+        state: &Self::State,
         renderer: &iced::Renderer,
         _theme: &iced::Theme,
         bounds: iced::Rectangle,
@@ -158,28 +175,84 @@ impl canvas::Program<Message> for Plot<'_> {
             .domain(self.data.unemp_domain)
             .range([height - MARGIN_BOTTOM, MARGIN_TOP]);
 
-        self.data.values.values().for_each(|rows| {
-            let path = canvas::Path::new(|builder| {
-                path_iter(
+        let argmin = state.and_then(|position| {
+            let dist = |row: &Row| {
+                (x_scale.apply(row.date) as f32 - position.x)
+                    .hypot(y_scale.apply(row.unemp_value) - position.y)
+            };
+            self.data
+                .values
+                .iter()
+                .map(|(key, rows)| {
+                    let (point_idx, min_value) = rows
+                        .iter()
+                        .map(dist)
+                        .enumerate()
+                        .min_by(|(_, a), (_, b)| a.partial_cmp(&b).unwrap_or(Ordering::Equal))
+                        .unwrap_or((0, f32::INFINITY));
+                    (key, point_idx, min_value)
+                })
+                .min_by(|(_, _, a), (_, _, b)| a.partial_cmp(&b).unwrap_or(Ordering::Equal))
+        });
+
+        if let Some((division, row_idx, _)) = argmin {
+            self.data.values.iter().for_each(|(key, rows)| {
+                let path = build_path(
                     rows,
                     |row| x_scale.apply(row.date) as f32,
                     |row| y_scale.apply(row.unemp_value),
-                    Curve::Cardinal { tension: 0.0 },
-                )
-                .for_each(move |path_command| match path_command {
-                    PathCommand::MoveTo(point) => builder.move_to(point.into()),
-                    PathCommand::LineTo(point) => builder.line_to(point.into()),
-                    PathCommand::BezierCurveTo([p1, p2, p3]) => {
-                        builder.bezier_curve_to(p1.into(), p2.into(), p3.into())
-                    }
-                })
+                );
+                let (color, stroke_width) = if key == division {
+                    (iced::Color::from_rgb(0.275, 0.51, 0.706), 3.)
+                } else {
+                    let rgb = 221. / 255.;
+                    (iced::Color::from_rgb(rgb, rgb, rgb).scale_alpha(0.2), 1.)
+                };
+                frame.stroke(
+                    &path,
+                    canvas::Stroke::default()
+                        .with_color(color)
+                        .with_width(stroke_width),
+                );
             });
-            frame.stroke(
-                &path,
-                canvas::Stroke::default()
-                    .with_color(iced::Color::from_rgb(0.275, 0.51, 0.706).scale_alpha(0.8)),
-            );
-        });
+
+            if let Some(row) = self
+                .data
+                .values
+                .get(division)
+                .and_then(|rows| rows.get(row_idx))
+            {
+                let x = x_scale.apply(row.date) as f32;
+                let y = y_scale.apply(row.unemp_value);
+                let circle = Path::circle([x, y].into(), 4.);
+                frame.fill(&circle, iced::Color::WHITE);
+
+                text_frame(
+                    &mut frame,
+                    TextProperties {
+                        content: division.clone(),
+                        position: [x, y - 15.],
+                        fill_color: vizkit::chromatic::Color([1., 1., 1.]),
+                        font_size: 12.,
+                        align_x: Alignment::Center,
+                        align_y: Alignment::Center,
+                    },
+                );
+            }
+        } else {
+            self.data.values.values().for_each(|rows| {
+                let path = build_path(
+                    rows,
+                    |row| x_scale.apply(row.date) as f32,
+                    |row| y_scale.apply(row.unemp_value),
+                );
+                frame.stroke(
+                    &path,
+                    canvas::Stroke::default()
+                        .with_color(iced::Color::from_rgb(0.275, 0.51, 0.706).scale_alpha(0.8)),
+                );
+            });
+        }
 
         axis_bottom_iter(
             &x_scale,
@@ -190,8 +263,11 @@ impl canvas::Program<Message> for Plot<'_> {
         .chain(axis_left_iter(
             &y_scale,
             MARGIN_LEFT,
-            |tick| tick.to_string(),
-            &AxisOptions::default(),
+            |tick| format!("{}%", tick),
+            &AxisOptions {
+                offset: 3.,
+                ..Default::default()
+            },
         ))
         .for_each(|(line, text)| {
             line_frame(&mut frame, line);
@@ -210,6 +286,17 @@ impl canvas::Program<Message> for Plot<'_> {
         )
         .for_each(|line| line_frame(&mut frame, line));
         vec![frame.into_geometry()]
+    }
+
+    fn update(
+        &self,
+        state: &mut Self::State,
+        _event: &iced::Event,
+        _bounds: iced::Rectangle,
+        cursor: iced::mouse::Cursor,
+    ) -> Option<canvas::Action<Message>> {
+        *state = cursor.position();
+        Some(Action::request_redraw())
     }
 }
 
