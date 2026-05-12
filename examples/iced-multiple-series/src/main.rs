@@ -16,6 +16,7 @@ const MARGIN_RIGHT: f32 = 30.;
 const MARGIN_BOTTOM: f32 = 50.;
 const MARGIN_LEFT: f32 = 40.;
 
+// Easy function for creating a datetime
 fn datetime(year: i32, month: u32, day: u32) -> DateTime<Utc> {
     NaiveDate::from_ymd_opt(year, month, day)
         .and_then(|date| date.and_hms_opt(0, 0, 0))
@@ -23,6 +24,7 @@ fn datetime(year: i32, month: u32, day: u32) -> DateTime<Utc> {
         .and_utc()
 }
 
+// Functions for drawing lines and texts and building a path
 fn line_frame(frame: &mut canvas::Frame, line: LineProperties) {
     let [r, g, b] = line.stroke_color.into();
     frame.stroke(
@@ -56,6 +58,7 @@ fn text_frame(frame: &mut canvas::Frame, text: TextProperties) {
 
 fn build_path(rows: &[Row], x: impl Fn(&Row) -> f32, y: impl Fn(&Row) -> f32) -> canvas::Path {
     canvas::Path::new(|builder| {
+        // If tension == 1.0, it has the same shape as `Curve::Linear` but with more complexity
         path_iter(rows, x, y, Curve::Cardinal { tension: 0.0 }).for_each(move |path_command| {
             match path_command {
                 PathCommand::MoveTo(point) => builder.move_to(point.into()),
@@ -68,6 +71,7 @@ fn build_path(rows: &[Row], x: impl Fn(&Row) -> f32, y: impl Fn(&Row) -> f32) ->
     })
 }
 
+// Data from CSV
 #[derive(Debug, serde::Deserialize)]
 struct Record {
     cbsatitle: String,
@@ -88,6 +92,7 @@ struct Record {
     unemp_mar21: f32,
 }
 
+// Processed data
 #[derive(Debug)]
 struct Row {
     date: DateTime<Utc>,
@@ -95,8 +100,14 @@ struct Row {
 }
 
 struct Data {
+    /// Key: division (= cbsatitle), values: list[(date, unemployment value)]
     values: HashMap<String, Vec<Row>>,
     unemp_domain: [f32; 2],
+}
+
+// Partial comparison between two floats
+fn cmp_f32(a: &f32, b: &f32) -> Ordering {
+    a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal)
 }
 
 fn load_data() -> Data {
@@ -133,13 +144,13 @@ fn load_data() -> Data {
         unemp_min = unemp_min.min(
             rows.iter()
                 .map(|row| row.unemp_value)
-                .min_by(|a, b| a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal))
+                .min_by(cmp_f32)
                 .unwrap_or(f32::INFINITY),
         );
         unemp_max = unemp_max.max(
             rows.iter()
                 .map(|row| row.unemp_value)
-                .max_by(|a, b| a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal))
+                .max_by(cmp_f32)
                 .unwrap_or(f32::NEG_INFINITY),
         );
         values.insert(record.cbsatitle, rows);
@@ -175,6 +186,7 @@ impl canvas::Program<Message> for Plot<'_> {
             .domain(self.data.unemp_domain)
             .range([height - MARGIN_BOTTOM, MARGIN_TOP]);
 
+        // Compute the closest line and the closest point given the cursor position
         let argmin = state.and_then(|position| {
             let dist = |row: &Row| {
                 (x_scale.apply(row.date) as f32 - position.x)
@@ -188,14 +200,15 @@ impl canvas::Program<Message> for Plot<'_> {
                         .iter()
                         .map(dist)
                         .enumerate()
-                        .min_by(|(_, a), (_, b)| a.partial_cmp(&b).unwrap_or(Ordering::Equal))
+                        .min_by(|(_, a), (_, b)| cmp_f32(a, b))
                         .unwrap_or((0, f32::INFINITY));
                     (key, point_idx, min_value)
                 })
-                .min_by(|(_, _, a), (_, _, b)| a.partial_cmp(&b).unwrap_or(Ordering::Equal))
+                .min_by(|(_, _, a), (_, _, b)| cmp_f32(a, b))
         });
 
         if let Some((division, row_idx, _)) = argmin {
+            // Draw lines
             self.data.values.iter().for_each(|(key, rows)| {
                 let path = build_path(
                     rows,
@@ -216,6 +229,7 @@ impl canvas::Program<Message> for Plot<'_> {
                 );
             });
 
+            // Draw the closest point and the division over the point
             if let Some(row) = self
                 .data
                 .values
@@ -240,6 +254,7 @@ impl canvas::Program<Message> for Plot<'_> {
                 );
             }
         } else {
+            // Draw all lines in blue
             self.data.values.values().for_each(|rows| {
                 let path = build_path(
                     rows,
@@ -254,6 +269,7 @@ impl canvas::Program<Message> for Plot<'_> {
             });
         }
 
+        // Draw axises
         axis_bottom_iter(
             &x_scale,
             height - MARGIN_BOTTOM,
@@ -274,6 +290,7 @@ impl canvas::Program<Message> for Plot<'_> {
             text_frame(&mut frame, text);
         });
 
+        // Draw horizontal grid
         grid_horizontal_iter(
             &y_scale.ticks(None),
             MARGIN_LEFT,
