@@ -4,7 +4,7 @@ use iced::{
 };
 use noise::NoiseFn;
 use vizkit::{
-    draw::{ArrowAttrs, vector_iter},
+    draw::{ArrowAttrs, PathCommand, vector_iter},
     scale::ScaleContinuous,
 };
 
@@ -18,20 +18,16 @@ fn noise(x: f64, y: f64) -> f64 {
     noise::Perlin::default().get([x, y])
 }
 
-fn build_arrow(points: [[f32; 2]; 5], radius: f32) -> canvas::Path {
-    let [p1, pi, p2, p3, p4] = points;
+fn build_arrow(path_commands: &[PathCommand]) -> canvas::Path {
     canvas::Path::new(|builder: &mut canvas::path::Builder| {
-        builder.move_to(p1.into());
-
-        if radius < 1e5 {
-            builder.arc_to(pi.into(), p2.into(), radius);
-        } else {
-            builder.line_to(p2.into());
+        for path_command in path_commands {
+            match *path_command {
+                PathCommand::LineTo(point) => builder.line_to(point.into()),
+                PathCommand::MoveTo(point) => builder.move_to(point.into()),
+                PathCommand::ArcTo((a, b, radius)) => builder.arc_to(a.into(), b.into(), radius),
+                _ => (),
+            }
         }
-
-        builder.move_to(p3.into());
-        builder.line_to(p2.into());
-        builder.line_to(p4.into());
     })
 }
 
@@ -65,7 +61,7 @@ impl canvas::Program<Message> for Arrow {
             |_| ArrowAttrs::default(),
         )
         .for_each(|arrow_props| {
-            let arrow = build_arrow(arrow_props.points, arrow_props.radius);
+            let arrow = build_arrow(&arrow_props.path_commands);
             let stroke_color: [f32; 3] = arrow_props.stroke_color.into();
             frame.stroke(
                 &arrow,

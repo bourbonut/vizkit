@@ -1,4 +1,4 @@
-use super::{ArrowAttrs, ArrowProperties};
+use super::{ArrowAttrs, ArrowProperties, PathCommand};
 
 fn arrow_builder(x1: f32, y1: f32, x2: f32, y2: f32, arrow_values: ArrowAttrs) -> ArrowProperties {
     let line_length = (x2 - x1).hypot(y2 - y1);
@@ -41,9 +41,21 @@ fn arrow_builder(x1: f32, y1: f32, x2: f32, y2: f32, arrow_values: ArrowAttrs) -
     let xi = 0.5 * (m / s * (y1 - y2) + x1 + x2);
     let yi = 0.5 * (m / s * (x2 - x1) + y1 + y2);
 
+    let path_commands = vec![
+        PathCommand::MoveTo([x1, y1]),
+        if r < 1e5 {
+            PathCommand::ArcTo(([xi, yi], [x2, y2], r))
+        } else {
+            PathCommand::LineTo([x2, y2])
+        },
+        PathCommand::LineTo([x2, y2]),
+        PathCommand::MoveTo([x3, y3]),
+        PathCommand::LineTo([x2, y2]),
+        PathCommand::LineTo([x4, y4]),
+    ];
+
     ArrowProperties {
-        points: [[x1, y1], [xi, yi], [x2, y2], [x3, y3], [x4, y4]],
-        radius: r,
+        path_commands,
         stroke_color: arrow_values.stroke_color,
         stroke_width: arrow_values.stroke_width,
         stroke_opacity: arrow_values.stroke_opacity,

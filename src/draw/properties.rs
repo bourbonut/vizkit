@@ -1,4 +1,5 @@
 use super::Alignment;
+use super::PathCommand;
 use crate::chromatic::Color;
 
 #[derive(Clone)]
@@ -99,8 +100,7 @@ impl Default for RectProperties {
 
 #[derive(Clone)]
 pub struct ArrowProperties {
-    pub points: [[f32; 2]; 5],
-    pub radius: f32,
+    pub path_commands: Vec<PathCommand>,
     pub stroke_color: Color,
     pub stroke_width: f32,
     pub stroke_opacity: f32,
@@ -109,8 +109,7 @@ pub struct ArrowProperties {
 impl Default for ArrowProperties {
     fn default() -> Self {
         Self {
-            points: [[0.; 2]; 5],
-            radius: 1.,
+            path_commands: Vec::new(),
             stroke_color: Color::default(),
             stroke_width: 1.,
             stroke_opacity: 1.,

@@ -127,10 +127,12 @@ pub enum Curve {
     },
 }
 
+#[derive(Clone)]
 pub enum PathCommand {
     MoveTo([f32; 2]),
     LineTo([f32; 2]),
     BezierCurveTo([[f32; 2]; 3]),
+    ArcTo(([f32; 2], [f32; 2], f32)),
 }
 
 struct PathCurveIterator<I, C>

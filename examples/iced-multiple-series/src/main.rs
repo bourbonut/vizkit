@@ -66,6 +66,7 @@ fn build_path(rows: &[Row], x: impl Fn(&Row) -> f32, y: impl Fn(&Row) -> f32) ->
                 PathCommand::BezierCurveTo([p1, p2, p3]) => {
                     builder.bezier_curve_to(p1.into(), p2.into(), p3.into())
                 }
+                _ => (),
             }
         })
     })
