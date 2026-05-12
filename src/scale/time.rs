@@ -205,7 +205,10 @@ fn tick_step(start: f64, stop: f64, count: usize) -> f64 {
     } else {
         tick_spec(start, stop, count)
     };
-    (if reverse { -1. } else { 1. }) * if inc < 0. { 1. / -inc } else { inc }
+
+    let sign = if reverse { -1. } else { 1. };
+    let step = if inc < 0. { 1. / -inc } else { inc };
+    sign * step
 }
 
 impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
@@ -214,15 +217,16 @@ impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
     fn ticks(&self, count: Option<usize>) -> Vec<Self::Tick> {
         let count = count.unwrap_or(10);
         let [mut start, mut stop] = [self.domain[0].to_utc(), self.domain[1].to_utc()];
-        if stop < start {
+        let reverse = stop < start;
+        if reverse {
             std::mem::swap(&mut start, &mut stop);
         }
         let duration = stop - start;
         let target = duration.abs() / count as i32;
 
         if target < TICK_DELTAS.first().unwrap().delta {
-            let step = tick_step(start.timestamp() as f64, stop.timestamp() as f64, count).max(1.);
-            return IntervalStrategy::Millisecond.create_range(start, stop, step as u32);
+            let step = tick_step(start.timestamp() as f64, stop.timestamp() as f64, count) * 1e3;
+            return IntervalStrategy::Millisecond.create_range(start, stop, step.max(1.) as u32);
         }
 
         if target > TICK_DELTAS.last().unwrap().delta {
@@ -231,7 +235,11 @@ impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
                 stop.timestamp() as f64 / DURATION_YEAR,
                 count,
             ) * 1e3;
-            return IntervalStrategy::Year.create_range(start, stop, step as u32);
+            let mut dates = IntervalStrategy::Year.create_range(start, stop, step as u32);
+            if reverse {
+                dates.reverse();
+            }
+            return dates;
         }
 
         let deltas: Vec<_> = TICK_DELTAS
@@ -252,12 +260,184 @@ impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
             }
         };
         let tick_delta = &TICK_DELTAS[idx];
-        tick_delta
+        let mut dates = tick_delta
             .strategy
-            .create_range(start, stop, tick_delta.step)
+            .create_range(start, stop, tick_delta.step);
+        if reverse {
+            dates.reverse();
+        }
+        return dates;
     }
 
     fn tick_position(&self, x: Self::Tick) -> f32 {
         self.apply(x.with_timezone(&self.domain[0].timezone())) as f32
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{DateTime, NaiveDate, Timelike, Utc};
+    use rstest::rstest;
+
+    fn datetime(
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        minute: u32,
+        second: u32,
+    ) -> DateTime<Utc> {
+        NaiveDate::from_ymd_opt(year, month, day)
+            .and_then(|date| date.and_hms_opt(hour, minute, second))
+            .expect("invalid time values")
+            .and_utc()
+    }
+
+    #[rstest]
+    #[case(datetime(2011, 1, 1, 12, 0, 0), datetime(2011, 1, 1, 12, 0, 1), 4, &[
+        datetime(2011, 1, 1, 12, 0, 0),
+        datetime(2011, 1, 1, 12, 0, 0).with_nanosecond(200000000).unwrap(),
+        datetime(2011, 1, 1, 12, 0, 0).with_nanosecond(400000000).unwrap(),
+        datetime(2011, 1, 1, 12, 0, 0).with_nanosecond(600000000).unwrap(),
+        datetime(2011, 1, 1, 12, 0, 0).with_nanosecond(800000000).unwrap(),
+        datetime(2011, 1, 1, 12, 0, 1),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 0, 0), datetime(2011, 1, 1, 12, 0, 4), 4, &[
+        datetime(2011, 1, 1, 12, 0, 0),
+        datetime(2011, 1, 1, 12, 0, 1),
+        datetime(2011, 1, 1, 12, 0, 2),
+        datetime(2011, 1, 1, 12, 0, 3),
+        datetime(2011, 1, 1, 12, 0, 4),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 0, 0), datetime(2011, 1, 1, 12, 0, 20), 4, &[
+        datetime(2011, 1, 1, 12, 0, 0),
+        datetime(2011, 1, 1, 12, 0, 5),
+        datetime(2011, 1, 1, 12, 0, 10),
+        datetime(2011, 1, 1, 12, 0, 15),
+        datetime(2011, 1, 1, 12, 0, 20),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 0, 0), datetime(2011, 1, 1, 12, 0, 50), 4, &[
+        datetime(2011, 1, 1, 12, 0, 0),
+        datetime(2011, 1, 1, 12, 0, 15),
+        datetime(2011, 1, 1, 12, 0, 30),
+        datetime(2011, 1, 1, 12, 0, 45),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 0, 0), datetime(2011, 1, 1, 12, 1, 50), 4, &[
+        datetime(2011, 1, 1, 12, 0, 0),
+        datetime(2011, 1, 1, 12, 0, 30),
+        datetime(2011, 1, 1, 12, 1, 0),
+        datetime(2011, 1, 1, 12, 1, 30),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 0, 27), datetime(2011, 1, 1, 12, 4, 12), 4, &[
+        datetime(2011, 1, 1, 12, 1, 0),
+        datetime(2011, 1, 1, 12, 2, 0),
+        datetime(2011, 1, 1, 12, 3, 0),
+        datetime(2011, 1, 1, 12, 4, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 3, 27), datetime(2011, 1, 1, 12, 21, 12), 4, &[
+        datetime(2011, 1, 1, 12, 5, 0),
+        datetime(2011, 1, 1, 12, 10, 0),
+        datetime(2011, 1, 1, 12, 15, 0),
+        datetime(2011, 1, 1, 12, 20, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 8, 27), datetime(2011, 1, 1, 13, 4, 12), 4, &[
+        datetime(2011, 1, 1, 12, 15, 0),
+        datetime(2011, 1, 1, 12, 30, 0),
+        datetime(2011, 1, 1, 12, 45, 0),
+        datetime(2011, 1, 1, 13, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 28, 27), datetime(2011, 1, 1, 14, 4, 12), 4, &[
+        datetime(2011, 1, 1, 12, 30, 0),
+        datetime(2011, 1, 1, 13, 0, 0),
+        datetime(2011, 1, 1, 13, 30, 0),
+        datetime(2011, 1, 1, 14, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 12, 28, 27), datetime(2011, 1, 1, 16, 34, 12), 4, &[
+        datetime(2011, 1, 1, 13, 0, 0),
+        datetime(2011, 1, 1, 14, 0, 0),
+        datetime(2011, 1, 1, 15, 0, 0),
+        datetime(2011, 1, 1, 16, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 14, 28, 27), datetime(2011, 1, 2, 1, 34, 12), 4, &[
+        datetime(2011, 1, 1, 15, 0, 0),
+        datetime(2011, 1, 1, 18, 0, 0),
+        datetime(2011, 1, 1, 21, 0, 0),
+        datetime(2011, 1, 2, 0, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 16, 28, 27), datetime(2011, 1, 2, 14, 34, 12), 4, &[
+        datetime(2011, 1, 1, 18, 0, 0),
+        datetime(2011, 1, 2, 0, 0, 0),
+        datetime(2011, 1, 2, 6, 0, 0),
+        datetime(2011, 1, 2, 12, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 16, 28, 27), datetime(2011, 1, 3, 21, 34, 12), 4, &[
+        datetime(2011, 1, 2, 0, 0, 0),
+        datetime(2011, 1, 2, 12, 0, 0),
+        datetime(2011, 1, 3, 0, 0, 0),
+        datetime(2011, 1, 3, 12, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 1, 16, 28, 27), datetime(2011, 1, 5, 21, 34, 12), 4, &[
+        datetime(2011, 1, 2, 0, 0, 0),
+        datetime(2011, 1, 3, 0, 0, 0),
+        datetime(2011, 1, 4, 0, 0, 0),
+        datetime(2011, 1, 5, 0, 0, 0),
+    ])]
+    #[case(datetime(2011, 1, 2, 16, 28, 27), datetime(2011, 1, 9, 21, 34, 12), 4, &[
+        datetime(2011, 1, 3, 0, 0, 0),
+        datetime(2011, 1, 5, 0, 0, 0),
+        datetime(2011, 1, 7, 0, 0, 0),
+        datetime(2011, 1, 9, 0, 0, 0),
+    ])]
+    // // Week case
+    // #[case(datetime(2011, 1, 1, 16, 28, 27), datetime(2011, 1, 23, 21, 34, 12), 4, &[
+    //     datetime(2011, 1, 2, 0, 0, 0),
+    //     datetime(2011, 1, 9, 0, 0, 0),
+    //     datetime(2011, 1, 16, 0, 0, 0),
+    //     datetime(2011, 1, 23, 0, 0, 0),
+    // ])]
+    #[case(datetime(2011, 1, 18, 0, 0, 0), datetime(2011, 5, 2, 0, 0, 0), 4, &[
+        datetime(2011, 2, 1, 0, 0, 0),
+        datetime(2011, 3, 1, 0, 0, 0),
+        datetime(2011, 4, 1, 0, 0, 0),
+        datetime(2011, 5, 1, 0, 0, 0),
+    ])]
+    #[case(datetime(2010, 12, 18, 0, 0, 0), datetime(2011, 11, 2, 0, 0, 0), 4, &[
+        datetime(2011, 1, 1, 0, 0, 0),
+        datetime(2011, 4, 1, 0, 0, 0),
+        datetime(2011, 7, 1, 0, 0, 0),
+        datetime(2011, 10, 1, 0, 0, 0),
+    ])]
+    #[case(datetime(2010, 12, 18, 0, 0, 0), datetime(2014, 3, 2, 0, 0, 0), 4, &[
+        datetime(2011, 1, 1, 0, 0, 0),
+        datetime(2012, 1, 1, 0, 0, 0),
+        datetime(2013, 1, 1, 0, 0, 0),
+        datetime(2014, 1, 1, 0, 0, 0),
+    ])]
+    #[case(datetime(2014, 3, 2, 0, 0, 0), datetime(2014, 3, 2, 0, 0, 0), 6, &[datetime(2014, 3, 2, 0, 0, 0)])]
+    #[case(datetime(2014, 3, 2, 0, 0, 0), datetime(2010, 12, 18, 0, 0, 0), 4, &[
+        datetime(2014, 1, 1, 0, 0, 0),
+        datetime(2013, 1, 1, 0, 0, 0),
+        datetime(2012, 1, 1, 0, 0, 0),
+        datetime(2011, 1, 1, 0, 0, 0),
+    ])]
+    #[case(datetime(2011, 11, 2, 0, 0, 0), datetime(2010, 12, 18, 0, 0, 0), 4, &[
+        datetime(2011, 10, 1, 0, 0, 0),
+        datetime(2011, 7, 1, 0, 0, 0),
+        datetime(2011, 4, 1, 0, 0, 0),
+        datetime(2011, 1, 1, 0, 0, 0),
+    ])]
+    fn test_scale_time(
+        #[case] domain_left: DateTime<Utc>,
+        #[case] domain_right: DateTime<Utc>,
+        #[case] count: usize,
+        #[case] expect: &[DateTime<Utc>],
+    ) {
+        assert_eq!(
+            ScaleTime::default()
+                .domain([domain_left, domain_right])
+                .ticks(Some(count)),
+            expect
+        );
     }
 }
