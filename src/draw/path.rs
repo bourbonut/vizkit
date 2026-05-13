@@ -1,14 +1,23 @@
-trait PathCurve {
-    fn end(&mut self) -> Option<PathCommand>;
+#[derive(Clone)]
+pub enum PathCommand {
+    MoveTo([f32; 2]),
+    LineTo([f32; 2]),
+    BezierCurveTo([[f32; 2]; 3]),
+    ArcTo(([f32; 2], [f32; 2], f32)),
+    ClosePath,
+}
+
+pub(crate) trait PathCurve {
     fn point(&mut self, point: [f32; 2]) -> Option<PathCommand>;
+    fn end(&mut self) -> Option<PathCommand>;
 }
 
 #[derive(Default)]
-pub struct Linear {
+pub(super) struct Linear {
     state: u8,
 }
 
-pub struct Cardinal {
+pub(super) struct Cardinal {
     k: f32,
     state: u8,
     x0: f32,
@@ -41,7 +50,7 @@ impl PathCurve for Linear {
 }
 
 impl Cardinal {
-    fn new(tension: f32) -> Self {
+    pub(super) fn new(tension: f32) -> Self {
         Self {
             k: (1. - tension) / 6.,
             state: 0,
@@ -127,14 +136,6 @@ pub enum Curve {
     },
 }
 
-#[derive(Clone)]
-pub enum PathCommand {
-    MoveTo([f32; 2]),
-    LineTo([f32; 2]),
-    BezierCurveTo([[f32; 2]; 3]),
-    ArcTo(([f32; 2], [f32; 2], f32)),
-}
-
 struct PathCurveIterator<I, C>
 where
     I: Iterator<Item = [f32; 2]>,
@@ -142,6 +143,7 @@ where
 {
     values: I,
     curve: C,
+    is_close: bool,
 }
 
 impl<I, C> Iterator for PathCurveIterator<I, C>
@@ -160,7 +162,13 @@ where
                 path_command
             }
         } else {
-            self.curve.end()
+            let path_command = self.curve.end();
+            if path_command.is_none() && self.is_close {
+                self.is_close = false;
+                Some(PathCommand::ClosePath)
+            } else {
+                path_command
+            }
         }
     }
 }
@@ -177,15 +185,17 @@ impl<I> PathIterator<I>
 where
     I: Iterator<Item = [f32; 2]>,
 {
-    fn new(values: I, curve: Curve) -> Self {
+    fn new(values: I, curve: &Curve, is_closed: bool) -> Self {
         match curve {
             Curve::Linear => Self::Linear(PathCurveIterator {
                 values,
                 curve: Linear::default(),
+                is_close: is_closed,
             }),
             Curve::Cardinal { tension } => Self::Cardinal(PathCurveIterator {
                 values,
-                curve: Cardinal::new(tension),
+                curve: Cardinal::new(*tension),
+                is_close: is_closed,
             }),
         }
     }
@@ -211,5 +221,29 @@ pub fn path_iter<'a, Data>(
     y: impl Fn(&Data) -> f32 + 'a,
     curve: Curve,
 ) -> impl Iterator<Item = PathCommand> + 'a {
-    PathIterator::new(values.iter().map(move |value| [x(value), y(value)]), curve)
+    PathIterator::new(
+        values.iter().map(move |value| [x(value), y(value)]),
+        &curve,
+        false,
+    )
+}
+
+pub fn area_iter<'a, Data>(
+    values: &'a [Data],
+    x0: impl Fn(&Data) -> f32 + 'a,
+    y0: impl Fn(&Data) -> f32 + 'a,
+    x1: impl Fn(&Data) -> f32 + 'a,
+    y1: impl Fn(&Data) -> f32 + 'a,
+    curve: Curve,
+) -> impl Iterator<Item = PathCommand> + 'a {
+    PathIterator::new(
+        values.iter().map(move |value| [x1(value), y1(value)]),
+        &curve,
+        false,
+    )
+    .chain(PathIterator::new(
+        values.iter().map(move |value| [x0(value), y0(value)]).rev(),
+        &curve,
+        true,
+    ))
 }
