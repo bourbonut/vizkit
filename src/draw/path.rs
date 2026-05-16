@@ -12,7 +12,6 @@ pub(crate) trait PathCurve {
     fn end(&mut self) -> Option<PathCommand>;
 }
 
-#[derive(Default)]
 pub(super) struct Linear {
     state: u8,
 }
@@ -26,6 +25,12 @@ pub(super) struct Cardinal {
     y1: f32,
     x2: f32,
     y2: f32,
+}
+
+impl Linear {
+    fn new(state: bool) -> Self {
+        Linear { state: state as u8 }
+    }
 }
 
 impl PathCurve for Linear {
@@ -50,10 +55,10 @@ impl PathCurve for Linear {
 }
 
 impl Cardinal {
-    pub(super) fn new(tension: f32) -> Self {
+    pub(super) fn new(tension: f32, state: bool) -> Self {
         Self {
             k: (1. - tension) / 6.,
-            state: 0,
+            state: state as u8,
             x0: f32::NAN,
             y0: f32::NAN,
             x1: f32::NAN,
@@ -189,12 +194,12 @@ where
         match curve {
             Curve::Linear => Self::Linear(PathCurveIterator {
                 values,
-                curve: Linear::default(),
+                curve: Linear::new(is_closed),
                 is_close: is_closed,
             }),
             Curve::Cardinal { tension } => Self::Cardinal(PathCurveIterator {
                 values,
-                curve: Cardinal::new(*tension),
+                curve: Cardinal::new(*tension, is_closed),
                 is_close: is_closed,
             }),
         }
