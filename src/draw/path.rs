@@ -160,3 +160,23 @@ pub fn area_iter<'a, Data>(
         true,
     ))
 }
+
+pub fn area_y_iter<'a, Data>(
+    values: &'a [Data],
+    x: impl Fn(&Data) -> f32 + Clone + 'a,
+    y0: impl Fn(&Data) -> f32 + 'a,
+    y1: impl Fn(&Data) -> f32 + 'a,
+    curve: Curve,
+) -> impl Iterator<Item = PathCommand> + 'a {
+    area_iter(values, x.clone(), y0, x, y1, curve)
+}
+
+pub fn area_x_iter<'a, Data>(
+    values: &'a [Data],
+    y: impl Fn(&Data) -> f32 + Clone + 'a,
+    x0: impl Fn(&Data) -> f32 + 'a,
+    x1: impl Fn(&Data) -> f32 + 'a,
+    curve: Curve,
+) -> impl Iterator<Item = PathCommand> + 'a {
+    area_iter(values, x0, y.clone(), x1, y.clone(), curve)
+}

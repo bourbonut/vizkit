@@ -44,34 +44,10 @@ fn grid_iter<Data>(
 
 #[cfg(test)]
 mod tests {
+    use super::grid_vertical_iter;
     use crate::chromatic::Color;
-    use crate::draw::{
-        CircleProperties, Draw, LineAttrs, LineProperties, RectProperties, TextProperties,
-    };
+    use crate::draw::{LineAttrs, LineProperties};
     use crate::scale::{Axis, ScaleContinuous};
-
-    #[derive(Default)]
-    struct Drawer {
-        lines: Vec<LineProperties>,
-    }
-
-    impl<'a> Draw for Drawer {
-        fn draw_line(&mut self, line: LineProperties) {
-            self.lines.push(line);
-        }
-
-        fn draw_text(&mut self, _: TextProperties) {
-            todo!()
-        }
-
-        fn draw_circle(&mut self, _: CircleProperties) {
-            todo!()
-        }
-
-        fn draw_rect(&mut self, _: RectProperties) {
-            todo!()
-        }
-    }
 
     #[test]
     fn test_grid() {
@@ -85,8 +61,7 @@ mod tests {
             .range([0., width]);
         let values = scale.ticks(None);
 
-        let mut drawer = Drawer::default();
-        drawer.grid_vertical(
+        let lines: Vec<LineProperties> = grid_vertical_iter(
             &values,
             margin_top,
             height - margin_bottom,
@@ -96,10 +71,11 @@ mod tests {
                 stroke_color: Color([x / 50.; 3]),
                 stroke_opacity: x / 50.,
             },
-        );
+        )
+        .collect();
 
-        assert_eq!(drawer.lines.len(), values.len());
-        for (line, x) in drawer.lines.iter().zip(values.iter()) {
+        assert_eq!(lines.len(), values.len());
+        for (line, x) in lines.iter().zip(values.iter()) {
             let z = x / 50.;
             let s = scale.tick_position(*x);
             assert_eq!(line.stroke_width, z);

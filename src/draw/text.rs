@@ -22,34 +22,10 @@ pub fn text_iter<Data>(
 
 #[cfg(test)]
 mod tests {
+    use super::text_iter;
     use crate::chromatic::{Color, Rainbow};
-    use crate::draw::{
-        CircleProperties, Draw, LineProperties, RectProperties, TextAttrs, TextProperties,
-    };
+    use crate::draw::{TextAttrs, TextProperties};
     use crate::scale::{Axis, ScaleColor, ScaleContinuous};
-
-    #[derive(Default)]
-    struct Drawer {
-        texts: Vec<TextProperties>,
-    }
-
-    impl<'a> Draw for Drawer {
-        fn draw_line(&mut self, _: LineProperties) {
-            todo!()
-        }
-
-        fn draw_text(&mut self, text: TextProperties) {
-            self.texts.push(text);
-        }
-
-        fn draw_circle(&mut self, _: CircleProperties) {
-            todo!()
-        }
-
-        fn draw_rect(&mut self, _: RectProperties) {
-            todo!()
-        }
-    }
 
     struct Pair {
         x: f32,
@@ -82,9 +58,8 @@ mod tests {
             .map(|(&x, &y)| Pair { x, y })
             .collect();
 
-        let mut drawer = Drawer::default();
         let color = color_scale.clone();
-        drawer.text(
+        let texts: Vec<TextProperties> = text_iter(
             &pairs,
             |pair| x_scale.tick_position(pair.x),
             |pair| y_scale.tick_position(pair.y),
@@ -93,15 +68,12 @@ mod tests {
                 fill_color: color.apply(pair.y),
                 ..Default::default()
             },
-        );
+        )
+        .collect();
 
-        assert_eq!(drawer.texts.len(), y_values.len());
+        assert_eq!(texts.len(), y_values.len());
 
-        for (text, (x, y)) in drawer
-            .texts
-            .iter()
-            .zip(x_values.iter().zip(y_values.iter()))
-        {
+        for (text, (x, y)) in texts.iter().zip(x_values.iter().zip(y_values.iter())) {
             let x_scaled = x_scale.tick_position(*x);
             let y_scaled = y_scale.tick_position(*y);
             assert_eq!(text.position, [x_scaled, y_scaled]);
@@ -124,21 +96,21 @@ mod tests {
 
         let values = scale.ticks(None);
 
-        let mut drawer = Drawer::default();
-        drawer.text_horizontal(
+        let texts: Vec<TextProperties> = text_iter(
             &values,
             |x| scale.tick_position(*x),
-            height - margin_bottom,
+            |_| height - margin_bottom,
             |x| TextAttrs {
                 content: (*x / 50.).to_string(),
                 fill_color: Color([x / 50.; 3]),
                 ..Default::default()
             },
-        );
+        )
+        .collect();
 
-        assert_eq!(drawer.texts.len(), values.len());
+        assert_eq!(texts.len(), values.len());
 
-        for (text, x) in drawer.texts.iter().zip(values.iter()) {
+        for (text, x) in texts.iter().zip(values.iter()) {
             let scaled = scale.tick_position(*x);
             assert_eq!(text.position, [scaled, height - margin_bottom]);
             assert_eq!(text.content, (x / 50.).to_string());

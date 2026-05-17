@@ -158,35 +158,10 @@ fn axis<A: Axis>(
 
 #[cfg(test)]
 mod tests {
-    use crate::draw::{
-        AxisOptions, CircleProperties, Draw, LineProperties, RectProperties, TextProperties,
-    };
+    use super::{axis_bottom_iter, axis_left_iter, axis_right_iter, axis_top_iter};
+    use crate::draw::{AxisOptions, LineProperties, TextProperties};
     use crate::scale::{Axis, ScaleContinuous};
     use rstest::rstest;
-
-    #[derive(Default)]
-    struct Drawer {
-        lines: Vec<LineProperties>,
-        texts: Vec<TextProperties>,
-    }
-
-    impl Draw for Drawer {
-        fn draw_line(&mut self, line: LineProperties) {
-            self.lines.push(line);
-        }
-
-        fn draw_text(&mut self, text: TextProperties) {
-            self.texts.push(text);
-        }
-
-        fn draw_circle(&mut self, _: CircleProperties) {
-            todo!()
-        }
-
-        fn draw_rect(&mut self, _: RectProperties) {
-            todo!()
-        }
-    }
 
     const WIDTH: f32 = 400.;
     const HEIGHT: f32 = 100.;
@@ -212,18 +187,17 @@ mod tests {
         #[case] end: f32,
         #[case] position: f32,
     ) {
-        let mut drawer = Drawer::default();
         let scale = ScaleContinuous::linear().domain(domain).range(range);
 
         let formatter = |x: &f32| x.to_string();
         let options = AxisOptions::default();
-        match title {
-            "bottom" => drawer.axis_bottom(&scale, at, formatter, &options),
-            "top" => drawer.axis_top(&scale, at, formatter, &options),
-            "left" => drawer.axis_left(&scale, at, formatter, &options),
-            "right" => drawer.axis_right(&scale, at, formatter, &options),
+        let (lines, texts): (Vec<LineProperties>, Vec<TextProperties>) = match title {
+            "bottom" => axis_bottom_iter(&scale, at, formatter, &options).unzip(),
+            "top" => axis_top_iter(&scale, at, formatter, &options).unzip(),
+            "left" => axis_left_iter(&scale, at, formatter, &options).unzip(),
+            "right" => axis_right_iter(&scale, at, formatter, &options).unzip(),
             _ => unreachable!(),
-        }
+        };
 
         // Indices
         let a = index;
@@ -235,7 +209,7 @@ mod tests {
         let string_ticks: Vec<String> = scale.ticks(None).iter().map(ToString::to_string).collect();
 
         // Test line properties
-        for (i, line) in drawer.lines.iter().enumerate() {
+        for (i, line) in lines.iter().enumerate() {
             assert_eq!(line.start[a], line.end[a], "{}", title);
             assert_eq!(line.start[b], start, "{}", title);
             assert_eq!(line.end[b], end, "{}", title);
@@ -243,7 +217,7 @@ mod tests {
         }
 
         // Test text properties
-        for (i, text) in drawer.texts.iter().enumerate() {
+        for (i, text) in texts.iter().enumerate() {
             assert_eq!(text.position[b], position, "{}", title);
             assert_eq!(text.position[a], scale_ticks[i], "{}", title);
             assert_eq!(text.content, string_ticks[i], "{}", title);
