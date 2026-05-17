@@ -178,7 +178,10 @@ fn main() {
     // Take a small window of data
     let data: Vec<Row> = data
         .into_iter()
-        .filter(|d| d.date.year() >= 2015)
+        .filter(|d| {
+            parse_date("2011-10-01", "%Y-%m-%d").unwrap() <= d.date
+                && d.date < parse_date("2012-09-30", "%Y-%m-%d").unwrap()
+        })
         .rev() // not necessary
         .collect();
 
@@ -246,8 +249,8 @@ fn main() {
     let path = path_build(path_iter(
         &data,
         |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.nyc),
-        Curve::Linear,
+        |d| y_scale.apply(d.sanfrancisco),
+        Curve::Step { tension: 0.5 },
     ))
     .set("fill", "none")
     .set("stroke", "white");
@@ -259,8 +262,8 @@ fn main() {
         |d| x_scale.apply(d.date) as f32,
         |d| y_scale.apply(d.sanfrancisco),
         |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.nyc.min(d.sanfrancisco)),
-        Curve::Linear,
+        |d| y_scale.apply(d.nyc.max(d.sanfrancisco)),
+        Curve::Step { tension: 0.5 },
     ))
     .set("fill", format!("#{}", scheme[8]))
     .set("stroke", "none");
@@ -270,17 +273,26 @@ fn main() {
         |d| x_scale.apply(d.date) as f32,
         |d| y_scale.apply(d.nyc),
         |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.nyc.min(d.sanfrancisco)),
-        Curve::Linear,
+        |d| y_scale.apply(d.nyc.max(d.sanfrancisco)),
+        Curve::Step { tension: 0.5 },
     ))
     .set("fill", format!("#{}", scheme[2]))
     .set("stroke", "none");
+
+    let y_label = text(TextProperties {
+        content: "Temperature (°F)".to_string(),
+        position: [10., 15.],
+        align_x: Alignment::Start,
+        align_y: Alignment::Center,
+        ..Default::default()
+    });
 
     svg::save(
         "plot.svg",
         &document
             .add(x_axis)
             .add(y_axis)
+            .add(y_label)
             .add(area_blue)
             .add(area_orange)
             .add(path),
