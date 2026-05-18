@@ -2,7 +2,7 @@ use std::fs::File;
 use svg::Document;
 use svg::node::element;
 use vizkit::{
-    chromatic::Color,
+    chromatic::{CategoricalSpace, Color, Scheme},
     draw::{
         Alignment, AxisOptions, CircleProperties, LineProperties, ShapeAttrs, TextProperties,
         axis_bottom_iter, axis_left_iter, circle_iter,
@@ -94,8 +94,8 @@ fn main() {
     }
 
     // Set dimensions
-    let width = 640.;
-    let height = 400.;
+    let width = 928.;
+    let height = 600.;
 
     let margin_top = 10.;
     let margin_left = 50.;
@@ -154,17 +154,14 @@ fn main() {
     let y_axis = axis_left_iter(&y, margin_left, |tick| tick.to_string(), &axis_options)
         .fold(element::Group::new().set("class", "y-axis"), axis_builder);
 
+    let ordinal = CategoricalSpace::Observable10.scheme();
     let circles = circle_iter(
         &data,
         |row| x.apply(row.weight as f32),
         |row| y.apply(row.height as f32),
         |_| 2.,
         |row| ShapeAttrs {
-            stroke_color: Some(Color(if row.sex {
-                [0.25, 0.25, 1.]
-            } else {
-                [0.75, 0.75, 0.]
-            })),
+            stroke_color: Some(Color::from(if row.sex { ordinal[0] } else { ordinal[1] })),
             ..Default::default()
         },
     )
@@ -173,6 +170,32 @@ fn main() {
         |g, circle_props| g.add(circle(circle_props)),
     );
 
+    // Add labels
+    let x_label = text(TextProperties {
+        content: "weight".to_string(),
+        position: [width - 5., height - 7.5],
+        align_x: Alignment::End,
+        align_y: Alignment::Center,
+        ..Default::default()
+    });
+
+    let y_label = text(TextProperties {
+        content: "height".to_string(),
+        position: [margin_left, margin_top + 5.],
+        align_x: Alignment::End,
+        align_y: Alignment::Center,
+        ..Default::default()
+    });
+
     // Add groups to the document and save the SVG content into a file
-    svg::save("plot.svg", &document.add(x_axis).add(y_axis).add(circles)).unwrap()
+    svg::save(
+        "plot.svg",
+        &document
+            .add(x_axis)
+            .add(y_axis)
+            .add(x_label)
+            .add(y_label)
+            .add(circles),
+    )
+    .unwrap()
 }
