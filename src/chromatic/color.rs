@@ -1,4 +1,8 @@
+use std::error::Error;
 use std::fmt;
+use std::num::ParseIntError;
+use std::str::FromStr;
+
 const A: f32 = -0.14861;
 const B: f32 = 1.78277;
 const C: f32 = -0.29227;
@@ -6,7 +10,7 @@ const D: f32 = -0.90649;
 const E: f32 = 1.97294;
 
 /// Represents a color in RGB (red, green, blue) where each channel is a value in [0., 1.].
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color(pub [f32; 3]);
 /// Represents a color in HSL (hue, saturation, lightness) where each channel is a value in [0.,
 /// 1.].
@@ -18,36 +22,80 @@ impl Default for Color {
     }
 }
 
-/// Converts a string formated in hex color to this type. If the string has not 3 or 6 characters,
-/// it returns a color filled with `0.`. If a channel cannot be converted, the channel defaults to
-/// `0.`.
+#[derive(Debug, PartialEq)]
+pub enum ParseError {
+    ParseIntError(ParseIntError),
+    InvalidLength(usize),
+}
+
+impl From<ParseIntError> for ParseError {
+    fn from(value: ParseIntError) -> Self {
+        Self::ParseIntError(value)
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ParseIntError(error) => error.fmt(f),
+            Self::InvalidLength(length) => {
+                f.write_str(&format!(
+                    "Expected color string of length 3 or 6 characters excluding '#' (length found: {})",
+                    length
+                ))
+            }
+        }
+    }
+}
+
+impl Error for ParseError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::ParseIntError(error) => Some(error),
+            Self::InvalidLength(_) => None,
+        }
+    }
+}
+
+/// Converts a string formated in hex color to this type.
+///
+/// # Panics
+///
+/// This function panics when the specified string does not have 3 or 6 characters excluding '#' or
+/// when a character is not in these the subsets:
+///
+/// - `0-9`
+/// - `a-f`
+/// - `A-F`
+///
+/// # Examples
 ///
 /// ```
+/// use std::str::FromStr;
 /// use vizkit::chromatic::Color;
 ///
-/// assert_eq!(Color::from("ffffff").0, [1., 1., 1.]);
-/// assert_eq!(Color::from("#ffffff").0, [0., 0., 0.]); // invalid: len != 6
-/// assert_eq!(Color::from("fff").0, [1., 1., 1.]);
-/// assert_eq!(Color::from("666").0, [102. / 255.; 3]); // 6 => 0x66 = 102
-/// assert_eq!(Color::from("#fff").0, [0., 0., 0.]); // invalid len != 3
-/// assert_eq!(Color::from("ZZFFFF").0, [0., 1., 1.]);
-/// assert_eq!(Color::from("zzzzzz").0, [0., 0., 0.]);
-/// assert_eq!(Color::from("4I9820842908490").0, [0., 0., 0.]);
+/// assert_eq!(Color::from_str("#000000"), Ok(Color([0., 0., 0.])));
+/// assert_eq!(Color::from_str("#666"), Ok(Color([102. / 255.; 3]))); // 6 => 0x66 = 102
+/// assert!(Color::from_str("4I9820842908490").is_err());
+/// assert!(Color::from_str("#g0000z").is_err());
 /// ```
-impl From<&str> for Color {
-    fn from(string: &str) -> Self {
+impl FromStr for Color {
+    type Err = ParseError;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let string = string.strip_prefix("#").unwrap_or(string);
         match string.len() {
-            3 => Color([
-                u8::from_str_radix(&string[0..1].repeat(2), 16).unwrap_or_default() as f32 / 255.,
-                u8::from_str_radix(&string[1..2].repeat(2), 16).unwrap_or_default() as f32 / 255.,
-                u8::from_str_radix(&string[2..3].repeat(2), 16).unwrap_or_default() as f32 / 255.,
-            ]),
-            6 => Color([
-                u8::from_str_radix(&string[0..2], 16).unwrap_or_default() as f32 / 255.,
-                u8::from_str_radix(&string[2..4], 16).unwrap_or_default() as f32 / 255.,
-                u8::from_str_radix(&string[4..6], 16).unwrap_or_default() as f32 / 255.,
-            ]),
-            _ => Color([0.; 3]),
+            3 => Ok(Color([
+                u8::from_str_radix(&string[0..1].repeat(2), 16)? as f32 / 255.,
+                u8::from_str_radix(&string[1..2].repeat(2), 16)? as f32 / 255.,
+                u8::from_str_radix(&string[2..3].repeat(2), 16)? as f32 / 255.,
+            ])),
+            6 => Ok(Color([
+                u8::from_str_radix(&string[0..2], 16)? as f32 / 255.,
+                u8::from_str_radix(&string[2..4], 16)? as f32 / 255.,
+                u8::from_str_radix(&string[4..6], 16)? as f32 / 255.,
+            ])),
+            size => Err(ParseError::InvalidLength(size)),
         }
     }
 }
@@ -75,6 +123,9 @@ impl fmt::Display for Color {
 impl From<Color> for String {
     fn from(color: Color) -> String {
         let [r, g, b] = color.0;
+        let r = r.clamp(0., 1.);
+        let g = g.clamp(0., 1.);
+        let b = b.clamp(0., 1.);
         format!(
             "#{:02x}{:02x}{:02x}",
             (255. * r) as u8,

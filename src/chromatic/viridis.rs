@@ -1,5 +1,6 @@
 use super::color::Color;
 use super::common::{Scheme, split_colors};
+use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct ViridisInterpolator<'a> {
@@ -16,7 +17,9 @@ impl<'a> ViridisInterpolator<'a> {
         Color: Into<T>,
     {
         let n = self.colors.len();
-        Color::from(self.colors[((t * n as f32) as usize).clamp(0, n - 1)]).into()
+        Color::from_str(self.colors[((t * n as f32) as usize).clamp(0, n - 1)])
+            .unwrap_or_default()
+            .into()
     }
 }
 

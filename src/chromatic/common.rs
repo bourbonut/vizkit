@@ -1,4 +1,5 @@
 use super::color::Color;
+use std::str::FromStr;
 
 /// Trait used for interpolating values between [0, 1] as a Color
 pub trait ColorMap {
@@ -75,15 +76,15 @@ pub struct RGBInterpolator {
 
 impl RGBInterpolator {
     pub(crate) fn new(colors: Vec<&str>) -> Self {
-        let (r_values, g_values, b_values) = colors.into_iter().map(Color::from).fold(
-            (vec![], vec![], vec![]),
-            |(mut r, mut g, mut b), color| {
+        let (r_values, g_values, b_values) = colors
+            .into_iter()
+            .map(|s| Color::from_str(s).unwrap_or_default())
+            .fold((vec![], vec![], vec![]), |(mut r, mut g, mut b), color| {
                 r.push(color.0[0]);
                 g.push(color.0[1]);
                 b.push(color.0[2]);
                 (r, g, b)
-            },
-        );
+            });
         RGBInterpolator {
             r_channel: InterpolateBasis::new(r_values),
             g_channel: InterpolateBasis::new(g_values),
