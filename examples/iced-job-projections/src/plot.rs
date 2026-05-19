@@ -1,4 +1,5 @@
 use iced::widget::{Action, canvas};
+use std::str::FromStr;
 use vizkit::chromatic::Color;
 use vizkit::draw::{
     AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, ShapeAttrs, circle_iter,
@@ -155,7 +156,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         iced_frame.draw_line(LineProperties {
             start: [self.margin.left, state.y_scale.apply(33_900.0)],
             end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
-            stroke_color: Color::from("666"),
+            stroke_color: Color::from_str("666").unwrap_or_default(),
             stroke_width: 1.5,
             stroke_opacity: 0.75,
         });
@@ -191,8 +192,6 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             .domain(&COLOR_DOMAIN)
             .range(&COLOR_RANGE);
 
-        // Note `Color::from(&s[1..])` because valid color strings are "??????" or "???" and not
-        // "#??????" or "#???"
         state.circles = circle_iter(
             &self.data.items,
             |d| state.x_scale.apply(d.turnover),
@@ -201,11 +200,11 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             |d| ShapeAttrs {
                 fill_color: color
                     .apply(d.sector_cat.as_str())
-                    .map(|s| Color::from(&s[1..])),
+                    .map(|s| Color::from_str(s).unwrap_or_default()),
                 fill_opacity: 0.5,
                 stroke_color: color
                     .apply(d.sector_cat.as_str())
-                    .map(|s| Color::from(&s[1..])),
+                    .map(|s| Color::from_str(s).unwrap_or_default()),
                 ..Default::default()
             },
         )

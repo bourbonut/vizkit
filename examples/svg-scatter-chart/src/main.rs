@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::str::FromStr;
 use svg::Document;
 use svg::node::element;
 use vizkit::{
@@ -161,7 +162,7 @@ fn main() {
         |row| y.apply(row.height as f32),
         |_| 2.,
         |row| ShapeAttrs {
-            stroke_color: Some(Color::from(if row.sex { ordinal[0] } else { ordinal[1] })),
+            stroke_color: Some(Color::from_str(ordinal[!row.sex as usize]).unwrap_or_default()),
             ..Default::default()
         },
     )
