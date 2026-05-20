@@ -2,20 +2,33 @@ use super::{Alignment, LineAttrs, LineProperties, Orientation, TextProperties};
 use crate::chromatic::Color;
 use crate::scale::Axis;
 
+/// Axis options for properties related to tick lines and labels
 pub struct AxisOptions {
+    /// Size of tick lines
     pub tick_size: f32,
+    /// Offset between tick lines and tick labels
     pub offset: f32,
+    /// Number of ticks; default is `10`
     pub count: Option<usize>,
+    /// Line attributes
     pub line_attrs: LineAttrs,
+    /// Text fill color
     pub text_fill_color: Color,
+    /// Font size
     pub font_size: f32,
 }
 
+/// Axis placement information
 struct AxisPlacement {
+    /// Where the axis is located around its perpendicular direction
     at: f32,
+    /// Orientation for flip (x, y) to (y, x)
     orientation: Orientation,
+    /// Direction for adding or removing spaces (`tick_size` and `offset`)
     direction: f32,
+    /// X-oriented text alignment
     align_x: Alignment,
+    /// Y-oriented text alignment
     align_y: Alignment,
 }
 
@@ -32,7 +45,9 @@ impl Default for AxisOptions {
     }
 }
 
-/// Creates an iterator of properties used for axis positioned on the top of the chart.
+/// Creates an iterator for a top-oriented axis, positioning ticks above the horizontal domain line.
+///
+/// Returns an iterator of tuples containing tick lines and their corresponding labels.
 pub fn axis_top_iter<A: Axis>(
     scaler: &A,
     y: f32,
@@ -53,7 +68,10 @@ pub fn axis_top_iter<A: Axis>(
     )
 }
 
-/// Creates an iterator of properties used for axis positioned on the right of the chart.
+/// Creates an iterator for a right-oriented axis, positioning ticks to the right of the vertical
+/// domain line.
+///
+/// Returns an iterator of tuples containing tick lines and their corresponding labels.
 pub fn axis_right_iter<A: Axis>(
     scaler: &A,
     x: f32,
@@ -74,7 +92,10 @@ pub fn axis_right_iter<A: Axis>(
     )
 }
 
-/// Creates an iterator of properties used for axis positioned on the bottom of the chart.
+/// Creates an iterator for a bottom-oriented axis, positioning ticks below the horizontal domain
+/// line.
+///
+/// Returns an iterator of tuples containing tick lines and their corresponding labels.
 pub fn axis_bottom_iter<A: Axis>(
     scaler: &A,
     y: f32,
@@ -95,7 +116,10 @@ pub fn axis_bottom_iter<A: Axis>(
     )
 }
 
-/// Creates an iterator of properties used for axis positioned on the left of the chart.
+/// Creates an iterator for a left-oriented axis, positioning ticks to the left of the vertical
+/// domain line.
+///
+/// Returns an iterator of tuples containing tick lines and their corresponding labels.
 pub fn axis_left_iter<A: Axis>(
     scaler: &A,
     x: f32,
@@ -116,6 +140,7 @@ pub fn axis_left_iter<A: Axis>(
     )
 }
 
+/// Generic function for creating an iterator for drawing the tick lines and tick labels of an axis.
 fn axis<A: Axis>(
     scaler: &A,
     placement: AxisPlacement,
@@ -199,7 +224,9 @@ mod tests {
             _ => unreachable!(),
         };
 
-        // Indices
+        // Indices for x and y orientation.
+        // if index is 0 => position = (x, y)
+        // if index is 1 => position = (y, x)
         let a = index;
         let b = (index + 1) % 2;
 

@@ -7,9 +7,9 @@
 //! let color_map = Diverging::new(DivergingSpace::Spectral);
 //!
 //! // You can convert to `String` or `[f32; 3]`
-//! assert_eq!(color_map.interpolate::<String>(0.), "#9e0042".to_string());
-//! assert_eq!(color_map.interpolate::<String>(0.5), "#faf8af".to_string());
-//! assert_eq!(color_map.interpolate::<String>(1.), "#5e4ea2".to_string());
+//! assert_eq!(&color_map.interpolate::<String>(0.), "#9e0042");
+//! assert_eq!(color_map.interpolate::<[f32; 3]>(0.5), [0.98300654, 0.97320265, 0.68954253]);
+//! assert_eq!(&color_map.interpolate::<String>(1.), "#5e4ea2");
 //!
 //! // For color space with `Scheme` trait
 //! assert_eq!(DivergingSpace::Spectral.scheme().len(), 11); // 11 interpolated colors

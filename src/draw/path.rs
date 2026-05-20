@@ -8,32 +8,52 @@ use self::cardinal::Cardinal;
 use self::linear::Linear;
 use self::step::Step;
 
+/// Commands for path building.
 #[derive(Clone)]
 pub enum PathCommand {
+    /// Indicates to move the current point (or starting point) to the given point.
     MoveTo([f32; 2]),
+    /// Indicates to connect the last point to the given point with a straight line.
     LineTo([f32; 2]),
+    /// Indicates to create a bezier curve given the first two points as control points and the last
+    /// point as end point.
     BezierCurveTo([[f32; 2]; 3]),
+    /// Indicates to add a circular arc between the control points and with the specified radius.
     ArcTo(([f32; 2], [f32; 2], f32)),
+    /// Indicates to close the path.
     ClosePath,
 }
 
+/// Trait for generating [`PathCommand`] in order to draw curves.
 pub(crate) trait PathCurve {
+    /// Indicates a new point in the current line. [`PathCommand`] must be added by using
+    /// [`VecDeque::push_back`].
     fn point(&mut self, point: [f32; 2], buffer: &mut VecDeque<PathCommand>);
+    /// Called when the curve is finished. Internal attributes should be reset and ending
+    /// [`PathCommand`] must be added by using [`VecDeque::push_back`].
     fn end(&mut self, buffer: &mut VecDeque<PathCommand>);
 }
 
+/// Available curve variants for drawing a path or an area.
 #[derive(Default)]
 pub enum Curve {
+    /// Linear curve produces lines with no specific modification (default)
     #[default]
     Linear,
-    Cardinal {
-        tension: f32,
-    },
-    Step {
-        tension: f32,
-    },
+    /// Cardinal curve produces cubic [cardinal
+    /// splines](https://en.wikipedia.org/wiki/Cubic_Hermite_spline#Cardinal_spline) using the
+    /// specified control points. The `tension` value must be in the range [0.0, 1.0]. If `tension`
+    /// is `0.`, the cubic cardinal splines will be the most strechted whereas if `tension` is `1.`,
+    /// the ended curve is closed to a curve drawn by [`Curve::Linear`].
+    Cardinal { tension: f32 },
+    /// Step curve produces alternative horirontal and vertical lines. The `tension` value must be
+    /// in the range [0.0, 1.0]. If `tension` is `0.5`, the y-value change at the midpoint of each
+    /// adjacent x-values whereas if `tension` is `0.0`, it produces y-value changes after the
+    /// x-value and when `tension` is `1.0`, it produces y-value changes before the x-value.
+    Step { tension: f32 },
 }
 
+/// Iterator for generating [`PathCommand`] giving a [`PathCurve`] structure
 struct PathCurveIterator<I, C>
 where
     I: Iterator<Item = [f32; 2]>,
@@ -128,6 +148,7 @@ where
     }
 }
 
+/// Creates an iterator of [`PathCommand`] for drawing a path.
 pub fn path_iter<'a, Data>(
     values: &'a [Data],
     x: impl Fn(&Data) -> f32 + 'a,
@@ -141,6 +162,7 @@ pub fn path_iter<'a, Data>(
     )
 }
 
+/// Creates an iterator of [`PathCommand`] for drawing an area.
 pub fn area_iter<'a, Data>(
     values: &'a [Data],
     x0: impl Fn(&Data) -> f32 + 'a,
@@ -161,7 +183,9 @@ pub fn area_iter<'a, Data>(
     ))
 }
 
-pub fn area_y_iter<'a, Data>(
+/// Convenient function for creating an iterator of [`PathCommand`] for drawing area with shared x
+/// values.
+pub fn area_horizontal_iter<'a, Data>(
     values: &'a [Data],
     x: impl Fn(&Data) -> f32 + Clone + 'a,
     y0: impl Fn(&Data) -> f32 + 'a,
@@ -171,7 +195,9 @@ pub fn area_y_iter<'a, Data>(
     area_iter(values, x.clone(), y0, x, y1, curve)
 }
 
-pub fn area_x_iter<'a, Data>(
+/// Convenient function for creating an iterator of [`PathCommand`] for drawing area with shared y
+/// values.
+pub fn area_vertical_iter<'a, Data>(
     values: &'a [Data],
     y: impl Fn(&Data) -> f32 + Clone + 'a,
     x0: impl Fn(&Data) -> f32 + 'a,

@@ -1,4 +1,5 @@
-//! This module provides time interval operations for working with time in general.
+//! This module provides time interval operations for working with time in general using
+//! [`chrono::DateTime`].
 //!
 //! You should use mainly [`TimeInterval`] which provides all time operations available.
 //!

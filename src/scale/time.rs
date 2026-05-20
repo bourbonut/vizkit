@@ -64,6 +64,7 @@ const TICK_DELTAS: &[TickDelta] = &[
     TickDelta {delta: TimeDelta::weeks(52),     strategy: IntervalStrategy::Year,   step: 1},
 ];
 
+/// Scaler for domain defined with [`chrono::DateTime`] and a continuous range.
 pub struct ScaleTime<Tz: TimeZone> {
     domain: [DateTime<Tz>; 2],
     range: [f64; 2],
@@ -92,18 +93,25 @@ impl_default!(FixedOffset);
 impl_default!(Local);
 
 impl<Tz: TimeZone> ScaleTime<Tz> {
+    /// Returns a new [`ScaleTime`] with the specified domain.
     pub fn domain(self, domain: [DateTime<Tz>; 2]) -> Self {
         Self { domain, ..self }
     }
 
+    /// Returns a new [`ScaleTime`] with the specified range.
     pub fn range(self, range: [f64; 2]) -> Self {
         Self { range, ..self }
     }
 
+    /// Returns a new [`ScaleTime`] with the specified clamp value. If `true`, it clamps the value
+    /// passed to the transform step (see [`ScaleTime::apply`]) and the returned value after
+    /// untransform step (see [`ScaleTime::invert`]) with the domain values.
     pub fn clamp(self, clamp: bool) -> Self {
         Self { clamp, ..self }
     }
 
+    /// Given a specified [`chrono::DateTime`] value, it transforms it as timestamp value, it clamps
+    /// the value, transforms it and returns the corresponding value of the range.
     pub fn apply(&self, x: DateTime<Tz>) -> f64 {
         let mut x = x.timestamp() as f64;
         let [a, b]: [f64; 2] = from_fn(|i| self.domain[i].timestamp() as f64);
@@ -126,7 +134,10 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
         a * (1. - t) + b * t
     }
 
-    pub fn inverse(&self, y: f64) -> DateTime<Utc> {
+    /// Given the specified value in the range, it computes the corresponding value of the domain,
+    /// untransforms it, computes the clamped value and returns the corresponding
+    /// [`chrono::DateTime`] value by using the final value as timestamp.
+    pub fn invert(&self, y: f64) -> DateTime<Utc> {
         let [a, b] = self.range;
 
         // Normalize value to [0, 1]
@@ -150,6 +161,7 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
     }
 }
 
+// Tick spec with double precision
 fn tick_spec(start: f64, stop: f64, count: usize) -> f64 {
     let step = (stop - start) / (1 as f64).max(count as f64);
     let power = step.log10().floor();
@@ -195,6 +207,7 @@ fn tick_spec(start: f64, stop: f64, count: usize) -> f64 {
     inc
 }
 
+// Tick step with double precision
 fn tick_step(start: f64, stop: f64, count: usize) -> f64 {
     if stop == start {
         return 1.;

@@ -1,41 +1,17 @@
 //! This module provides basic functionalities to draw fundamental elements such as axis, grid,
-//! circles, lines ... It is based on row-oriented data structures and it offers a simple API to
-//! change attributes given a specific row of data.
+//! circle, rectangle, text, path, area and arrow.
+//!
+//! It is based on row-oriented data structures and it offers a simple API to change attributes
+//! given a specific row of data.
 //!
 //! ```
 //! use vizkit::draw::{
-//!     Draw,
+//!     axis_bottom_iter,
 //!     AxisOptions,
-//!     CircleProperties,
 //!     LineProperties,
 //!     TextProperties,
-//!     RectProperties
 //! };
 //! use vizkit::scale::{Axis, ScaleContinuous};
-//!
-//! #[derive(Default)]
-//! struct Drawer {
-//!     lines: Vec<LineProperties>,
-//!     texts: Vec<TextProperties>,
-//! }
-//
-//! impl Draw for Drawer {
-//!     fn draw_line(&mut self, line: LineProperties) {
-//!         self.lines.push(line);
-//!     }
-//
-//!     fn draw_text(&mut self, text: TextProperties) {
-//!         self.texts.push(text);
-//!     }
-//
-//!     fn draw_circle(&mut self, _: CircleProperties) {
-//!         todo!()
-//!     }
-//!
-//!     fn draw_rect(&mut self, _: RectProperties) {
-//!         todo!()
-//!     }
-//! }
 //!
 //! let margin_left = 50.;
 //! let margin_right = 10.;
@@ -46,17 +22,15 @@
 //!     .domain([0., 50.])
 //!     .range([margin_left, width - margin_right]);
 //!
-//! let mut drawer = Drawer::default();
-//!
-//! drawer.axis_bottom(
+//! let (lines, texts): (Vec<LineProperties>, Vec<TextProperties>) = axis_bottom_iter(
 //!     &scale,
 //!     height - margin_bottom,
 //!     |tick: &f32| tick.to_string(),
 //!     &AxisOptions::default()
-//! );
+//! ).unzip();
 //!
-//! assert_eq!(drawer.lines.len(), scale.ticks(None).len());
-//! assert_eq!(drawer.texts.len(), scale.ticks(None).len());
+//! assert_eq!(lines.len(), scale.ticks(None).len());
+//! assert_eq!(texts.len(), scale.ticks(None).len());
 //! ```
 
 mod arrow;
@@ -78,7 +52,9 @@ pub use self::axis::{
 };
 pub use self::circle::circle_iter;
 pub use self::grid::{grid_horizontal_iter, grid_vertical_iter};
-pub use self::path::{Curve, PathCommand, area_iter, area_x_iter, area_y_iter, path_iter};
+pub use self::path::{
+    Curve, PathCommand, area_horizontal_iter, area_iter, area_vertical_iter, path_iter,
+};
 pub use self::properties::{
     ArrowProperties, CircleProperties, LineProperties, RectProperties, TextProperties,
 };

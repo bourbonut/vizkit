@@ -65,8 +65,8 @@ impl<T: Timing> Timing for Every<T> {
     }
 }
 
-/// Time interval for manipulating [`chrono::DateTime`] such as floor, ceil, round, range, every
-/// operations.
+/// Time interval for manipulating [`chrono::DateTime`] such as _floor_, _ceil_, _round_, _range_,
+/// _every_ operations.
 pub struct TimeInterval<T: Timing> {
     time_type: T,
 }

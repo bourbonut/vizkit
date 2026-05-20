@@ -1,5 +1,5 @@
-//! This module provides scalers for continuous range of values, color maps and discrete values like
-//! `&str`.
+//! This module provides scalers for continuous range of values, color maps, discrete values like
+//! `&str` and time values using [`chrono::DateTime`].
 //!
 //! ```
 //! use vizkit::scale::ScaleContinuous;
@@ -48,8 +48,23 @@ pub use self::{
     ticks::Tick,
 };
 
+/// Axis trait used for generating tick values and tick positions along a direction for axis
+/// iterators.
+///
+/// ## See also
+///
+/// This trait is used by the following functions:
+///
+/// - [`axis_top_iter`][`crate::draw::axis_top_iter`]
+/// - [`axis_right_iter`][`crate::draw::axis_right_iter`]
+/// - [`axis_bottom_iter`][`crate::draw::axis_bottom_iter`]
+/// - [`axis_left_iter`][`crate::draw::axis_left_iter`]
 pub trait Axis {
+    /// Tick type
     type Tick;
+    /// Generates tick values with an approximated number of ticks specified by the `count` value
+    /// (default: `10`).
     fn ticks(&self, count: Option<usize>) -> Vec<Self::Tick>;
+    /// Generates a tick position along a direction.
     fn tick_position(&self, x: Self::Tick) -> f32;
 }

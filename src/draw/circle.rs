@@ -1,6 +1,6 @@
 use super::{CircleProperties, ShapeAttrs};
 
-/// Creates an iterator of properties used for circles.
+/// Creates an iterator of [`CircleProperties`] for drawing circles.
 pub fn circle_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,

@@ -1,6 +1,6 @@
 use super::{LineAttrs, LineProperties, Orientation};
 
-/// Creates an iterator of properties used for vertical lines.
+/// Creates an iterator of [`LineProperties`] for drawing vertical lines.
 pub fn grid_vertical_iter<Data>(
     values: &[Data],
     y1: f32,
@@ -11,7 +11,7 @@ pub fn grid_vertical_iter<Data>(
     grid_iter(values, Orientation::Same, [y1, y2], x, line_attrs)
 }
 
-/// Creates an iterator of properties used for horizontal lines.
+/// Creates an iterator of [`LineProperties`] for drawing horizontal lines.
 pub fn grid_horizontal_iter<Data>(
     values: &[Data],
     x1: f32,

@@ -62,8 +62,8 @@ fn arrow_builder(x1: f32, y1: f32, x2: f32, y2: f32, arrow_values: ArrowAttrs) -
     }
 }
 
-/// Creates an iterator of properties used for arrows by indicating the starting point and the
-/// ending point of each arrow.
+/// Creates an iterator of [`ArrowProperties`] for drawing arrows by indicating the starting point
+/// and the ending point of each arrow.
 pub fn arrow_iter<Data>(
     values: &[Data],
     x1: impl Fn(&Data) -> f32,
@@ -83,8 +83,8 @@ pub fn arrow_iter<Data>(
     })
 }
 
-/// Creates an iterator of properties used for arrows by indicating the position and the length and
-/// the rotation of each arrow.
+/// Creates an iterator of [`ArrowProperties`] for drawing arrows by indicating the position and the
+/// length and the rotation of each arrow.
 pub fn vector_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
