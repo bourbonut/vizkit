@@ -1,14 +1,74 @@
 use iced::widget::{Action, canvas};
 use std::str::FromStr;
 use vizkit::chromatic::Color;
-use vizkit::draw::{
-    AxisOptions, CircleProperties, Draw, LineAttrs, LineProperties, ShapeAttrs, circle_iter,
+use vizkit::draw::{axis_bottom_iter, axis_left_iter, grid_horizontal_iter, grid_vertical_iter};
+use vizkit::{
+    draw::{
+        Alignment, AxisOptions, CircleProperties, LineAttrs, LineProperties, ShapeAttrs,
+        TextProperties, circle_iter,
+    },
+    scale::{Axis, Linear, ScaleContinuous, ScaleOrdinal},
 };
-use vizkit::scale::{Axis, Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
-use crate::iced_frame::IcedFrame;
 use crate::{COLOR_DOMAIN, COLOR_RANGE, Margin, Message, RADIUS_RANGE};
+
+pub fn line(frame: &mut canvas::Frame, line: LineProperties) {
+    let [r, g, b] = line.stroke_color.into();
+    frame.stroke(
+        &canvas::Path::line(line.start.into(), line.end.into()),
+        canvas::Stroke::default()
+            .with_color(iced::Color::from([r, g, b, line.stroke_opacity]))
+            .with_width(line.stroke_width),
+    );
+}
+
+pub fn text(frame: &mut canvas::Frame, text: TextProperties) {
+    let color: [f32; 3] = text.fill_color.into();
+    frame.fill_text(canvas::Text {
+        content: text.content,
+        position: text.position.into(),
+        color: iced::Color::from(color),
+        size: iced::Pixels(text.font_size),
+        align_x: match text.align_x {
+            Alignment::Start => iced::Alignment::Start.into(),
+            Alignment::Center => iced::Alignment::Center.into(),
+            Alignment::End => iced::Alignment::End.into(),
+        },
+        align_y: match text.align_y {
+            Alignment::Start => iced::Alignment::Start.into(),
+            Alignment::Center => iced::Alignment::Center.into(),
+            Alignment::End => iced::Alignment::End.into(),
+        },
+        ..Default::default()
+    })
+}
+
+pub fn circle(frame: &mut canvas::Frame, circle: &CircleProperties) {
+    let circle_path = canvas::Path::circle(circle.center.into(), circle.radius);
+    if let Some(fill_color) = circle.fill_color {
+        let fill_color: [f32; 3] = fill_color.into();
+        frame.fill(
+            &circle_path,
+            canvas::Fill {
+                style: canvas::Style::Solid(
+                    iced::Color::from(fill_color).scale_alpha(circle.fill_opacity),
+                ),
+                rule: canvas::fill::Rule::EvenOdd,
+            },
+        );
+    }
+
+    if let Some(stroke_color) = circle.stroke_color {
+        let stroke_color: [f32; 3] = stroke_color.into();
+        frame.stroke(
+            &circle_path,
+            canvas::Stroke::default()
+                .with_width(circle.stroke_width)
+                .with_color(iced::Color::from(stroke_color)),
+        );
+    }
+}
 
 pub struct Plot<'a> {
     data: &'a Data,
@@ -49,7 +109,6 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         _cursor: iced::mouse::Cursor,
     ) -> Vec<canvas::Geometry> {
         let mut frame = canvas::Frame::new(renderer, bounds.size());
-        let mut iced_frame = IcedFrame(&mut frame);
         let width = bounds.width;
         let height = bounds.height;
 
@@ -62,7 +121,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         // X label with bold weight
         let tx = (self.margin.left + width - self.margin.right) * 0.5;
         let ty = self.margin.bottom * 0.5;
-        let text = canvas::Text {
+        frame.fill_text(canvas::Text {
             content: String::from("Occupation annual turnover rate"),
             position: [tx, height - self.margin.bottom + ty].into(),
             color: text_color,
@@ -70,18 +129,20 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             font: bold_font,
             align_x: iced::Alignment::Center.into(),
             ..Default::default()
-        };
-        iced_frame.fill_text(text);
-
-        // X axis domain line
-        iced_frame.draw_line(LineProperties {
-            start: [self.margin.left, height - self.margin.bottom],
-            end: [width - self.margin.right, height - self.margin.bottom],
-            ..Default::default()
         });
 
+        // X axis domain line
+        line(
+            &mut frame,
+            LineProperties {
+                start: [self.margin.left, height - self.margin.bottom],
+                end: [width - self.margin.right, height - self.margin.bottom],
+                ..Default::default()
+            },
+        );
+
         // X axis ticks
-        iced_frame.axis_bottom(
+        axis_bottom_iter(
             &state.x_scale,
             height - self.margin.bottom,
             |tick| format!("{}%", (tick * 100.).round()),
@@ -89,48 +150,53 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
                 font_size: 10.,
                 ..Default::default()
             },
-        );
+        )
+        .for_each(|(line_props, text_props)| {
+            line(&mut frame, line_props);
+            text(&mut frame, text_props);
+        });
 
         // Vertical grid
-        iced_frame.grid_vertical(
+        grid_vertical_iter(
             &state.x_scale.ticks(None),
             self.margin.top,
             height - self.margin.bottom,
             |&x| state.x_scale.apply(x),
             |_| LineAttrs::default(),
-        );
+        )
+        .for_each(|line_props| line(&mut frame, line_props));
 
-        // Y label with bold weight
-        let text = canvas::Text {
-            content: String::from("Median wage, 2018"),
-            position: [0., 0.].into(),
-            color: text_color,
-            size: iced::Pixels(12.),
-            font: bold_font,
-            align_x: iced::Alignment::Center.into(),
-            ..Default::default()
-        };
-
-        // Rotate the text (Y label)
-        iced_frame.with_save(|frame| {
+        // Y label with bold weight and rotate the text
+        frame.with_save(|frame| {
             frame.rotate(-std::f32::consts::PI * 0.5);
 
             let tx = self.margin.left * 0.9;
             let ty = (height - self.margin.bottom + self.margin.top) * 0.5;
             frame.translate([-ty, self.margin.left - tx].into());
 
-            frame.fill_text(text);
+            frame.fill_text(canvas::Text {
+                content: String::from("Median wage, 2018"),
+                position: [0., 0.].into(),
+                color: text_color,
+                size: iced::Pixels(12.),
+                font: bold_font,
+                align_x: iced::Alignment::Center.into(),
+                ..Default::default()
+            });
         });
 
         // Y axis domain line
-        iced_frame.draw_line(LineProperties {
-            start: [self.margin.left, self.margin.top],
-            end: [self.margin.left, height - self.margin.bottom],
-            ..Default::default()
-        });
+        line(
+            &mut frame,
+            LineProperties {
+                start: [self.margin.left, self.margin.top],
+                end: [self.margin.left, height - self.margin.bottom],
+                ..Default::default()
+            },
+        );
 
         // Y axis ticks
-        iced_frame.axis_left(
+        axis_left_iter(
             &state.y_scale,
             self.margin.left,
             |tick| format!("${}k", (tick / 1000.).round()),
@@ -138,28 +204,39 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
                 font_size: 10.,
                 ..Default::default()
             },
-        );
+        )
+        .for_each(|(line_props, text_props)| {
+            line(&mut frame, line_props);
+            text(&mut frame, text_props);
+        });
 
         // Horizontal grid
-        iced_frame.grid_horizontal(
+        grid_horizontal_iter(
             &state.y_scale.ticks(None),
             self.margin.left,
             width - self.margin.right,
             |&y| state.y_scale.apply(y),
             |_| LineAttrs::default(),
-        );
+        )
+        .for_each(|line_props| line(&mut frame, line_props));
 
         // Circles
-        iced_frame.circle_from_props(state.circles.iter().cloned());
+        state
+            .circles
+            .iter()
+            .for_each(|circle_props| circle(&mut frame, circle_props));
 
         // Y reference (horizontal line)
-        iced_frame.draw_line(LineProperties {
-            start: [self.margin.left, state.y_scale.apply(33_900.0)],
-            end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
-            stroke_color: Color::from_str("666").unwrap_or_default(),
-            stroke_width: 1.5,
-            stroke_opacity: 0.75,
-        });
+        line(
+            &mut frame,
+            LineProperties {
+                start: [self.margin.left, state.y_scale.apply(33_900.0)],
+                end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
+                stroke_color: Color::from_str("666").unwrap_or_default(),
+                stroke_width: 1.5,
+                stroke_opacity: 0.75,
+            },
+        );
 
         vec![frame.into_geometry()]
     }

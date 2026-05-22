@@ -1,5 +1,4 @@
 mod data;
-mod iced_frame;
 mod legend;
 mod plot;
 
