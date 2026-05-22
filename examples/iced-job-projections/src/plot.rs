@@ -1,14 +1,12 @@
 use iced::widget::{Action, canvas};
 use std::str::FromStr;
 use vizkit::chromatic::Color;
-use vizkit::draw::{axis_bottom_iter, axis_left_iter, grid_horizontal_iter, grid_vertical_iter};
-use vizkit::{
-    draw::{
-        Alignment, AxisOptions, CircleProperties, LineAttrs, LineProperties, ShapeAttrs,
-        TextProperties, circle_iter,
-    },
-    scale::{Axis, Linear, ScaleContinuous, ScaleOrdinal},
+use vizkit::draw::{
+    Alignment, AxisOptions, CircleProperties, LineAttrs, LineProperties, ShapeAttrs,
+    TextProperties, axis_bottom_iter, axis_left_iter, circle_iter, grid_horizontal_iter,
+    grid_vertical_iter,
 };
+use vizkit::scale::{Axis, Linear, ScaleContinuous, ScaleOrdinal};
 
 use crate::data::Data;
 use crate::{COLOR_DOMAIN, COLOR_RANGE, Margin, Message, RADIUS_RANGE};
