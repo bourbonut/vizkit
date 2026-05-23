@@ -64,6 +64,35 @@ fn arrow_builder(x1: f32, y1: f32, x2: f32, y2: f32, arrow_values: ArrowAttrs) -
 
 /// Creates an iterator of [`ArrowProperties`] for drawing arrows by indicating the starting point
 /// and the ending point of each arrow.
+///
+/// Arrows start from the point `[x1, y1]` and end at the point `[x2, y2]`. Other shape options such
+/// as the head size or the bend angle are defined in [`ArrowAttrs`].
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{ArrowAttrs, ArrowProperties, arrow_iter},
+///     scale::ScaleContinuous,
+/// };
+///
+/// let x = ScaleContinuous::linear().domain([-100., 100.]);
+/// let y = ScaleContinuous::linear().domain([-100., 100.]);
+///
+/// let data = [
+///     [0., 15., 40., 20.],
+///     [40., 20., 30., -10.],
+/// ];
+///
+/// let arrows: Vec<ArrowProperties> = arrow_iter(
+///     &data,
+///     |d| x.apply(d[0]),
+///     |d| x.apply(d[1]),
+///     |d| x.apply(d[2]),
+///     |d| x.apply(d[3]),
+///     |d| ArrowAttrs::default(),
+/// ).collect();
+/// ```
 pub fn arrow_iter<Data>(
     values: &[Data],
     x1: impl Fn(&Data) -> f32,
@@ -85,6 +114,33 @@ pub fn arrow_iter<Data>(
 
 /// Creates an iterator of [`ArrowProperties`] for drawing arrows by indicating the position and the
 /// length and the rotation of each arrow.
+///
+/// Vectors start from the point `[x, y]`, have a size of `length` and are rotated given the
+/// computed angle in radians from the `rotate` function. Other shape options such as the head size
+/// or the bend angle are defined in [`ArrowAttrs`].
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{ArrowAttrs, ArrowProperties, vector_iter},
+///     scale::ScaleContinuous,
+/// };
+///
+/// let x = ScaleContinuous::linear().domain([-100., 100.]);
+/// let y = ScaleContinuous::linear().domain([-100., 100.]);
+///
+/// let data = [[0., 15.], [40., 20.]];
+///
+/// let vectors: Vec<ArrowProperties> = vector_iter(
+///     &data,
+///     |d| x.apply(d[0]),
+///     |d| x.apply(d[1]),
+///     |_| 5.,
+///     |d| d[1].atan2(d[0]),
+///     |d| ArrowAttrs::default(),
+/// ).collect();
+/// ```
 pub fn vector_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,

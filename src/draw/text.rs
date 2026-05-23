@@ -1,6 +1,37 @@
 use super::{TextAttrs, TextProperties};
 
 /// Creates an iterator of [`TextProperties`] for drawing text.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{Alignment, TextAttrs, TextProperties, text_iter},
+///     scale::ScaleContinuous,
+/// };
+///
+/// let x = ScaleContinuous::linear().domain([0., 65.]);
+/// let y = ScaleContinuous::linear().domain([0., 65.]);
+///
+/// let data = [
+///     (0., 15., "a"),
+///     (15., 1000., "b"),
+///     (35., 2000., "c"),
+///     (65., 2800., "d"),
+/// ];
+///
+/// let texts: Vec<TextProperties> = text_iter(
+///     &data,
+///     |d| x.apply(d.0),
+///     |d| y.apply(d.1),
+///     |d| d.2.to_uppercase().to_string(),
+///     |d| TextAttrs {
+///         align_x: Alignment::Start,
+///         align_y: Alignment::Center,
+///         ..Default::default()
+///     },
+/// ).collect();
+/// ```
 pub fn text_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,

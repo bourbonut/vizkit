@@ -149,6 +149,33 @@ where
 }
 
 /// Creates an iterator of [`PathCommand`] for drawing a path.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{Curve, PathCommand, path_iter},
+///     scale::ScaleContinuous,
+/// };
+///
+/// let width = 960.;
+/// let height = 400.;
+///
+/// let x = ScaleContinuous::linear().range([0., width]);
+/// let y = ScaleContinuous::linear().range([height, 0.]);
+///
+/// let data: Vec<[f32; 2]> = (0..100)
+///     .map(|i| i as f32)
+///     .map(|x| [x.cos(), x.sin()])
+///     .collect();
+///
+/// let path_commands: Vec<PathCommand> = path_iter(
+///     &data,
+///     |d| x.apply(d[0]),
+///     |d| y.apply(d[1]),
+///     Curve::Cardinal { tension: 0.0 },
+/// ).collect();
+/// ```
 pub fn path_iter<'a, Data>(
     values: &'a [Data],
     x: impl Fn(&Data) -> f32 + 'a,
@@ -163,6 +190,35 @@ pub fn path_iter<'a, Data>(
 }
 
 /// Creates an iterator of [`PathCommand`] for drawing an area.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{Curve, PathCommand, area_iter},
+///     scale::ScaleContinuous,
+/// };
+///
+/// let width = 960.;
+/// let height = 400.;
+///
+/// let x = ScaleContinuous::linear().range([0., width]);
+/// let y = ScaleContinuous::linear().range([height, 0.]);
+///
+/// let data: Vec<[f32; 2]> = (0..100)
+///     .map(|i| i as f32)
+///     .map(|x| [x.cos(), x.sin()])
+///     .collect();
+///
+/// let path_commands: Vec<PathCommand> = area_iter(
+///     &data,
+///     |d| x.apply(d[0]),
+///     |d| y.apply(0.),
+///     |d| x.apply(d[0]),
+///     |d| y.apply(d[1].max(0.)),
+///     Curve::Cardinal { tension: 0.0 },
+/// ).collect();
+/// ```
 pub fn area_iter<'a, Data>(
     values: &'a [Data],
     x0: impl Fn(&Data) -> f32 + 'a,

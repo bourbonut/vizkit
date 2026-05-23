@@ -1,6 +1,37 @@
 use crate::draw::{RectProperties, ShapeAttrs};
 
 /// Creates an iterator of [`RectProperties`] for drawing rectangles.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     chromatic::Color,
+///     draw::{RectProperties, ShapeAttrs, rect_iter},
+///     scale::{ScaleContinuous, ScaleBand},
+/// };
+///
+/// let x = ScaleBand::default().domain(&[0, 15, 35, 65]).range([0., 1.]);
+/// let y = ScaleContinuous::linear().domain([0., 3_000.]);
+///
+/// let data = [(0, 15.), (15, 1000.), (35, 2000.), (65, 2800.)];
+///
+/// let rects: Vec<RectProperties> = rect_iter(
+///     &data,
+///     |d| [x.apply(d.0).unwrap_or_default(), y.apply(0.)],
+///     |d| [x.bandwidth(), y.apply(0.) - y.apply(d.1)],
+///     Some(5.),
+///     |d| ShapeAttrs {
+///         fill_color: Some(Color(if d.1 < 1500. {
+///             [1., 0., 0.] // red
+///         } else {
+///             [0., 0., 1.] // blue
+///         })),
+///         fill_opacity: 0.5,
+///         ..Default::default()
+///     },
+/// ).collect();
+/// ```
 pub fn rect_iter<Data>(
     values: &[Data],
     top_left: impl Fn(&Data) -> [f32; 2],

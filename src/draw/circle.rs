@@ -1,6 +1,38 @@
 use super::{CircleProperties, ShapeAttrs};
 
 /// Creates an iterator of [`CircleProperties`] for drawing circles.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     chromatic::Color,
+///     draw::{CircleProperties, ShapeAttrs, circle_iter},
+///     scale::ScaleContinuous,
+/// };
+///
+/// let x = ScaleContinuous::linear().domain([0., 0.5]);
+/// let y = ScaleContinuous::linear().domain([0., 140_000.]);
+/// let r = ScaleContinuous::sqrt().domain([0., 3000.]).range([4., 40.]);
+///
+/// let data = [[0.1, 12_000., 400.], [0.4, 80_000., 800.]];
+///
+/// let circles: Vec<CircleProperties> = circle_iter(
+///     &data,
+///     |d| x.apply(d[0]),
+///     |d| y.apply(d[1]),
+///     |d| r.apply(d[2]),
+///     |d| ShapeAttrs {
+///         fill_color: Some(Color(if d[2] < 1500. {
+///             [1., 0., 0.] // red
+///         } else {
+///             [0., 0., 1.] // blue
+///         })),
+///         fill_opacity: 0.5,
+///         ..Default::default()
+///     },
+/// ).collect();
+/// ```
 pub fn circle_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,

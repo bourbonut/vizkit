@@ -48,6 +48,33 @@ impl Default for AxisOptions {
 /// Creates an iterator for a top-oriented axis, positioning ticks above the horizontal domain line.
 ///
 /// Returns an iterator of tuples containing tick lines and their corresponding labels.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{AxisOptions, LineProperties, TextProperties, axis_top_iter},
+///     scale::{Axis, ScaleContinuous},
+/// };
+///
+/// let width = 960.;
+/// let height = 400.;
+///
+/// let margin_top = 10.;
+/// let margin_left = 30.;
+/// let margin_right = 20.;
+///
+/// let scaler = ScaleContinuous::linear()
+///     .domain([0., 100.])
+///     .range([margin_left, width - margin_right]);
+///
+/// let (tick_lines, tick_labels): (Vec<LineProperties>, Vec<TextProperties>) = axis_top_iter(
+///     &scaler,
+///     margin_top,
+///     |tick| tick.to_string(),
+///     &AxisOptions::default(),
+/// ).unzip();
+/// ```
 pub fn axis_top_iter<A: Axis>(
     scaler: &A,
     y: f32,
@@ -72,6 +99,33 @@ pub fn axis_top_iter<A: Axis>(
 /// domain line.
 ///
 /// Returns an iterator of tuples containing tick lines and their corresponding labels.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{AxisOptions, LineProperties, TextProperties, axis_right_iter},
+///     scale::{Axis, ScaleContinuous},
+/// };
+///
+/// let width = 960.;
+/// let height = 400.;
+///
+/// let margin_top = 10.;
+/// let margin_right = 20.;
+/// let margin_bottom = 30.;
+///
+/// let scaler = ScaleContinuous::linear()
+///     .domain([0., 100.])
+///     .range([height - margin_bottom, margin_top]);
+///
+/// let (tick_lines, tick_labels): (Vec<LineProperties>, Vec<TextProperties>) = axis_right_iter(
+///     &scaler,
+///     width - margin_right,
+///     |tick| tick.to_string(),
+///     &AxisOptions::default(),
+/// ).unzip();
+/// ```
 pub fn axis_right_iter<A: Axis>(
     scaler: &A,
     x: f32,
@@ -96,6 +150,33 @@ pub fn axis_right_iter<A: Axis>(
 /// line.
 ///
 /// Returns an iterator of tuples containing tick lines and their corresponding labels.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{AxisOptions, LineProperties, TextProperties, axis_bottom_iter},
+///     scale::{Axis, ScaleContinuous},
+/// };
+///
+/// let width = 960.;
+/// let height = 400.;
+///
+/// let margin_left = 30.;
+/// let margin_right = 20.;
+/// let margin_bottom = 30.;
+///
+/// let scaler = ScaleContinuous::linear()
+///     .domain([0., 100.])
+///     .range([margin_left, width - margin_right]);
+///
+/// let (tick_lines, tick_labels): (Vec<LineProperties>, Vec<TextProperties>) = axis_bottom_iter(
+///     &scaler,
+///     height - margin_bottom,
+///     |tick| tick.to_string(),
+///     &AxisOptions::default(),
+/// ).unzip();
+/// ```
 pub fn axis_bottom_iter<A: Axis>(
     scaler: &A,
     y: f32,
@@ -120,6 +201,33 @@ pub fn axis_bottom_iter<A: Axis>(
 /// domain line.
 ///
 /// Returns an iterator of tuples containing tick lines and their corresponding labels.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     draw::{AxisOptions, LineProperties, TextProperties, axis_left_iter},
+///     scale::{Axis, ScaleContinuous},
+/// };
+///
+/// let width = 960.;
+/// let height = 400.;
+///
+/// let margin_top = 10.;
+/// let margin_left = 30.;
+/// let margin_bottom = 30.;
+///
+/// let scaler = ScaleContinuous::linear()
+///     .domain([0., 100.])
+///     .range([height - margin_bottom, margin_top]);
+///
+/// let (tick_lines, tick_labels): (Vec<LineProperties>, Vec<TextProperties>) = axis_left_iter(
+///     &scaler,
+///     margin_left,
+///     |tick| tick.to_string(),
+///     &AxisOptions::default(),
+/// ).unzip();
+/// ```
 pub fn axis_left_iter<A: Axis>(
     scaler: &A,
     x: f32,

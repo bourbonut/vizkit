@@ -1,6 +1,41 @@
 use super::{LineAttrs, LineProperties, Orientation};
 
 /// Creates an iterator of [`LineProperties`] for drawing vertical lines.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     chromatic::{ColorMap, Rainbow},
+///     draw::{LineAttrs, LineProperties, grid_vertical_iter},
+///     scale::{Axis, ScaleColor, ScaleContinuous},
+/// };
+///
+/// let width = 900.;
+/// let height = 400.;
+///
+/// let margin_top = 20.;
+/// let margin_left = 30.;
+/// let margin_right = 20.;
+/// let margin_bottom = 30.;
+///
+/// let x = ScaleContinuous::linear()
+///     .domain([0., 100.])
+///     .range([margin_left, width - margin_right]);
+///
+/// let color = ScaleColor::linear(Rainbow::default()).domain([0., 100.]);
+///
+/// let grid: Vec<LineProperties> = grid_vertical_iter(
+///     &x.ticks(None),
+///     height - margin_bottom, // y bottom
+///     margin_top,             // y top
+///     |&tick| tick,
+///     |&tick| LineAttrs {
+///         stroke_color: color.apply(tick), // rainbow colors
+///         ..Default::default()
+///     }
+/// ).collect();
+/// ```
 pub fn grid_vertical_iter<Data>(
     values: &[Data],
     y1: f32,
@@ -12,6 +47,41 @@ pub fn grid_vertical_iter<Data>(
 }
 
 /// Creates an iterator of [`LineProperties`] for drawing horizontal lines.
+///
+/// # Example
+///
+/// ```
+/// use vizkit::{
+///     chromatic::{ColorMap, Rainbow},
+///     draw::{LineAttrs, LineProperties, grid_horizontal_iter},
+///     scale::{Axis, ScaleColor, ScaleContinuous},
+/// };
+///
+/// let width = 900.;
+/// let height = 400.;
+///
+/// let margin_top = 20.;
+/// let margin_left = 30.;
+/// let margin_right = 20.;
+/// let margin_bottom = 30.;
+///
+/// let y = ScaleContinuous::linear()
+///     .domain([0., 100.])
+///     .range([height - margin_bottom, margin_top]);
+///
+/// let color = ScaleColor::linear(Rainbow::default()).domain([0., 100.]);
+///
+/// let grid: Vec<LineProperties> = grid_horizontal_iter(
+///     &y.ticks(None),
+///     margin_left,            // x left
+///     width - margin_right,   // x right
+///     |&tick| tick,
+///     |&tick| LineAttrs {
+///         stroke_color: color.apply(tick), // rainbow colors
+///         ..Default::default()
+///     }
+/// ).collect();
+/// ```
 pub fn grid_horizontal_iter<Data>(
     values: &[Data],
     x1: f32,

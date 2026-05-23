@@ -1,5 +1,5 @@
-//! This module provides basic functionalities to draw fundamental elements such as axis, grid,
-//! circle, rectangle, text, path, area and arrow.
+//! This module provides basic functionalities to generating fundamental elements to be drawn such
+//! as axis, grid, circle, rectangle, text, path, area and arrow.
 //!
 //! It is based on row-oriented data structures and it offers a simple API to change attributes
 //! given a specific row of data.
