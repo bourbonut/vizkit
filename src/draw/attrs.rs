@@ -97,8 +97,6 @@ pub enum Alignment {
 
 /// Text attributes for text values, fill values and alignments.
 pub struct TextAttrs {
-    /// Text content
-    pub content: String,
     /// Fill color
     pub fill_color: Color,
     /// Font size
@@ -113,7 +111,6 @@ impl Default for TextAttrs {
     /// Centered empty content filled with white color with `font_size` set to `12.`.
     fn default() -> Self {
         Self {
-            content: String::new(),
             fill_color: Color::default(),
             font_size: 12.,
             align_x: Alignment::default(),

@@ -5,13 +5,14 @@ pub fn text_iter<Data>(
     values: &[Data],
     x: impl Fn(&Data) -> f32,
     y: impl Fn(&Data) -> f32,
+    formatter: impl Fn(&Data) -> String,
     text_attrs: impl Fn(&Data) -> TextAttrs,
 ) -> impl Iterator<Item = TextProperties> {
     values.iter().map(move |value| {
-        let text_values = (text_attrs)(value);
+        let text_values = text_attrs(value);
         TextProperties {
-            position: [(x)(value), (y)(value)],
-            content: text_values.content,
+            position: [x(value), y(value)],
+            content: formatter(value),
             fill_color: text_values.fill_color,
             font_size: text_values.font_size,
             align_x: text_values.align_x,
@@ -63,8 +64,8 @@ mod tests {
             &pairs,
             |pair| x_scale.tick_position(pair.x),
             |pair| y_scale.tick_position(pair.y),
+            |pair| (pair.x * pair.y).to_string(),
             |pair| TextAttrs {
-                content: (pair.x * pair.y).to_string(),
                 fill_color: color.apply(pair.y),
                 ..Default::default()
             },
@@ -100,8 +101,8 @@ mod tests {
             &values,
             |x| scale.tick_position(*x),
             |_| height - margin_bottom,
+            |x| (*x / 50.).to_string(),
             |x| TextAttrs {
-                content: (*x / 50.).to_string(),
                 fill_color: Color([x / 50.; 3]),
                 ..Default::default()
             },
