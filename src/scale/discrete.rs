@@ -120,9 +120,9 @@ where
 ///
 /// for c in "abcdefgh".split("") {
 ///     match c {
-///         "a" => assert_eq!(scale.apply(c), Some(0_f32).as_ref()),
-///         "b" => assert_eq!(scale.apply(c), Some(320_f32).as_ref()),
-///         "c" => assert_eq!(scale.apply(c), Some(640_f32).as_ref()),
+///         "a" => assert_eq!(scale.apply(c), Some(0.)),
+///         "b" => assert_eq!(scale.apply(c), Some(320.)),
+///         "c" => assert_eq!(scale.apply(c), Some(640.)),
 ///         "d" => assert_eq!(scale.apply(c), None),
 ///         "e" => assert_eq!(scale.apply(c), None),
 ///         "f" => assert_eq!(scale.apply(c), None),
@@ -237,14 +237,18 @@ where
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
     /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
     /// it returns `None` (invalid value or empty range).
-    pub fn apply(&self, x: D) -> Option<&f32> {
-        self.scale_ordinal.index.get(&x).and_then(|i| {
-            if self.scale_ordinal.range.is_empty() {
-                return None;
-            }
-            let index = i % self.scale_ordinal.range.len();
-            self.scale_ordinal.range.get(index)
-        })
+    pub fn apply(&self, x: D) -> Option<f32> {
+        self.scale_ordinal
+            .index
+            .get(&x)
+            .and_then(|i| {
+                if self.scale_ordinal.range.is_empty() {
+                    return None;
+                }
+                let index = i % self.scale_ordinal.range.len();
+                self.scale_ordinal.range.get(index)
+            })
+            .copied()
     }
 
     /// Returns the distance between two adjacent bands.

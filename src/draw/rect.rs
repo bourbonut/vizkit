@@ -58,7 +58,7 @@ mod tests {
             &values,
             |d| {
                 [
-                    *x.apply(d.0).expect("Undefined values in x domain"),
+                    x.apply(d.0).expect("Undefined values in x domain"),
                     y.apply(d.1),
                 ]
             },
