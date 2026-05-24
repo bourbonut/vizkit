@@ -29,7 +29,7 @@ mod warm_cold;
 
 pub use self::{
     categorical::CategoricalSpace,
-    color::Color,
+    color::{Color, ParseError},
     common::{ColorMap, Scheme},
     diverging::DivergingSpace,
     sequential::SequentialSpace,

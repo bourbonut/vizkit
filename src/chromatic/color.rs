@@ -22,9 +22,12 @@ impl Default for Color {
     }
 }
 
+/// Represents errors that can occur during parsing operations.
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
+    /// This happens if a character in the color string is not a valid hex digit.
     ParseIntError(ParseIntError),
+    /// The input string has an invalid length excluding '#' for a color code.
     InvalidLength(usize),
 }
 
