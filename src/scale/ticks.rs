@@ -10,14 +10,14 @@ pub trait Tick {
 }
 
 fn tick_spec(start: f32, stop: f32, count: usize) -> [f32; 3] {
-    let step = (stop - start) / (1 as f32).max(count as f32);
+    let step = (stop - start) / (1_f32).max(count as f32);
     let power = step.log10().floor();
-    let error = step / (10 as f32).powf(power);
-    let factor = if error >= (50 as f32).sqrt() {
+    let error = step / (10_f32).powf(power);
+    let factor = if error >= (50_f32).sqrt() {
         10
-    } else if error >= (10 as f32).sqrt() {
+    } else if error >= (10_f32).sqrt() {
         5
-    } else if error >= (2 as f32).sqrt() {
+    } else if error >= (2_f32).sqrt() {
         2
     } else {
         1
@@ -27,7 +27,7 @@ fn tick_spec(start: f32, stop: f32, count: usize) -> [f32; 3] {
     let mut i1;
     let mut i2;
     if power < 0. {
-        inc = (10 as f32).powf(-power) / factor as f32;
+        inc = (10_f32).powf(-power) / factor as f32;
         i1 = (start * inc).round();
         i2 = (stop * inc).round();
         if i1 / inc < start {
@@ -38,7 +38,7 @@ fn tick_spec(start: f32, stop: f32, count: usize) -> [f32; 3] {
         }
         inc = -inc;
     } else {
-        inc = (10 as f32).powf(power) * factor as f32;
+        inc = (10_f32).powf(power) * factor as f32;
         i1 = (start / inc).round();
         i2 = (stop / inc).round();
         if i1 * inc < start {
