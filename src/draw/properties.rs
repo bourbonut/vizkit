@@ -5,21 +5,19 @@ use crate::chromatic::Color;
 /// Line properties used for drawing a line.
 #[derive(Clone)]
 pub struct LineProperties {
-    /// Starting point
+    /// Starting point (default: [0.0, 0.0])
     pub start: [f32; 2],
-    /// Ending point
+    /// Ending point (default: [0.0, 0.0])
     pub end: [f32; 2],
-    /// Stroke color
+    /// Stroke color (default: white color)
     pub stroke_color: Color,
-    /// Stroke width
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
-    /// Stroke opacity
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for LineProperties {
-    /// Quantitative values are set to `1.`, stroke color is white and starting and ending points
-    /// are set to `[0.; 2]`.
     fn default() -> Self {
         Self {
             start: [0.; 2],
@@ -34,17 +32,21 @@ impl Default for LineProperties {
 /// Text properties used for drawing some text.
 #[derive(Clone)]
 pub struct TextProperties {
+    /// Text content (default: empty string)
     pub content: String,
+    /// Text position (default: [0.0, 0.0])
     pub position: [f32; 2],
+    /// Fill color (default: white color)
     pub fill_color: Color,
+    /// Font size (default: 12.)
     pub font_size: f32,
+    /// X-oriented text alignment (default: center)
     pub align_x: Alignment,
+    /// Y-oriented text alignment (default: center)
     pub align_y: Alignment,
 }
 
 impl Default for TextProperties {
-    /// Centered empty content with origin position, filled with white color and `font_size` set to
-    /// `12.`.
     fn default() -> Self {
         Self {
             content: String::new(),
@@ -60,18 +62,23 @@ impl Default for TextProperties {
 /// Circle properties used for drawing a circle.
 #[derive(Clone)]
 pub struct CircleProperties {
+    /// Circle center position (default: [0.0, 0.0])
     pub center: [f32; 2],
+    /// Circle radius (default: 1.)
     pub radius: f32,
+    /// Fill color (default: None)
     pub fill_color: Option<Color>,
+    /// Fill opacity (default: 1.0)
     pub fill_opacity: f32,
+    /// Stroke color (default: None)
     pub stroke_color: Option<Color>,
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for CircleProperties {
-    /// Default circle centered at the origin, with no color and all quantitative values are set to
-    /// `1.`.
     fn default() -> Self {
         Self {
             center: [0.; 2],
@@ -88,19 +95,25 @@ impl Default for CircleProperties {
 /// Rectangle properties used for drawing a rectangle.
 #[derive(Clone)]
 pub struct RectProperties {
+    /// Top left corner position (default: [0.0, 0.0])
     pub top_left: [f32; 2],
+    /// Rectangle size [width, height] (default: [0.0, 0.0])
     pub size: [f32; 2],
+    /// Corner radius (default: None)
     pub corner_radius: Option<f32>,
+    /// Fill color (default: None)
     pub fill_color: Option<Color>,
+    /// Fill opacity (default: 1.0)
     pub fill_opacity: f32,
+    /// Stroke color (default: None)
     pub stroke_color: Option<Color>,
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for RectProperties {
-    /// Default rectangle centered at the origin, with null size, no corner radius and no color,
-    /// where all quantitative values are set to `1.`.
     fn default() -> Self {
         Self {
             top_left: [0.; 2],
@@ -118,14 +131,17 @@ impl Default for RectProperties {
 /// Arrow properties used for drawing an arrow.
 #[derive(Clone)]
 pub struct ArrowProperties {
+    /// Path commands for drawing the arrow (default: empty vector)
     pub path_commands: Vec<PathCommand>,
+    /// Stroke color (default: white color)
     pub stroke_color: Color,
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for ArrowProperties {
-    /// Arrow with empty path commands, with white stroke and quantitative values set to `1.`.
     fn default() -> Self {
         Self {
             path_commands: Vec::new(),

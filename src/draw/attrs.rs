@@ -6,24 +6,23 @@ use crate::chromatic::Color;
 ///
 /// | Function | `fill_color` | `stroke_color` |
 /// | -------- | ------------ | -------------- |
-/// | [`ShapeAttrs::default`] | `None` | `None` |
-/// | [`ShapeAttrs::fill_default`] | `Some(Color::default())` | `None` |
-/// | [`ShapeAttrs::stroke_default`] | `None` | `Some(Color::default())` |
+/// | [`ShapeAttrs::default`] | None | None |
+/// | [`ShapeAttrs::fill_default`] | white color | None |
+/// | [`ShapeAttrs::stroke_default`] | None | white color |
 pub struct ShapeAttrs {
-    /// Fill color
+    /// Fill color (default: None)
     pub fill_color: Option<Color>,
-    /// Fill opacity
+    /// Fill opacity (default: 1.0)
     pub fill_opacity: f32,
-    /// Stroke color
+    /// Stroke color (default: None)
     pub stroke_color: Option<Color>,
-    /// Stroke width
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
-    /// Stroke opacity
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for ShapeAttrs {
-    /// All quantitative values are set to `1.` and colors are set to `None`.
     fn default() -> Self {
         Self {
             fill_color: None,
@@ -36,8 +35,7 @@ impl Default for ShapeAttrs {
 }
 
 impl ShapeAttrs {
-    /// All quantitative values are set to `1.`, `fill_color` is `Some(Color::default())` (white
-    /// color) and `stroke_color` is `None`.
+    /// All default values but `fill_color` is white color.
     pub fn fill_default() -> Self {
         Self {
             fill_color: Some(Color::default()),
@@ -48,8 +46,7 @@ impl ShapeAttrs {
         }
     }
 
-    /// All quantitative values are set to `1.`, `stroke_color` is `Some(Color::default())` (white
-    /// color) and `fill_color` is `None`.
+    /// All default values but `stroke_color` is white color.
     pub fn stroke_default() -> Self {
         Self {
             fill_color: None,
@@ -63,16 +60,15 @@ impl ShapeAttrs {
 
 /// Line attributes for stroke values.
 pub struct LineAttrs {
-    /// Stroke color
+    /// Stroke color (default: white color)
     pub stroke_color: Color,
-    /// Stroke width
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
-    /// Stroke opacity
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for LineAttrs {
-    /// All quantitative values are set to `1.` and stroke color is white.
     fn default() -> Self {
         Self {
             stroke_color: Color::default(),
@@ -97,18 +93,17 @@ pub enum Alignment {
 
 /// Text attributes for text values, fill values and alignments.
 pub struct TextAttrs {
-    /// Fill color
+    /// Fill color (default: white color)
     pub fill_color: Color,
-    /// Font size
+    /// Font size (default: 12)
     pub font_size: f32,
-    /// X-oriented text alignment
+    /// X-oriented text alignment (default: center)
     pub align_x: Alignment,
-    /// Y-oriented text alignment
+    /// Y-oriented text alignment (default: center)
     pub align_y: Alignment,
 }
 
 impl Default for TextAttrs {
-    /// Centered empty content filled with white color with `font_size` set to `12.`.
     fn default() -> Self {
         Self {
             fill_color: Color::default(),
@@ -121,29 +116,21 @@ impl Default for TextAttrs {
 
 /// Arrow attributes
 pub struct ArrowAttrs {
-    /// Bend angle
+    /// Bend angle (default: 0.0)
     pub bend_angle: f32,
-    /// Head angle
+    /// Head angle (default: 60.0)
     pub head_angle: f32,
-    /// Head length
+    /// Head length (default: 8.0)
     pub head_length: f32,
-    /// Stroke color
+    /// Stroke color (default: white color)
     pub stroke_color: Color,
-    /// Stroke width
+    /// Stroke width (default: 1.0)
     pub stroke_width: f32,
-    /// Stroke opacity
+    /// Stroke opacity (default: 1.0)
     pub stroke_opacity: f32,
 }
 
 impl Default for ArrowAttrs {
-    /// Default values are:
-    ///
-    /// - `bend_angle`: `0.`
-    /// - `head_angle`: `60.`
-    /// - `head_length`: `8.`
-    /// - `stroke_color`: `Color::default()` (white color)
-    /// - `stroke_width`: `1.`
-    /// - `stroke_opacity`: `1.`
     fn default() -> Self {
         Self {
             bend_angle: 0.,

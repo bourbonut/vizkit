@@ -8,7 +8,7 @@ pub struct AxisOptions {
     pub tick_size: f32,
     /// Offset between tick lines and tick labels
     pub offset: f32,
-    /// Number of ticks; default is `10`
+    /// Number of ticks, it is passed to [`Axis::ticks`][`crate::scale::Axis::ticks`]
     pub count: Option<usize>,
     /// Line attributes
     pub line_attrs: LineAttrs,

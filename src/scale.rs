@@ -62,8 +62,9 @@ pub use self::{
 pub trait Axis {
     /// Tick type
     type Tick;
-    /// Generates tick values with an approximated number of ticks specified by the `count` value
-    /// (default: `10`).
+    /// Generates tick values with an approximated number of ticks specified by the `count` value.
+    ///
+    /// If the specified value is `None`, it defaults to 10.
     fn ticks(&self, count: Option<usize>) -> Vec<Self::Tick>;
     /// Generates a tick position along a direction.
     fn tick_position(&self, x: Self::Tick) -> f32;
