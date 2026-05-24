@@ -100,8 +100,8 @@ fn grid_iter<Data>(
     line_attrs: impl Fn(&Data) -> LineAttrs,
 ) -> impl Iterator<Item = LineProperties> {
     values.iter().map(move |value| {
-        let projected = (projection)(value);
-        let line_values = (line_attrs)(value);
+        let projected = projection(value);
+        let line_values = line_attrs(value);
         LineProperties {
             start: orientation.apply(projected, boundaries[0]),
             end: orientation.apply(projected, boundaries[1]),
