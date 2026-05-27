@@ -3,23 +3,238 @@ use super::common::{RGBInterpolator, Scheme, split_colors};
 /// Color space used for [`Sequential`][`super::Sequential`] color map
 #[derive(Debug)]
 pub enum SequentialSpace {
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#f7fbff" height="30" width="30" x="0"/>
+    /// <rect fill="#deebf7" height="30" width="30" x="30"/>
+    /// <rect fill="#c6dbef" height="30" width="30" x="60"/>
+    /// <rect fill="#9ecae1" height="30" width="30" x="90"/>
+    /// <rect fill="#6baed6" height="30" width="30" x="120"/>
+    /// <rect fill="#4292c6" height="30" width="30" x="150"/>
+    /// <rect fill="#2171b5" height="30" width="30" x="180"/>
+    /// <rect fill="#08519c" height="30" width="30" x="210"/>
+    /// <rect fill="#08306b" height="30" width="30" x="240"/>
+    /// </svg>
     Blues,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#f7fcf5" height="30" width="30" x="0"/>
+    /// <rect fill="#e5f5e0" height="30" width="30" x="30"/>
+    /// <rect fill="#c7e9c0" height="30" width="30" x="60"/>
+    /// <rect fill="#a1d99b" height="30" width="30" x="90"/>
+    /// <rect fill="#74c476" height="30" width="30" x="120"/>
+    /// <rect fill="#41ab5d" height="30" width="30" x="150"/>
+    /// <rect fill="#238b45" height="30" width="30" x="180"/>
+    /// <rect fill="#006d2c" height="30" width="30" x="210"/>
+    /// <rect fill="#00441b" height="30" width="30" x="240"/>
+    /// </svg>
     Greens,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#ffffff" height="30" width="30" x="0"/>
+    /// <rect fill="#f0f0f0" height="30" width="30" x="30"/>
+    /// <rect fill="#d9d9d9" height="30" width="30" x="60"/>
+    /// <rect fill="#bdbdbd" height="30" width="30" x="90"/>
+    /// <rect fill="#969696" height="30" width="30" x="120"/>
+    /// <rect fill="#737373" height="30" width="30" x="150"/>
+    /// <rect fill="#525252" height="30" width="30" x="180"/>
+    /// <rect fill="#252525" height="30" width="30" x="210"/>
+    /// <rect fill="#000000" height="30" width="30" x="240"/>
+    /// </svg>
     Greys,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fff5eb" height="30" width="30" x="0"/>
+    /// <rect fill="#fee6ce" height="30" width="30" x="30"/>
+    /// <rect fill="#fdd0a2" height="30" width="30" x="60"/>
+    /// <rect fill="#fdae6b" height="30" width="30" x="90"/>
+    /// <rect fill="#fd8d3c" height="30" width="30" x="120"/>
+    /// <rect fill="#f16913" height="30" width="30" x="150"/>
+    /// <rect fill="#d94801" height="30" width="30" x="180"/>
+    /// <rect fill="#a63603" height="30" width="30" x="210"/>
+    /// <rect fill="#7f2704" height="30" width="30" x="240"/>
+    /// </svg>
     Oranges,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fcfbfd" height="30" width="30" x="0"/>
+    /// <rect fill="#efedf5" height="30" width="30" x="30"/>
+    /// <rect fill="#dadaeb" height="30" width="30" x="60"/>
+    /// <rect fill="#bcbddc" height="30" width="30" x="90"/>
+    /// <rect fill="#9e9ac8" height="30" width="30" x="120"/>
+    /// <rect fill="#807dba" height="30" width="30" x="150"/>
+    /// <rect fill="#6a51a3" height="30" width="30" x="180"/>
+    /// <rect fill="#54278f" height="30" width="30" x="210"/>
+    /// <rect fill="#3f007d" height="30" width="30" x="240"/>
+    /// </svg>
     Purples,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fff5f0" height="30" width="30" x="0"/>
+    /// <rect fill="#fee0d2" height="30" width="30" x="30"/>
+    /// <rect fill="#fcbba1" height="30" width="30" x="60"/>
+    /// <rect fill="#fc9272" height="30" width="30" x="90"/>
+    /// <rect fill="#fb6a4a" height="30" width="30" x="120"/>
+    /// <rect fill="#ef3b2c" height="30" width="30" x="150"/>
+    /// <rect fill="#cb181d" height="30" width="30" x="180"/>
+    /// <rect fill="#a50f15" height="30" width="30" x="210"/>
+    /// <rect fill="#67000d" height="30" width="30" x="240"/>
+    /// </svg>
     Reds,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#f7fcfd" height="30" width="30" x="0"/>
+    /// <rect fill="#e5f5f9" height="30" width="30" x="30"/>
+    /// <rect fill="#ccece6" height="30" width="30" x="60"/>
+    /// <rect fill="#99d8c9" height="30" width="30" x="90"/>
+    /// <rect fill="#66c2a4" height="30" width="30" x="120"/>
+    /// <rect fill="#41ae76" height="30" width="30" x="150"/>
+    /// <rect fill="#238b45" height="30" width="30" x="180"/>
+    /// <rect fill="#006d2c" height="30" width="30" x="210"/>
+    /// <rect fill="#00441b" height="30" width="30" x="240"/>
+    /// </svg>
     BuGn,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#f7fcfd" height="30" width="30" x="0"/>
+    /// <rect fill="#e0ecf4" height="30" width="30" x="30"/>
+    /// <rect fill="#bfd3e6" height="30" width="30" x="60"/>
+    /// <rect fill="#9ebcda" height="30" width="30" x="90"/>
+    /// <rect fill="#8c96c6" height="30" width="30" x="120"/>
+    /// <rect fill="#8c6bb1" height="30" width="30" x="150"/>
+    /// <rect fill="#88419d" height="30" width="30" x="180"/>
+    /// <rect fill="#810f7c" height="30" width="30" x="210"/>
+    /// <rect fill="#4d004b" height="30" width="30" x="240"/>
+    /// </svg>
     BuPu,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#f7fcf0" height="30" width="30" x="0"/>
+    /// <rect fill="#e0f3db" height="30" width="30" x="30"/>
+    /// <rect fill="#ccebc5" height="30" width="30" x="60"/>
+    /// <rect fill="#a8ddb5" height="30" width="30" x="90"/>
+    /// <rect fill="#7bccc4" height="30" width="30" x="120"/>
+    /// <rect fill="#4eb3d3" height="30" width="30" x="150"/>
+    /// <rect fill="#2b8cbe" height="30" width="30" x="180"/>
+    /// <rect fill="#0868ac" height="30" width="30" x="210"/>
+    /// <rect fill="#084081" height="30" width="30" x="240"/>
+    /// </svg>
     GnBu,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fff7ec" height="30" width="30" x="0"/>
+    /// <rect fill="#fee8c8" height="30" width="30" x="30"/>
+    /// <rect fill="#fdd49e" height="30" width="30" x="60"/>
+    /// <rect fill="#fdbb84" height="30" width="30" x="90"/>
+    /// <rect fill="#fc8d59" height="30" width="30" x="120"/>
+    /// <rect fill="#ef6548" height="30" width="30" x="150"/>
+    /// <rect fill="#d7301f" height="30" width="30" x="180"/>
+    /// <rect fill="#b30000" height="30" width="30" x="210"/>
+    /// <rect fill="#7f0000" height="30" width="30" x="240"/>
+    /// </svg>
     OrRd,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fff7fb" height="30" width="30" x="0"/>
+    /// <rect fill="#ece7f2" height="30" width="30" x="30"/>
+    /// <rect fill="#d0d1e6" height="30" width="30" x="60"/>
+    /// <rect fill="#a6bddb" height="30" width="30" x="90"/>
+    /// <rect fill="#74a9cf" height="30" width="30" x="120"/>
+    /// <rect fill="#3690c0" height="30" width="30" x="150"/>
+    /// <rect fill="#0570b0" height="30" width="30" x="180"/>
+    /// <rect fill="#045a8d" height="30" width="30" x="210"/>
+    /// <rect fill="#023858" height="30" width="30" x="240"/>
+    /// </svg>
     PuBu,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fff7fb" height="30" width="30" x="0"/>
+    /// <rect fill="#ece2f0" height="30" width="30" x="30"/>
+    /// <rect fill="#d0d1e6" height="30" width="30" x="60"/>
+    /// <rect fill="#a6bddb" height="30" width="30" x="90"/>
+    /// <rect fill="#67a9cf" height="30" width="30" x="120"/>
+    /// <rect fill="#3690c0" height="30" width="30" x="150"/>
+    /// <rect fill="#02818a" height="30" width="30" x="180"/>
+    /// <rect fill="#016c59" height="30" width="30" x="210"/>
+    /// <rect fill="#014636" height="30" width="30" x="240"/>
+    /// </svg>
     PuBuGn,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#f7f4f9" height="30" width="30" x="0"/>
+    /// <rect fill="#e7e1ef" height="30" width="30" x="30"/>
+    /// <rect fill="#d4b9da" height="30" width="30" x="60"/>
+    /// <rect fill="#c994c7" height="30" width="30" x="90"/>
+    /// <rect fill="#df65b0" height="30" width="30" x="120"/>
+    /// <rect fill="#e7298a" height="30" width="30" x="150"/>
+    /// <rect fill="#ce1256" height="30" width="30" x="180"/>
+    /// <rect fill="#980043" height="30" width="30" x="210"/>
+    /// <rect fill="#67001f" height="30" width="30" x="240"/>
+    /// </svg>
     PuRd,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#fff7f3" height="30" width="30" x="0"/>
+    /// <rect fill="#fde0dd" height="30" width="30" x="30"/>
+    /// <rect fill="#fcc5c0" height="30" width="30" x="60"/>
+    /// <rect fill="#fa9fb5" height="30" width="30" x="90"/>
+    /// <rect fill="#f768a1" height="30" width="30" x="120"/>
+    /// <rect fill="#dd3497" height="30" width="30" x="150"/>
+    /// <rect fill="#ae017e" height="30" width="30" x="180"/>
+    /// <rect fill="#7a0177" height="30" width="30" x="210"/>
+    /// <rect fill="#49006a" height="30" width="30" x="240"/>
+    /// </svg>
     RdPu,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#ffffe5" height="30" width="30" x="0"/>
+    /// <rect fill="#f7fcb9" height="30" width="30" x="30"/>
+    /// <rect fill="#d9f0a3" height="30" width="30" x="60"/>
+    /// <rect fill="#addd8e" height="30" width="30" x="90"/>
+    /// <rect fill="#78c679" height="30" width="30" x="120"/>
+    /// <rect fill="#41ab5d" height="30" width="30" x="150"/>
+    /// <rect fill="#238443" height="30" width="30" x="180"/>
+    /// <rect fill="#006837" height="30" width="30" x="210"/>
+    /// <rect fill="#004529" height="30" width="30" x="240"/>
+    /// </svg>
     YlGn,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#ffffd9" height="30" width="30" x="0"/>
+    /// <rect fill="#edf8b1" height="30" width="30" x="30"/>
+    /// <rect fill="#c7e9b4" height="30" width="30" x="60"/>
+    /// <rect fill="#7fcdbb" height="30" width="30" x="90"/>
+    /// <rect fill="#41b6c4" height="30" width="30" x="120"/>
+    /// <rect fill="#1d91c0" height="30" width="30" x="150"/>
+    /// <rect fill="#225ea8" height="30" width="30" x="180"/>
+    /// <rect fill="#253494" height="30" width="30" x="210"/>
+    /// <rect fill="#081d58" height="30" width="30" x="240"/>
+    /// </svg>
     YlGnBu,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#ffffe5" height="30" width="30" x="0"/>
+    /// <rect fill="#fff7bc" height="30" width="30" x="30"/>
+    /// <rect fill="#fee391" height="30" width="30" x="60"/>
+    /// <rect fill="#fec44f" height="30" width="30" x="90"/>
+    /// <rect fill="#fe9929" height="30" width="30" x="120"/>
+    /// <rect fill="#ec7014" height="30" width="30" x="150"/>
+    /// <rect fill="#cc4c02" height="30" width="30" x="180"/>
+    /// <rect fill="#993404" height="30" width="30" x="210"/>
+    /// <rect fill="#662506" height="30" width="30" x="240"/>
+    /// </svg>
     YlOrBr,
+
+    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
+    /// <rect fill="#ffffcc" height="30" width="30" x="0"/>
+    /// <rect fill="#ffeda0" height="30" width="30" x="30"/>
+    /// <rect fill="#fed976" height="30" width="30" x="60"/>
+    /// <rect fill="#feb24c" height="30" width="30" x="90"/>
+    /// <rect fill="#fd8d3c" height="30" width="30" x="120"/>
+    /// <rect fill="#fc4e2a" height="30" width="30" x="150"/>
+    /// <rect fill="#e31a1c" height="30" width="30" x="180"/>
+    /// <rect fill="#bd0026" height="30" width="30" x="210"/>
+    /// <rect fill="#800026" height="30" width="30" x="240"/>
+    /// </svg>
     YlOrRd,
 }
 
