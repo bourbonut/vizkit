@@ -158,8 +158,8 @@ fn main() {
     let ordinal = CategoricalSpace::Observable10.scheme();
     let circles = circle_iter(
         &data,
-        |row| x.apply(row.weight as f32),
-        |row| y.apply(row.height as f32),
+        |row| x.scale(row.weight as f32),
+        |row| y.scale(row.height as f32),
         |_| 2.,
         |row| ShapeAttrs {
             stroke_color: Some(Color::from_str(ordinal[!row.sex as usize]).unwrap_or_default()),

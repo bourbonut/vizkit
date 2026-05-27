@@ -51,13 +51,13 @@ pub fn legend<'a>(data: &Data) -> Column<'a, Message> {
         space().height(10.),
     ];
 
-    let rmax = radius.apply(2000.);
+    let rmax = radius.scale(2000.);
     let column_element =
         [10.0, 100.0, 500.0, 1_000.0, 2_000.0]
             .into_iter()
             .fold(column_element, |col, r| {
                 let string = r.to_string();
-                let r = radius.apply(r);
+                let r = radius.scale(r);
                 let circle = Circle {
                     color: iced::Color::WHITE,
                     radius: r,
@@ -82,7 +82,7 @@ pub fn legend<'a>(data: &Data) -> Column<'a, Message> {
     COLOR_DOMAIN
         .iter()
         .fold(column_element, |col, value| {
-            let color_str = color.apply(value).map_or("", |v| v);
+            let color_str = color.scale(value).map_or("", |v| v);
             let circle = Circle {
                 color: iced::Color::from_str(color_str).unwrap_or_default(),
                 radius: RADIUS_BASE,

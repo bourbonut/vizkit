@@ -86,10 +86,10 @@ fn arrow_builder(x1: f32, y1: f32, x2: f32, y2: f32, arrow_values: ArrowAttrs) -
 ///
 /// let arrows: Vec<ArrowProperties> = arrow_iter(
 ///     &data,
-///     |d| x.apply(d[0]),
-///     |d| x.apply(d[1]),
-///     |d| x.apply(d[2]),
-///     |d| x.apply(d[3]),
+///     |d| x.scale(d[0]),
+///     |d| x.scale(d[1]),
+///     |d| x.scale(d[2]),
+///     |d| x.scale(d[3]),
 ///     |d| ArrowAttrs::default(),
 /// ).collect();
 /// ```
@@ -134,8 +134,8 @@ pub fn arrow_iter<Data>(
 ///
 /// let vectors: Vec<ArrowProperties> = vector_iter(
 ///     &data,
-///     |d| x.apply(d[0]),
-///     |d| x.apply(d[1]),
+///     |d| x.scale(d[0]),
+///     |d| x.scale(d[1]),
 ///     |_| 5.,
 ///     |d| d[1].atan2(d[0]),
 ///     |d| ArrowAttrs::default(),

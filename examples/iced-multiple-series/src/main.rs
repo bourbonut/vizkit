@@ -190,8 +190,8 @@ impl canvas::Program<Message> for Plot<'_> {
         // Compute the closest line and the closest point given the cursor position
         let argmin = state.and_then(|position| {
             let dist = |row: &Row| {
-                (x_scale.apply(row.date) as f32 - position.x)
-                    .hypot(y_scale.apply(row.unemp_value) - position.y)
+                (x_scale.scale(row.date) as f32 - position.x)
+                    .hypot(y_scale.scale(row.unemp_value) - position.y)
             };
             self.data
                 .values
@@ -213,8 +213,8 @@ impl canvas::Program<Message> for Plot<'_> {
             self.data.values.iter().for_each(|(key, rows)| {
                 let path = build_path(
                     rows,
-                    |row| x_scale.apply(row.date) as f32,
-                    |row| y_scale.apply(row.unemp_value),
+                    |row| x_scale.scale(row.date) as f32,
+                    |row| y_scale.scale(row.unemp_value),
                 );
                 let (color, stroke_width) = if key == division {
                     (iced::Color::from_rgb(0.275, 0.51, 0.706), 3.)
@@ -237,8 +237,8 @@ impl canvas::Program<Message> for Plot<'_> {
                 .get(division)
                 .and_then(|rows| rows.get(row_idx))
             {
-                let x = x_scale.apply(row.date) as f32;
-                let y = y_scale.apply(row.unemp_value);
+                let x = x_scale.scale(row.date) as f32;
+                let y = y_scale.scale(row.unemp_value);
                 let circle = Path::circle([x, y].into(), 4.);
                 frame.fill(&circle, iced::Color::WHITE);
 
@@ -259,8 +259,8 @@ impl canvas::Program<Message> for Plot<'_> {
             self.data.values.values().for_each(|rows| {
                 let path = build_path(
                     rows,
-                    |row| x_scale.apply(row.date) as f32,
-                    |row| y_scale.apply(row.unemp_value),
+                    |row| x_scale.scale(row.date) as f32,
+                    |row| y_scale.scale(row.unemp_value),
                 );
                 frame.stroke(
                     &path,
@@ -296,7 +296,7 @@ impl canvas::Program<Message> for Plot<'_> {
             &y_scale.ticks(None),
             MARGIN_LEFT,
             width - MARGIN_RIGHT,
-            |&d| y_scale.apply(d),
+            |&d| y_scale.scale(d),
             |_| vizkit::draw::LineAttrs {
                 stroke_opacity: 0.2,
                 ..Default::default()

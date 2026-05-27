@@ -22,8 +22,8 @@ use super::{TextAttrs, TextProperties};
 ///
 /// let texts: Vec<TextProperties> = text_iter(
 ///     &data,
-///     |d| x.apply(d.0),
-///     |d| y.apply(d.1),
+///     |d| x.scale(d.0),
+///     |d| y.scale(d.1),
 ///     |d| d.2.to_uppercase().to_string(),
 ///     |d| TextAttrs {
 ///         align_x: Alignment::Start,
@@ -97,7 +97,7 @@ mod tests {
             |pair| y_scale.tick_position(pair.y),
             |pair| (pair.x * pair.y).to_string(),
             |pair| TextAttrs {
-                fill_color: color.apply(pair.y),
+                fill_color: color.scale(pair.y),
                 ..Default::default()
             },
         )
@@ -110,7 +110,7 @@ mod tests {
             let y_scaled = y_scale.tick_position(*y);
             assert_eq!(text.position, [x_scaled, y_scaled]);
             assert_eq!(text.content, (x * y).to_string());
-            assert_eq!(text.fill_color.0, color_scale.apply::<[f32; 3]>(*y));
+            assert_eq!(text.fill_color.0, color_scale.scale::<[f32; 3]>(*y));
         }
     }
 

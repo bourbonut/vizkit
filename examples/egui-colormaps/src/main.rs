@@ -18,7 +18,7 @@ fn show_color_map<C: ColorMap + Clone>(ui: &mut egui::Ui, title: &str, color_map
     let rect_width = 2;
 
     for t in (0..width).step_by(rect_width) {
-        let [r, g, b] = interpolator.apply::<[f32; 3]>(t as f32);
+        let [r, g, b] = interpolator.scale::<[f32; 3]>(t as f32);
         let color = Color32::from_rgb((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8);
 
         painter.rect_filled(

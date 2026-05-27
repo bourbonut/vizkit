@@ -6,21 +6,21 @@ use std::hash::Hash;
 /// ```
 /// use vizkit::scale::ScaleOrdinal;
 ///
-/// // The method `apply` needs `&mut self`.
+/// // The method `scale` needs `&mut self`.
 /// let mut scale = ScaleOrdinal::default()
 ///     .domain(&["a", "b", "c"])
 ///     .range(&["red", "green", "blue"]);
 ///
 /// for c in "abcdefgh".split("") {
 ///     match c {
-///         "a" => assert_eq!(scale.apply(c), Some("red").as_ref()),
-///         "b" => assert_eq!(scale.apply(c), Some("green").as_ref()),
-///         "c" => assert_eq!(scale.apply(c), Some("blue").as_ref()),
-///         "d" => assert_eq!(scale.apply(c), None),
-///         "e" => assert_eq!(scale.apply(c), None),
-///         "f" => assert_eq!(scale.apply(c), None),
-///         "g" => assert_eq!(scale.apply(c), None),
-///         "h" => assert_eq!(scale.apply(c), None),
+///         "a" => assert_eq!(scale.scale(c), Some("red").as_ref()),
+///         "b" => assert_eq!(scale.scale(c), Some("green").as_ref()),
+///         "c" => assert_eq!(scale.scale(c), Some("blue").as_ref()),
+///         "d" => assert_eq!(scale.scale(c), None),
+///         "e" => assert_eq!(scale.scale(c), None),
+///         "f" => assert_eq!(scale.scale(c), None),
+///         "g" => assert_eq!(scale.scale(c), None),
+///         "h" => assert_eq!(scale.scale(c), None),
 ///         "" => (),
 ///         x => unreachable!("char {} should not exist", x),
 ///     }
@@ -75,7 +75,7 @@ where
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
     /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
     /// it returns `None` (invalid value or empty range).
-    pub fn apply(&self, x: D) -> Option<&R>
+    pub fn scale(&self, x: D) -> Option<&R>
     where
         D: Clone,
     {
@@ -113,21 +113,21 @@ where
 /// ```
 /// use vizkit::scale::ScaleBand;
 ///
-/// // The method `apply` needs `&mut self`.
+/// // The method `scale` needs `&mut self`.
 /// let scale = ScaleBand::default()
 ///     .domain(&["a", "b", "c"])
 ///     .range([0., 960.]);
 ///
 /// for c in "abcdefgh".split("") {
 ///     match c {
-///         "a" => assert_eq!(scale.apply(c), Some(0.)),
-///         "b" => assert_eq!(scale.apply(c), Some(320.)),
-///         "c" => assert_eq!(scale.apply(c), Some(640.)),
-///         "d" => assert_eq!(scale.apply(c), None),
-///         "e" => assert_eq!(scale.apply(c), None),
-///         "f" => assert_eq!(scale.apply(c), None),
-///         "g" => assert_eq!(scale.apply(c), None),
-///         "h" => assert_eq!(scale.apply(c), None),
+///         "a" => assert_eq!(scale.scale(c), Some(0.)),
+///         "b" => assert_eq!(scale.scale(c), Some(320.)),
+///         "c" => assert_eq!(scale.scale(c), Some(640.)),
+///         "d" => assert_eq!(scale.scale(c), None),
+///         "e" => assert_eq!(scale.scale(c), None),
+///         "f" => assert_eq!(scale.scale(c), None),
+///         "g" => assert_eq!(scale.scale(c), None),
+///         "h" => assert_eq!(scale.scale(c), None),
 ///         "" => (),
 ///         x => unreachable!("char {} should not exist", x),
 ///     }
@@ -237,7 +237,7 @@ where
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
     /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
     /// it returns `None` (invalid value or empty range).
-    pub fn apply(&self, x: D) -> Option<f32> {
+    pub fn scale(&self, x: D) -> Option<f32> {
         self.scale_ordinal
             .index
             .get(&x)

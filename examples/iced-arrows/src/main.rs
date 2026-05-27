@@ -54,8 +54,8 @@ impl canvas::Program<Message> for Arrow {
 
         vector_iter(
             &self.values,
-            |&[x, _]| x_scale.apply(x as f32),
-            |&[_, y]| y_scale.apply(y as f32),
+            |&[x, _]| x_scale.scale(x as f32),
+            |&[_, y]| y_scale.scale(y as f32),
             |&[x, y]| ((noise(x + 2., y) + 0.5) * 24.) as f32,
             |&[x, y]| (noise(x, y) * 360.).to_radians() as f32,
             |_| ArrowAttrs::default(),

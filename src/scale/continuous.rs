@@ -67,7 +67,7 @@ impl BiMap {
         }
     }
 
-    fn apply(&self, x: f32) -> f32 {
+    fn scale(&self, x: f32) -> f32 {
         self.r0.interpolate(self.d0.normalize(x))
     }
 }
@@ -95,7 +95,7 @@ pub trait Transformer {
 /// use vizkit::scale::ScaleContinuous;
 ///
 /// let scale = ScaleContinuous::linear().domain([20., 30.]).range([100., 400.]);
-/// assert_eq!(scale.apply(25.), 250.);
+/// assert_eq!(scale.scale(25.), 250.);
 /// assert_eq!(scale.invert(400.), 30.);
 /// ```
 pub struct ScaleContinuous<T: Transformer + Tick> {
@@ -129,7 +129,7 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
     }
 
     /// Returns a new [`ScaleContinuous`] with the specified clamp value. If `true`, it clamps the
-    /// value passed to the transform step (see [`ScaleContinuous::apply`]) and the returned value
+    /// value passed to the transform step (see [`ScaleContinuous::scale`]) and the returned value
     /// after untransform step (see [`ScaleContinuous::invert`]) with the domain values.
     pub fn clamp(self, clamp: bool) -> Self {
         Self { clamp, ..self }
@@ -137,8 +137,8 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
 
     /// Given the specified value in the domain, it clamps the value, transforms it and returns the
     /// corresponding value of the range.
-    pub fn apply(&self, x: f32) -> f32 {
-        self.output.apply(self.transformer.transform(if self.clamp {
+    pub fn scale(&self, x: f32) -> f32 {
+        self.output.scale(self.transformer.transform(if self.clamp {
             let [a, b] = self.domain;
             x.clamp(a, b)
         } else {
@@ -149,7 +149,7 @@ impl<T: Transformer + Tick> ScaleContinuous<T> {
     /// Given the specified value in the range, it computes the corresponding value of the domain,
     /// untransforms it and returns the clamped value.
     pub fn invert(&self, y: f32) -> f32 {
-        let x = self.transformer.untransform(self.input.apply(y));
+        let x = self.transformer.untransform(self.input.scale(y));
         if self.clamp {
             let [a, b] = self.domain;
             x.clamp(a, b)
@@ -200,7 +200,7 @@ impl<T: Transformer + Tick> Axis for ScaleContinuous<T> {
     /// Given the specified value in the domain, it clamps the value, transforms it and returns the
     /// corresponding value of the range.
     fn tick_position(&self, x: Self::Tick) -> f32 {
-        self.output.apply(self.transformer.transform(if self.clamp {
+        self.output.scale(self.transformer.transform(if self.clamp {
             let [a, b] = self.domain;
             x.clamp(a, b)
         } else {
@@ -289,7 +289,7 @@ impl ScaleContinuous<Log> {
 
 impl ScaleContinuous<Power> {
     /// Power transformation (`x.powf(exponent)` where `x` is the input value used in
-    /// [`ScaleContinuous::apply`])
+    /// [`ScaleContinuous::scale`])
     pub fn pow(exponent: f32) -> Self {
         Self {
             transformer: Power { exponent },
@@ -422,8 +422,8 @@ mod tests {
         let x = ScaleContinuous::log10().domain([1.5, 50.]).nice(None);
         assert_eq!(x.domain, [1., 100.]);
         assert_eq!(x.range, [0., 1.]);
-        assert_eq!(x.apply(1.), 0.);
-        assert_eq!(x.apply(100.), 1.);
+        assert_eq!(x.scale(1.), 0.);
+        assert_eq!(x.scale(100.), 1.);
 
         let x = ScaleContinuous::log10().domain([0., 0.]).nice(None);
         assert_eq!(x.domain, [0., 0.]);

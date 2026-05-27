@@ -31,7 +31,7 @@ use super::{LineAttrs, LineProperties, Orientation};
 ///     margin_top,             // y top
 ///     |&tick| tick,
 ///     |&tick| LineAttrs {
-///         stroke_color: color.apply(tick), // rainbow colors
+///         stroke_color: color.scale(tick), // rainbow colors
 ///         ..Default::default()
 ///     }
 /// ).collect();
@@ -77,7 +77,7 @@ pub fn grid_vertical_iter<Data>(
 ///     width - margin_right,   // x right
 ///     |&tick| tick,
 ///     |&tick| LineAttrs {
-///         stroke_color: color.apply(tick), // rainbow colors
+///         stroke_color: color.scale(tick), // rainbow colors
 ///         ..Default::default()
 ///     }
 /// ).collect();

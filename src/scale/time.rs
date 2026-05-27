@@ -104,7 +104,7 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
     }
 
     /// Returns a new [`ScaleTime`] with the specified clamp value. If `true`, it clamps the value
-    /// passed to the transform step (see [`ScaleTime::apply`]) and the returned value after
+    /// passed to the transform step (see [`ScaleTime::scale`]) and the returned value after
     /// untransform step (see [`ScaleTime::invert`]) with the domain values.
     pub fn clamp(self, clamp: bool) -> Self {
         Self { clamp, ..self }
@@ -112,7 +112,7 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
 
     /// Given a specified [`chrono::DateTime`] value, it transforms it as timestamp value, it clamps
     /// the value, transforms it and returns the corresponding value of the range.
-    pub fn apply(&self, x: DateTime<Tz>) -> f64 {
+    pub fn scale(&self, x: DateTime<Tz>) -> f64 {
         let mut x = x.timestamp() as f64;
         let [a, b]: [f64; 2] = from_fn(|i| self.domain[i].timestamp() as f64);
         if self.clamp {
@@ -283,7 +283,7 @@ impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
     }
 
     fn tick_position(&self, x: Self::Tick) -> f32 {
-        self.apply(x.with_timezone(&self.domain[0].timezone())) as f32
+        self.scale(x.with_timezone(&self.domain[0].timezone())) as f32
     }
 }
 

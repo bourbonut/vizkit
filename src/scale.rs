@@ -18,11 +18,11 @@
 //!     .range([margin_left, width - margin_right]);
 //!
 //! // Start of domain
-//! assert_eq!(scale.apply(x_min), margin_left);
+//! assert_eq!(scale.scale(x_min), margin_left);
 //! // Middle of domain
-//! assert_eq!(scale.apply((x_max + x_min) * 0.5), (width - margin_right + margin_left) * 0.5);
+//! assert_eq!(scale.scale((x_max + x_min) * 0.5), (width - margin_right + margin_left) * 0.5);
 //! // End of domain
-//! assert_eq!(scale.apply(x_max), width - margin_right);
+//! assert_eq!(scale.scale(x_max), width - margin_right);
 //! ```
 
 mod color;

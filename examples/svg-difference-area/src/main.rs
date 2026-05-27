@@ -248,8 +248,8 @@ fn main() {
     // Middle white line
     let path = path_build(path_iter(
         &data,
-        |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.sanfrancisco),
+        |d| x_scale.scale(d.date) as f32,
+        |d| y_scale.scale(d.sanfrancisco),
         Curve::Step { tension: 0.5 },
     ))
     .set("fill", "none")
@@ -259,10 +259,10 @@ fn main() {
     let scheme = DivergingSpace::RdYlBu.scheme();
     let area_blue = path_build(area_iter(
         &data,
-        |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.sanfrancisco),
-        |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.nyc.max(d.sanfrancisco)),
+        |d| x_scale.scale(d.date) as f32,
+        |d| y_scale.scale(d.sanfrancisco),
+        |d| x_scale.scale(d.date) as f32,
+        |d| y_scale.scale(d.nyc.max(d.sanfrancisco)),
         Curve::Step { tension: 0.5 },
     ))
     .set("fill", format!("#{}", scheme[8]))
@@ -270,10 +270,10 @@ fn main() {
 
     let area_orange = path_build(area_iter(
         &data,
-        |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.nyc),
-        |d| x_scale.apply(d.date) as f32,
-        |d| y_scale.apply(d.nyc.max(d.sanfrancisco)),
+        |d| x_scale.scale(d.date) as f32,
+        |d| y_scale.scale(d.nyc),
+        |d| x_scale.scale(d.date) as f32,
+        |d| y_scale.scale(d.nyc.max(d.sanfrancisco)),
         Curve::Step { tension: 0.5 },
     ))
     .set("fill", format!("#{}", scheme[2]))

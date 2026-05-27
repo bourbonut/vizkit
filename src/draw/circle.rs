@@ -19,9 +19,9 @@ use super::{CircleProperties, ShapeAttrs};
 ///
 /// let circles: Vec<CircleProperties> = circle_iter(
 ///     &data,
-///     |d| x.apply(d[0]),
-///     |d| y.apply(d[1]),
-///     |d| r.apply(d[2]),
+///     |d| x.scale(d[0]),
+///     |d| y.scale(d[1]),
+///     |d| r.scale(d[2]),
 ///     |d| ShapeAttrs {
 ///         fill_color: Some(Color(if d[2] < 1500. {
 ///             [1., 0., 0.] // red
@@ -86,8 +86,8 @@ mod tests {
 
         for circle_property in circle_iter(
             &values,
-            |d| x.apply(d.0),
-            |d| y.apply(d.1),
+            |d| x.scale(d.0),
+            |d| y.scale(d.1),
             |_| 5.,
             |_| ShapeAttrs::stroke_default(),
         ) {

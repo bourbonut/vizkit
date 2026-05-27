@@ -171,8 +171,8 @@ where
 ///
 /// let path_commands: Vec<PathCommand> = path_iter(
 ///     &data,
-///     |d| x.apply(d[0]),
-///     |d| y.apply(d[1]),
+///     |d| x.scale(d[0]),
+///     |d| y.scale(d[1]),
 ///     Curve::Cardinal { tension: 0.0 },
 /// ).collect();
 /// ```
@@ -212,10 +212,10 @@ pub fn path_iter<'a, Data>(
 ///
 /// let path_commands: Vec<PathCommand> = area_iter(
 ///     &data,
-///     |d| x.apply(d[0]),
-///     |d| y.apply(0.),
-///     |d| x.apply(d[0]),
-///     |d| y.apply(d[1].max(0.)),
+///     |d| x.scale(d[0]),
+///     |d| y.scale(0.),
+///     |d| x.scale(d[0]),
+///     |d| y.scale(d[1].max(0.)),
 ///     Curve::Cardinal { tension: 0.0 },
 /// ).collect();
 /// ```

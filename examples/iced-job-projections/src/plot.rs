@@ -159,7 +159,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             &state.x_scale.ticks(None),
             self.margin.top,
             height - self.margin.bottom,
-            |&x| state.x_scale.apply(x),
+            |&x| state.x_scale.scale(x),
             |_| LineAttrs::default(),
         )
         .for_each(|line_props| line(&mut frame, line_props));
@@ -213,7 +213,7 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
             &state.y_scale.ticks(None),
             self.margin.left,
             width - self.margin.right,
-            |&y| state.y_scale.apply(y),
+            |&y| state.y_scale.scale(y),
             |_| LineAttrs::default(),
         )
         .for_each(|line_props| line(&mut frame, line_props));
@@ -228,8 +228,8 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
         line(
             &mut frame,
             LineProperties {
-                start: [self.margin.left, state.y_scale.apply(33_900.0)],
-                end: [width - self.margin.right, state.y_scale.apply(33_900.0)],
+                start: [self.margin.left, state.y_scale.scale(33_900.0)],
+                end: [width - self.margin.right, state.y_scale.scale(33_900.0)],
                 stroke_color: Color::from_str("666").unwrap_or_default(),
                 stroke_width: 1.5,
                 stroke_opacity: 0.75,
@@ -269,16 +269,16 @@ impl<'a> canvas::Program<Message> for Plot<'a> {
 
         state.circles = circle_iter(
             &self.data.items,
-            |d| state.x_scale.apply(d.turnover),
-            |d| state.y_scale.apply(d.median_wage),
-            |d| r_scale.apply(d.openings),
+            |d| state.x_scale.scale(d.turnover),
+            |d| state.y_scale.scale(d.median_wage),
+            |d| r_scale.scale(d.openings),
             |d| ShapeAttrs {
                 fill_color: color
-                    .apply(d.sector_cat.as_str())
+                    .scale(d.sector_cat.as_str())
                     .map(|s| Color::from_str(s).unwrap_or_default()),
                 fill_opacity: 0.5,
                 stroke_color: color
-                    .apply(d.sector_cat.as_str())
+                    .scale(d.sector_cat.as_str())
                     .map(|s| Color::from_str(s).unwrap_or_default()),
                 ..Default::default()
             },

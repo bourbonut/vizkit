@@ -18,9 +18,9 @@ use crate::chromatic::{Color, ColorMap};
 /// let scale_color = ScaleColor::linear(color_map).domain([0., width]);
 ///
 /// // You can convert to `String` or `[f32; 3]`
-/// assert_eq!(scale_color.apply::<String>(0.), "#9e0042".to_string());
-/// assert_eq!(scale_color.apply::<String>(width * 0.5), "#faf8af".to_string());
-/// assert_eq!(scale_color.apply::<String>(width), "#5e4ea2".to_string());
+/// assert_eq!(scale_color.scale::<String>(0.), "#9e0042".to_string());
+/// assert_eq!(scale_color.scale::<String>(width * 0.5), "#faf8af".to_string());
+/// assert_eq!(scale_color.scale::<String>(width), "#5e4ea2".to_string());
 /// ```
 #[derive(Clone, Copy)]
 pub struct ScaleColor<T: Transformer, C: ColorMap> {
@@ -57,14 +57,14 @@ impl<T: Transformer, C: ColorMap> ScaleColor<T, C> {
     }
 
     /// Returns a new [`ScaleColor`] with the specified clamp applied which means that the
-    /// transformed value will be clamped in [0., 1.]. See also [`ScaleColor::apply`].
+    /// transformed value will be clamped in [0., 1.]. See also [`ScaleColor::scale`].
     pub fn clamp(self, clamp: bool) -> Self {
         Self { clamp, ..self }
     }
 
     /// Given the specified value in the domain, it transforms the value, clamps it if enabled, and
     /// returns the corresponding color.
-    pub fn apply<O>(&self, x: f32) -> O
+    pub fn scale<O>(&self, x: f32) -> O
     where
         Color: Into<O>,
     {
@@ -119,7 +119,7 @@ impl<C: ColorMap> ScaleColor<Log, C> {
 
 impl<C: ColorMap> ScaleColor<Power, C> {
     /// Power transformation (`x.powf(exponent)` where `x` is the input value used in
-    /// [`ScaleColor::apply`])
+    /// [`ScaleColor::scale`])
     pub fn pow(color_map: C, exponent: f32) -> Self {
         Self::new(Power { exponent }, color_map)
     }

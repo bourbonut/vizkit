@@ -18,8 +18,8 @@ use crate::draw::{RectProperties, ShapeAttrs};
 ///
 /// let rects: Vec<RectProperties> = rect_iter(
 ///     &data,
-///     |d| [x.apply(d.0).unwrap_or_default(), y.apply(0.)],
-///     |d| [x.bandwidth(), y.apply(0.) - y.apply(d.1)],
+///     |d| [x.scale(d.0).unwrap_or_default(), y.scale(0.)],
+///     |d| [x.bandwidth(), y.scale(0.) - y.scale(d.1)],
 ///     Some(5.),
 ///     |d| ShapeAttrs {
 ///         fill_color: Some(Color(if d.1 < 1500. {
@@ -89,11 +89,11 @@ mod tests {
             &values,
             |d| {
                 [
-                    x.apply(d.0).expect("Undefined values in x domain"),
-                    y.apply(d.1),
+                    x.scale(d.0).expect("Undefined values in x domain"),
+                    y.scale(d.1),
                 ]
             },
-            |d| [x.bandwidth(), y.apply(0.) - y.apply(d.1)],
+            |d| [x.bandwidth(), y.scale(0.) - y.scale(d.1)],
             None,
             |_| ShapeAttrs::stroke_default(),
         ) {
