@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+use super::Axis;
+
 /// Scaler with a discrete domain and a discrete range.
 ///
 /// ```
@@ -259,5 +261,20 @@ where
     /// Returns the width of each band
     pub fn bandwidth(&self) -> f32 {
         self.bandwidth
+    }
+}
+
+impl<D> Axis for ScaleBand<D>
+where
+    D: Hash + Eq + Clone,
+{
+    type Tick = D;
+
+    fn ticks(&self, _: Option<usize>) -> Vec<Self::Tick> {
+        self.scale_ordinal.domain.to_vec()
+    }
+
+    fn tick_position(&self, x: Self::Tick) -> f32 {
+        self.scale(x).unwrap_or(0.0)
     }
 }
