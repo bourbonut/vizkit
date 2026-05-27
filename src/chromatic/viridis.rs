@@ -24,7 +24,7 @@ impl<'a> ViridisInterpolator<'a> {
 }
 
 /// Color space used for [`Viridis`][`super::Viridis`] color map.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ViridisSpace {
     /// <svg height="30" viewBox="0 0 300 30" width="300" xmlns="http://www.w3.org/2000/svg">
     /// <rect fill="#440154" height="30" width="30" x="0"/>
@@ -107,7 +107,7 @@ impl Scheme for ViridisSpace {
 }
 
 impl ViridisSpace {
-    pub fn interpolator(&self) -> ViridisInterpolator<'_> {
+    pub(crate) fn interpolator(&self) -> ViridisInterpolator<'_> {
         ViridisInterpolator::new(self.scheme())
     }
 }

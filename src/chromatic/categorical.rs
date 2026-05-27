@@ -1,6 +1,7 @@
 use super::common::{Scheme, split_colors};
 
 /// Color space used for categorical schemes.
+#[derive(Debug, Clone)]
 pub enum CategoricalSpace {
     /// <svg height="30" viewBox="0 0 240 30" width="240" xmlns="http://www.w3.org/2000/svg">
     /// <rect fill="#7fc97f" height="30" width="30" x="0"/>

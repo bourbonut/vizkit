@@ -1,7 +1,7 @@
 use super::common::{RGBInterpolator, Scheme, split_colors};
 
 /// Color space used for [`Diverging`][`super::Diverging`] color map
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DivergingSpace {
     /// <svg height="30" viewBox="0 0 330 30" width="330" xmlns="http://www.w3.org/2000/svg">
     /// <rect fill="#543005" height="30" width="30" x="0"/>
@@ -156,7 +156,7 @@ impl Scheme for DivergingSpace {
 }
 
 impl DivergingSpace {
-    pub fn interpolator(&self) -> RGBInterpolator {
+    pub(crate) fn interpolator(&self) -> RGBInterpolator {
         RGBInterpolator::new(self.scheme())
     }
 }

@@ -1,7 +1,7 @@
 use super::common::{RGBInterpolator, Scheme, split_colors};
 
 /// Color space used for [`Sequential`][`super::Sequential`] color map
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SequentialSpace {
     /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
     /// <rect fill="#f7fbff" height="30" width="30" x="0"/>
@@ -264,7 +264,7 @@ impl Scheme for SequentialSpace {
 }
 
 impl SequentialSpace {
-    pub fn interpolator(&self) -> RGBInterpolator {
+    pub(crate) fn interpolator(&self) -> RGBInterpolator {
         RGBInterpolator::new(self.scheme())
     }
 }

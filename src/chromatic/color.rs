@@ -9,11 +9,11 @@ const C: f32 = -0.29227;
 const D: f32 = -0.90649;
 const E: f32 = 1.97294;
 
-/// Represents a color in RGB (red, green, blue) where each channel is a value in [0., 1.].
+/// Represents a color in RGB (red, green, blue) where each channel is a value in [0.0, 1.0].
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color(pub [f32; 3]);
-/// Represents a color in HSL (hue, saturation, lightness) where each channel is a value in [0.,
-/// 1.].
+/// Represents a color in HSL (hue, saturation, lightness) where each channel is a value in [0.0,
+/// 1.0].
 pub(crate) struct Cubehelix(pub [f32; 3]);
 
 impl Default for Color {
