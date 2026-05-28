@@ -8,10 +8,10 @@ use crate::draw::{RectProperties, ShapeAttrs};
 /// use vizkit::{
 ///     chromatic::Color,
 ///     draw::{RectProperties, ShapeAttrs, rect_iter},
-///     scale::{ScaleContinuous, ScaleBand},
+///     scale::{ScaleContinuous, ScaleDiscrete},
 /// };
 ///
-/// let x = ScaleBand::default().domain(&[0, 15, 35, 65]).range([0., 1.]);
+/// let x = ScaleDiscrete::band().domain(&[0, 15, 35, 65]).range([0., 1.]);
 /// let y = ScaleContinuous::linear().domain([0., 3_000.]);
 ///
 /// let data = [(0, 15.), (15, 1000.), (35, 2000.), (65, 2800.)];
@@ -57,7 +57,7 @@ pub fn rect_iter<Data>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scale::{ScaleBand, ScaleContinuous};
+    use crate::scale::{ScaleContinuous, ScaleDiscrete};
 
     #[test]
     fn test_rect_iter() {
@@ -67,7 +67,7 @@ mod tests {
         let margin_right = 0.;
         let margin_bottom = 30.;
         let margin_left = 40.;
-        let x = ScaleBand::default()
+        let x = ScaleDiscrete::band()
             .domain(&["a", "b", "c", "d", "e", "f"])
             .range([margin_left, width - margin_right])
             .padding(0.1);

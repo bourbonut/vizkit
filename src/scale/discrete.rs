@@ -8,21 +8,20 @@ use super::Axis;
 /// ```
 /// use vizkit::scale::ScaleOrdinal;
 ///
-/// // The method `scale` needs `&mut self`.
-/// let mut scale = ScaleOrdinal::default()
+/// let scaler = ScaleOrdinal::default()
 ///     .domain(&["a", "b", "c"])
 ///     .range(&["red", "green", "blue"]);
 ///
 /// for c in "abcdefgh".split("") {
 ///     match c {
-///         "a" => assert_eq!(scale.scale(c), Some("red").as_ref()),
-///         "b" => assert_eq!(scale.scale(c), Some("green").as_ref()),
-///         "c" => assert_eq!(scale.scale(c), Some("blue").as_ref()),
-///         "d" => assert_eq!(scale.scale(c), None),
-///         "e" => assert_eq!(scale.scale(c), None),
-///         "f" => assert_eq!(scale.scale(c), None),
-///         "g" => assert_eq!(scale.scale(c), None),
-///         "h" => assert_eq!(scale.scale(c), None),
+///         "a" => assert_eq!(scaler.scale(c), Some("red").as_ref()),
+///         "b" => assert_eq!(scaler.scale(c), Some("green").as_ref()),
+///         "c" => assert_eq!(scaler.scale(c), Some("blue").as_ref()),
+///         "d" => assert_eq!(scaler.scale(c), None),
+///         "e" => assert_eq!(scaler.scale(c), None),
+///         "f" => assert_eq!(scaler.scale(c), None),
+///         "g" => assert_eq!(scaler.scale(c), None),
+///         "h" => assert_eq!(scaler.scale(c), None),
 ///         "" => (),
 ///         x => unreachable!("char {} should not exist", x),
 ///     }
@@ -75,7 +74,7 @@ where
     }
 
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
-    /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
+    /// has a corresponding range value. If a value has been found, the value is returned. Otherwise
     /// it returns `None` (invalid value or empty range).
     pub fn scale(&self, x: D) -> Option<&R>
     where
@@ -110,32 +109,8 @@ where
 ///
 /// Additionally, it computes _band_ dimensions used for typically bar charts.
 ///
-/// See [`ScaleBand::step`] and [`ScaleBand::bandwidth`].
-///
-/// ```
-/// use vizkit::scale::ScaleBand;
-///
-/// // The method `scale` needs `&mut self`.
-/// let scale = ScaleBand::default()
-///     .domain(&["a", "b", "c"])
-///     .range([0., 960.]);
-///
-/// for c in "abcdefgh".split("") {
-///     match c {
-///         "a" => assert_eq!(scale.scale(c), Some(0.)),
-///         "b" => assert_eq!(scale.scale(c), Some(320.)),
-///         "c" => assert_eq!(scale.scale(c), Some(640.)),
-///         "d" => assert_eq!(scale.scale(c), None),
-///         "e" => assert_eq!(scale.scale(c), None),
-///         "f" => assert_eq!(scale.scale(c), None),
-///         "g" => assert_eq!(scale.scale(c), None),
-///         "h" => assert_eq!(scale.scale(c), None),
-///         "" => (),
-///         x => unreachable!("char {} should not exist", x),
-///     }
-/// }
-/// ```
-pub struct ScaleBand<D>
+/// See [`ScaleDiscrete::step`] and [`ScaleDiscrete::bandwidth`].
+pub struct ScaleDiscrete<D>
 where
     D: Hash + Eq,
 {
@@ -149,11 +124,35 @@ where
     scale_ordinal: ScaleOrdinal<D, f32>,
 }
 
-impl<D> Default for ScaleBand<D>
+impl<D> ScaleDiscrete<D>
 where
-    D: Hash + Eq + Default,
+    D: Hash + Eq,
 {
-    fn default() -> Self {
+    /// Returns a default [`ScaleDiscrete`] with uniform bands. You should use this default settings
+    /// when you want centered ticks.
+    ///
+    /// ```
+    /// use vizkit::scale::ScaleDiscrete;
+    ///
+    /// let scaler = ScaleDiscrete::band()
+    ///     .domain(&["a", "b", "c"])
+    ///     .range([0., 960.]);
+    ///
+    /// for c in "abcd".split("") {
+    ///     match c {
+    ///         "a" => assert_eq!(scaler.scale(c), Some(0.)),
+    ///         "b" => assert_eq!(scaler.scale(c), Some(320.)),
+    ///         "c" => assert_eq!(scaler.scale(c), Some(640.)),
+    ///         "d" => assert_eq!(scaler.scale(c), None),
+    ///         "" => (),
+    ///         x => unreachable!("char {} should not exist", x),
+    ///     }
+    /// }
+    /// ```
+    pub fn band() -> Self
+    where
+        D: Default,
+    {
         Self {
             r0: 0.,
             r1: 1.,
@@ -164,15 +163,51 @@ where
             align: 0.5,
             scale_ordinal: ScaleOrdinal::default(),
         }
+        .rescale()
     }
-}
 
-impl<D> ScaleBand<D>
-where
-    D: Hash + Eq + Clone,
-{
-    /// Returns a new [`ScaleBand`] with the specified domain applied.
-    pub fn domain(self, domain: &[D]) -> Self {
+    /// Returns a default [`ScaleDiscrete`] where the bandwidth is null.
+    ///
+    /// ```
+    /// use vizkit::scale::ScaleDiscrete;
+    ///
+    /// let scaler = ScaleDiscrete::point()
+    ///     .domain(&["a", "b", "c"])
+    ///     .range([0., 960.]);
+    ///
+    /// for c in "abcd".split("") {
+    ///     match c {
+    ///         "a" => assert_eq!(scaler.scale(c), Some(0.)),
+    ///         "b" => assert_eq!(scaler.scale(c), Some(480.)),
+    ///         "c" => assert_eq!(scaler.scale(c), Some(960.)),
+    ///         "d" => assert_eq!(scaler.scale(c), None),
+    ///         "" => (),
+    ///         x => unreachable!("char {} should not exist", x),
+    ///     }
+    /// }
+    /// ```
+    pub fn point() -> Self
+    where
+        D: Default,
+    {
+        Self {
+            r0: 0.,
+            r1: 1.,
+            step: 0.,
+            bandwidth: 0.,
+            padding_inner: 1.,
+            padding_outer: 0.,
+            align: 0.5,
+            scale_ordinal: ScaleOrdinal::default(),
+        }
+        .rescale()
+    }
+
+    /// Returns a new [`ScaleDiscrete`] with the specified domain applied.
+    pub fn domain(self, domain: &[D]) -> Self
+    where
+        D: Clone,
+    {
         Self {
             scale_ordinal: self.scale_ordinal.domain(domain),
             ..self
@@ -180,36 +215,48 @@ where
         .rescale()
     }
 
-    /// Returns a new [`ScaleBand`] with the specified range applied.
+    /// Returns a new [`ScaleDiscrete`] with the specified range applied.
     pub fn range(self, range: [f32; 2]) -> Self {
         let [r0, r1] = range;
         Self { r0, r1, ..self }.rescale()
     }
 
-    /// Returns a new [`ScaleBand`] in which inner and outer paddings are set to the same padding
-    /// value.
+    /// Returns a new [`ScaleDiscrete`] in which inner and outer paddings are set to the same
+    /// padding value. The specified value must be between [0.0, 1.0].
     pub fn padding(self, padding: f32) -> Self {
         Self {
-            padding_outer: padding,
-            padding_inner: padding.min(1.),
+            padding_outer: padding.clamp(0., 1.),
+            padding_inner: padding.clamp(0., 1.),
             ..self
         }
         .rescale()
     }
 
-    /// Returns a new [`ScaleBand`] in which inner padding is set to the padding value.
+    /// Returns a new [`ScaleDiscrete`] in which inner padding is set to the padding value. The
+    /// specified value must be between [0.0, 1.0].
     pub fn padding_inner(self, padding_inner: f32) -> Self {
         Self {
-            padding_inner: padding_inner.min(1.),
+            padding_inner: padding_inner.clamp(0., 1.),
             ..self
         }
         .rescale()
     }
 
-    /// Returns a new [`ScaleBand`] in which outer padding is set to the padding value.
+    /// Returns a new [`ScaleDiscrete`] in which outer padding is set to the padding value. The
+    /// specified value must be between [0.0, 1.0].
     pub fn padding_outer(self, padding_outer: f32) -> Self {
         Self {
-            padding_outer,
+            padding_outer: padding_outer.clamp(0., 1.),
+            ..self
+        }
+        .rescale()
+    }
+
+    /// Returns a new [`ScaleDiscrete`] in which align is set to the specified value. The specified
+    /// value must be between [0.0, 1.0].
+    pub fn align(self, align: f32) -> Self {
+        Self {
+            align: align.clamp(0., 1.),
             ..self
         }
         .rescale()
@@ -237,7 +284,7 @@ where
     }
 
     /// Given the input, firstly it checks if the value exists in the domain, then it checks if it
-    /// has a corresponding range value. It creates it a new one if not, and returns it. Otherwise
+    /// has a corresponding range value. If a value has been found, the value is returned. Otherwise
     /// it returns `None` (invalid value or empty range).
     pub fn scale(&self, x: D) -> Option<f32> {
         self.scale_ordinal
@@ -258,13 +305,13 @@ where
         self.step
     }
 
-    /// Returns the width of each band
+    /// Returns the width of each band.
     pub fn bandwidth(&self) -> f32 {
         self.bandwidth
     }
 }
 
-impl<D> Axis for ScaleBand<D>
+impl<D> Axis for ScaleDiscrete<D>
 where
     D: Hash + Eq + Clone,
 {
@@ -275,13 +322,14 @@ where
     }
 
     fn tick_position(&self, x: Self::Tick) -> f32 {
-        self.scale(x).unwrap_or(0.0)
+        self.scale(x).unwrap_or(0.0) + self.bandwidth() * 0.5
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::rstest;
 
     #[test]
     fn test_scale_ordinal() {
@@ -305,27 +353,44 @@ mod tests {
         assert_eq!(s.scale(2), None);
     }
 
-    #[test]
-    fn test_scale_band() {
-        let s = ScaleBand::default().range([0., 960.]);
+    fn band() -> ScaleDiscrete<&'static str> {
+        ScaleDiscrete::band()
+    }
+
+    fn point() -> ScaleDiscrete<&'static str> {
+        ScaleDiscrete::point()
+    }
+
+    #[rstest]
+    #[case(band, 480., 40., 30., [0., 40., 80.], [7.5, 45., 82.5])]
+    #[case(point, 960., 0., 30., [0., 60., 120.], [7.5, 45., 82.5])]
+    fn test_scale_discrete(
+        #[case] init: impl Fn() -> ScaleDiscrete<&'static str>,
+        #[case] bar_value: f32,
+        #[case] bandwidth1: f32,
+        #[case] bandwidth2: f32,
+        #[case] domain1: [f32; 3],
+        #[case] domain2: [f32; 3],
+    ) {
+        let s = init().range([0., 960.]);
         assert_eq!(s.scale("foo"), None);
 
-        let s = ScaleBand::default()
-            .domain(&["foo", "bar"])
-            .range([0., 960.]);
+        let s = init().domain(&["foo", "bar"]).range([0., 960.]);
         assert_eq!(s.scale("foo"), Some(0.));
-        assert_eq!(s.scale("bar"), Some(480.));
+        assert_eq!(s.scale("bar"), Some(bar_value));
 
-        let s = ScaleBand::default()
-            .domain(&["a", "b", "c"])
-            .range([0., 120.]);
+        let s = init().domain(&["a", "b", "c"]).range([0., 120.]);
         let range: Vec<f32> = s.ticks(None).iter().map(|x| s.tick_position(x)).collect();
-        assert_eq!(range, [0., 40., 80.]);
-        assert_eq!(s.bandwidth(), 40.);
+        let bandwidth = s.bandwidth();
+        let expected: Vec<f32> = domain1.map(|x| x + bandwidth * 0.5).into_iter().collect();
+        assert_eq!(range, expected);
+        assert_eq!(s.bandwidth(), bandwidth1);
 
         let s = s.padding(0.2);
         let range: Vec<f32> = s.ticks(None).iter().map(|x| s.tick_position(x)).collect();
-        assert_eq!(range, [7.5, 45., 82.5]);
-        assert_eq!(s.bandwidth(), 30.);
+        let bandwidth = s.bandwidth();
+        let expected: Vec<f32> = domain2.map(|x| x + bandwidth * 0.5).into_iter().collect();
+        assert_eq!(range, expected);
+        assert_eq!(s.bandwidth(), bandwidth2);
     }
 }

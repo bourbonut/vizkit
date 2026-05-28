@@ -48,9 +48,9 @@
 //!
 //! We are going to use different scalers (see [`scale`][`crate::scale`] for more information):
 //!
-//! - a first [`ScaleBand`][`crate::scale::ScaleBand`] for mapping `hour` values to a range defined
+//! - a first [`ScaleDiscrete`][`crate::scale::ScaleDiscrete`] for mapping `hour` values to a range defined
 //! by the region's width.
-//! - a second [`ScaleBand`][`crate::scale::ScaleBand`] for mapping `location` values to a range
+//! - a second [`ScaleDiscrete`][`crate::scale::ScaleDiscrete`] for mapping `location` values to a range
 //! defined by the region's height.
 //! - a [`ScaleColor`][`crate::scale::ScaleColor`] for mapping `vehicles` values to a range of
 //! colors.
@@ -60,7 +60,7 @@
 //! use vizkit::{
 //!     chromatic::{ColorMap, Turbo},
 //!     draw::{AxisOptions, ShapeAttrs, axis_bottom_iter, axis_left_iter, rect_iter},
-//!     scale::{Axis, ScaleBand, ScaleColor},
+//!     scale::{Axis, ScaleDiscrete, ScaleColor},
 //! };
 //!
 //! let width = 960.;
@@ -92,14 +92,14 @@
 //! ];
 //!
 //! let hours: Vec<u8> = (0..24).collect();
-//! let x_scale = ScaleBand::default()
+//! let x_scale = ScaleDiscrete::band()
 //!     .domain(&hours)
 //!     .range([margin_left, width - margin_right]);
 //!
 //! let locations: HashSet<&str> = HashSet::from_iter(
 //!     data.iter().map(|row| row.location.as_str())
 //! );
-//! let y_scale = ScaleBand::default()
+//! let y_scale = ScaleDiscrete::band()
 //!     .domain(&Vec::from_iter(locations))
 //!     .range([height - margin_bottom, margin_top]);
 //!

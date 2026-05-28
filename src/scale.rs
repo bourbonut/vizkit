@@ -41,7 +41,7 @@ pub use self::time::ScaleTime;
 pub use self::{
     color::ScaleColor,
     continuous::{ScaleContinuous, Transformer},
-    discrete::{ScaleBand, ScaleOrdinal},
+    discrete::{ScaleDiscrete, ScaleOrdinal},
     linear::Linear,
     log::{Ln, Log, Log2, Log10},
     pow::{Power, Sqrt},
