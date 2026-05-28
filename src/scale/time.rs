@@ -137,7 +137,7 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
     /// Given the specified value in the range, it computes the corresponding value of the domain,
     /// untransforms it, computes the clamped value and returns the corresponding
     /// [`chrono::DateTime`] value by using the final value as timestamp.
-    pub fn invert(&self, y: f64) -> DateTime<Utc> {
+    pub fn invert(&self, y: f64) -> Option<DateTime<Utc>> {
         let [a, b] = self.range;
 
         // Normalize value to [0, 1]
@@ -157,7 +157,7 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
         if self.clamp {
             x = x.clamp(a, b);
         }
-        DateTime::from_timestamp_nanos(x as i64)
+        DateTime::from_timestamp(x as i64, 0)
     }
 }
 
@@ -307,6 +307,15 @@ mod tests {
             .and_utc()
     }
 
+    #[test]
+    fn test_scale_time() {
+        let d0 = datetime(2011, 1, 1, 12, 0, 0);
+        let d1 = datetime(2011, 3, 1, 12, 0, 0);
+        let s = ScaleTime::default().domain([d0, d1]);
+        assert_eq!(s.invert(s.scale(d0)), Some(d0));
+        assert_eq!(s.invert(s.scale(d1)), Some(d1));
+    }
+
     #[rstest]
     #[case(datetime(2011, 1, 1, 12, 0, 0), datetime(2011, 1, 1, 12, 0, 1), 4, &[
         datetime(2011, 1, 1, 12, 0, 0),
@@ -440,7 +449,7 @@ mod tests {
         datetime(2011, 4, 1, 0, 0, 0),
         datetime(2011, 1, 1, 0, 0, 0),
     ])]
-    fn test_scale_time(
+    fn test_scale_time_ticks(
         #[case] domain_left: DateTime<Utc>,
         #[case] domain_right: DateTime<Utc>,
         #[case] count: usize,

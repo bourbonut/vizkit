@@ -278,3 +278,54 @@ where
         self.scale(x).unwrap_or(0.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_scale_ordinal() {
+        let s = ScaleOrdinal::default()
+            .domain(&[0, 1])
+            .range(&["foo", "bar"]);
+        assert_eq!(s.scale(0), Some("foo").as_ref());
+        assert_eq!(s.scale(1), Some("bar").as_ref());
+        assert_eq!(s.scale(2), None);
+        assert_eq!(s.scale(-1), None);
+
+        let s = s.range(&["a", "b", "c"]);
+        assert_eq!(s.scale(0), Some("a").as_ref());
+        assert_eq!(s.scale(1), Some("b").as_ref());
+        assert_eq!(s.scale(2), None);
+
+        let s = s.domain(&[0, 1, 2]);
+        assert_eq!(s.scale(2), Some("c").as_ref());
+
+        let s = s.domain(&[0, 1]);
+        assert_eq!(s.scale(2), None);
+    }
+
+    #[test]
+    fn test_scale_band() {
+        let s = ScaleBand::default().range([0., 960.]);
+        assert_eq!(s.scale("foo"), None);
+
+        let s = ScaleBand::default()
+            .domain(&["foo", "bar"])
+            .range([0., 960.]);
+        assert_eq!(s.scale("foo"), Some(0.));
+        assert_eq!(s.scale("bar"), Some(480.));
+
+        let s = ScaleBand::default()
+            .domain(&["a", "b", "c"])
+            .range([0., 120.]);
+        let range: Vec<f32> = s.ticks(None).iter().map(|x| s.tick_position(x)).collect();
+        assert_eq!(range, [0., 40., 80.]);
+        assert_eq!(s.bandwidth(), 40.);
+
+        let s = s.padding(0.2);
+        let range: Vec<f32> = s.ticks(None).iter().map(|x| s.tick_position(x)).collect();
+        assert_eq!(range, [7.5, 45., 82.5]);
+        assert_eq!(s.bandwidth(), 30.);
+    }
+}
