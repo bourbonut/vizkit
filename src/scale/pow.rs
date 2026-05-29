@@ -82,3 +82,21 @@ macro_rules! impl_tick {
 
 impl_tick!(Power);
 impl_tick!(Sqrt);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::f32::consts;
+
+    #[test]
+    fn test_power() {
+        let power = Power { exponent: 3. };
+        assert_eq!(power.untransform(power.transform(consts::PI)), consts::PI);
+    }
+
+    #[test]
+    fn test_sqrt() {
+        let sqrt = Sqrt;
+        assert_eq!(sqrt.untransform(sqrt.transform(consts::PI)), consts::PI);
+    }
+}

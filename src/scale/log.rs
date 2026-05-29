@@ -6,8 +6,6 @@ use super::{
     ticks::{Tick, ticks},
 };
 
-// TODO: negative values for domain
-
 /// Logarithm transformation (base `10`)
 #[derive(Clone, Copy)]
 pub struct Log10;
@@ -201,3 +199,37 @@ impl_tick!(Log);
 impl_tick!(Log2);
 impl_tick!(Log10);
 impl_tick!(Ln);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::f32::consts;
+
+    #[test]
+    fn test_log() {
+        let log = Log { base: 8. };
+        assert_eq!(log.untransform(log.transform(consts::PI)), consts::PI);
+        assert_eq!(log.base(), 8.);
+    }
+
+    #[test]
+    fn test_log10() {
+        let log = Log10;
+        assert_eq!(log.untransform(log.transform(consts::PI)), consts::PI);
+        assert_eq!(log.base(), 10.);
+    }
+
+    #[test]
+    fn test_log2() {
+        let log = Log2;
+        assert_eq!(log.untransform(log.transform(consts::PI)), consts::PI);
+        assert_eq!(log.base(), 2.);
+    }
+
+    #[test]
+    fn test_ln() {
+        let log = Ln;
+        assert!((log.untransform(log.transform(consts::PI)) - consts::PI).abs() < 1e-5);
+        assert_eq!(log.base(), consts::E);
+    }
+}
