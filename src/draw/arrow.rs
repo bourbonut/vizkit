@@ -66,7 +66,7 @@ fn arrow_builder(x1: f32, y1: f32, x2: f32, y2: f32, arrow_values: ArrowAttrs) -
 /// and the ending point of each arrow.
 ///
 /// Arrows start from the point `[x1, y1]` and end at the point `[x2, y2]`. Other shape options such
-/// as the head size or the bend angle are defined in [`ArrowAttrs`].
+/// as the head options or the bend angle are defined in [`ArrowAttrs`].
 ///
 /// # Example
 ///
@@ -116,8 +116,8 @@ pub fn arrow_iter<Data>(
 /// length and the rotation of each arrow.
 ///
 /// Vectors start from the point `[x, y]`, have a size of `length` and are rotated given the
-/// computed angle in radians from the `rotate` function. Other shape options such as the head size
-/// or the bend angle are defined in [`ArrowAttrs`].
+/// computed angle in radians from the `rotate` function. Other shape options such as the head
+/// options or the bend angle are defined in [`ArrowAttrs`].
 ///
 /// # Example
 ///
