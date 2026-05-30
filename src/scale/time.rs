@@ -6,7 +6,8 @@ use chrono::{DateTime, FixedOffset, Local, TimeDelta, TimeZone, Utc};
 
 const DURATION_YEAR: f64 = 365. * 24. * 60. * 60. * 1000.;
 
-enum IntervalStrategy {
+#[derive(Clone)]
+enum Interval {
     Millisecond,
     Second,
     Minute,
@@ -16,53 +17,157 @@ enum IntervalStrategy {
     Year,
 }
 
-impl IntervalStrategy {
-    #[rustfmt::skip]
-    fn create_range(
-        &self,
-        start: DateTime<Utc>,
-        stop: DateTime<Utc>,
-        step: u32,
-    ) -> Vec<DateTime<Utc>> {
-        let stop_offset = stop + TimeDelta::microseconds(1);
-        match self {
-            Self::Millisecond => TimeInterval::millisecond().every(step).range(start, stop_offset, 1),
-            Self::Second =>      TimeInterval::second().every(step).range(start, stop_offset, 1),
-            Self::Minute =>      TimeInterval::minute().every(step).range(start, stop_offset, 1),
-            Self::Hour =>        TimeInterval::hour().every(step).range(start, stop_offset, 1),
-            Self::Day =>         TimeInterval::day().every(step).range(start, stop_offset, 1),
-            Self::Month =>       TimeInterval::month().every(step).range(start, stop_offset, 1),
-            Self::Year =>        TimeInterval::year().every(step).range(start, stop_offset, 1),
-        }
-    }
-}
-
-struct TickDelta {
+#[derive(Clone)]
+struct TickInterval {
     delta: TimeDelta,
-    strategy: IntervalStrategy,
+    interval: Interval,
     step: u32,
 }
 
 #[rustfmt::skip]
-const TICK_DELTAS: &[TickDelta] = &[
-    TickDelta {delta: TimeDelta::seconds(1),    strategy: IntervalStrategy::Second, step: 1},
-    TickDelta {delta: TimeDelta::seconds(5),    strategy: IntervalStrategy::Second, step: 5},
-    TickDelta {delta: TimeDelta::seconds(15),   strategy: IntervalStrategy::Second, step: 15},
-    TickDelta {delta: TimeDelta::seconds(30),   strategy: IntervalStrategy::Second, step: 30},
-    TickDelta {delta: TimeDelta::minutes(1),    strategy: IntervalStrategy::Minute, step: 1},
-    TickDelta {delta: TimeDelta::minutes(5),    strategy: IntervalStrategy::Minute, step: 5},
-    TickDelta {delta: TimeDelta::minutes(15),   strategy: IntervalStrategy::Minute, step: 15},
-    TickDelta {delta: TimeDelta::minutes(30),   strategy: IntervalStrategy::Minute, step: 30},
-    TickDelta {delta: TimeDelta::hours(1),      strategy: IntervalStrategy::Hour,   step: 1},
-    TickDelta {delta: TimeDelta::hours(3),      strategy: IntervalStrategy::Hour,   step: 3},
-    TickDelta {delta: TimeDelta::hours(6),      strategy: IntervalStrategy::Hour,   step: 6},
-    TickDelta {delta: TimeDelta::hours(9),      strategy: IntervalStrategy::Hour,   step: 12},
-    TickDelta {delta: TimeDelta::days(1),       strategy: IntervalStrategy::Day,    step: 1},
-    TickDelta {delta: TimeDelta::days(2),       strategy: IntervalStrategy::Day,    step: 2},
-    TickDelta {delta: TimeDelta::days(31),      strategy: IntervalStrategy::Month,  step: 1},
-    TickDelta {delta: TimeDelta::days(31 * 3),  strategy: IntervalStrategy::Month,  step: 3},
-    TickDelta {delta: TimeDelta::weeks(52),     strategy: IntervalStrategy::Year,   step: 1},
+const TICK_DELTAS: &[TickInterval] = &[
+    TickInterval {delta: TimeDelta::seconds(1),    interval: Interval::Second, step: 1},
+    TickInterval {delta: TimeDelta::seconds(5),    interval: Interval::Second, step: 5},
+    TickInterval {delta: TimeDelta::seconds(15),   interval: Interval::Second, step: 15},
+    TickInterval {delta: TimeDelta::seconds(30),   interval: Interval::Second, step: 30},
+    TickInterval {delta: TimeDelta::minutes(1),    interval: Interval::Minute, step: 1},
+    TickInterval {delta: TimeDelta::minutes(5),    interval: Interval::Minute, step: 5},
+    TickInterval {delta: TimeDelta::minutes(15),   interval: Interval::Minute, step: 15},
+    TickInterval {delta: TimeDelta::minutes(30),   interval: Interval::Minute, step: 30},
+    TickInterval {delta: TimeDelta::hours(1),      interval: Interval::Hour,   step: 1},
+    TickInterval {delta: TimeDelta::hours(3),      interval: Interval::Hour,   step: 3},
+    TickInterval {delta: TimeDelta::hours(6),      interval: Interval::Hour,   step: 6},
+    TickInterval {delta: TimeDelta::hours(9),      interval: Interval::Hour,   step: 12},
+    TickInterval {delta: TimeDelta::days(1),       interval: Interval::Day,    step: 1},
+    TickInterval {delta: TimeDelta::days(2),       interval: Interval::Day,    step: 2},
+    TickInterval {delta: TimeDelta::days(31),      interval: Interval::Month,  step: 1},
+    TickInterval {delta: TimeDelta::days(31 * 3),  interval: Interval::Month,  step: 3},
+    TickInterval {delta: TimeDelta::weeks(52),     interval: Interval::Year,   step: 1},
 ];
+
+impl TickInterval {
+    fn new(start: DateTime<Utc>, stop: DateTime<Utc>, count: Option<usize>) -> Self {
+        let count = count.unwrap_or(10);
+        let duration = stop - start;
+        let target = duration.abs() / count as i32;
+
+        if target < TICK_DELTAS.first().unwrap().delta {
+            let step = tick_step(
+                start.timestamp_millis() as f64 * 1e-3,
+                stop.timestamp_millis() as f64 * 1e-3,
+                count,
+            ) * 1e3;
+            return TickInterval {
+                delta: TimeDelta::milliseconds(1),
+                interval: Interval::Millisecond,
+                step: step.max(1.) as u32,
+            };
+        }
+
+        if target > TICK_DELTAS.last().unwrap().delta {
+            let step = tick_step(
+                start.timestamp() as f64 / DURATION_YEAR,
+                stop.timestamp() as f64 / DURATION_YEAR,
+                count,
+            ) * 1e3;
+            return TickInterval {
+                delta: TimeDelta::days(365),
+                interval: Interval::Year,
+                step: step as u32,
+            };
+        }
+
+        let deltas: Vec<_> = TICK_DELTAS
+            .iter()
+            .map(|tick_delta| tick_delta.delta)
+            .collect();
+        let idx = match deltas.binary_search(&target) {
+            Ok(i) => i,
+            Err(i) => {
+                let current = deltas[i].num_milliseconds() as f64;
+                let previous = deltas[i - 1].num_milliseconds() as f64;
+                let target = target.num_milliseconds() as f64;
+                if (target / previous) < (current / target) {
+                    i - 1
+                } else {
+                    i
+                }
+            }
+        };
+        TICK_DELTAS[idx].clone()
+    }
+
+    #[rustfmt::skip]
+    fn range(&self, start: DateTime<Utc>, stop: DateTime<Utc>) -> Vec<DateTime<Utc>> {
+        let stop_offset = stop + TimeDelta::microseconds(1);
+        let step = self.step;
+        match self.interval {
+            Interval::Millisecond => TimeInterval::millisecond().every(step).range(start, stop_offset, 1),
+            Interval::Second =>      TimeInterval::second().every(step).range(start, stop_offset, 1),
+            Interval::Minute =>      TimeInterval::minute().every(step).range(start, stop_offset, 1),
+            Interval::Hour =>        TimeInterval::hour().every(step).range(start, stop_offset, 1),
+            Interval::Day =>         TimeInterval::day().every(step).range(start, stop_offset, 1),
+            Interval::Month =>       TimeInterval::month().every(step).range(start, stop_offset, 1),
+            Interval::Year =>        TimeInterval::year().every(step).range(start, stop_offset, 1),
+        }
+    }
+
+    fn nice(&self, start: DateTime<Utc>, stop: DateTime<Utc>) -> [DateTime<Utc>; 2] {
+        let step = self.step;
+        // TODO: add closure for DRY
+        match self.interval {
+            Interval::Millisecond => {
+                let time_interval = TimeInterval::millisecond().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+            Interval::Second => {
+                let time_interval = TimeInterval::second().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+            Interval::Minute => {
+                let time_interval = TimeInterval::minute().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+            Interval::Hour => {
+                let time_interval = TimeInterval::hour().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+            Interval::Day => {
+                let time_interval = TimeInterval::day().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+            Interval::Month => {
+                let time_interval = TimeInterval::month().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+            Interval::Year => {
+                let time_interval = TimeInterval::year().every(step);
+                [
+                    time_interval.interval(Some(start)).unwrap_or(start),
+                    time_interval.ceil(stop).unwrap_or(stop),
+                ]
+            }
+        }
+    }
+}
 
 /// Scaler for domain defined with [`chrono::DateTime`] and a continuous range.
 pub struct ScaleTime<Tz: TimeZone> {
@@ -159,6 +264,51 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
         }
         DateTime::from_timestamp(x as i64, 0)
     }
+
+    /// Extends the domain so that it starts and ends on nice round values where `count` allows
+    /// greater control over the step size used to extend the bounds. Default: `10`.
+    ///
+    /// ```
+    /// use vizkit::scale::ScaleTime;
+    /// use chrono::{DateTime, NaiveDate, Utc};
+    ///
+    /// fn datetime(
+    ///     year: i32,
+    ///     month: u32,
+    ///     day: u32,
+    ///     hour: u32,
+    ///     minute: u32,
+    ///     second: u32,
+    /// ) -> DateTime<Utc> {
+    ///     NaiveDate::from_ymd_opt(year, month, day)
+    ///         .and_then(|date| date.and_hms_opt(hour, minute, second))
+    ///         .expect("invalid time values")
+    ///         .and_utc()
+    /// }
+    ///
+    /// let domain = [datetime(2011, 2, 1, 12, 0, 0), datetime(2011, 8, 1, 14, 0, 0)];
+    /// // Default for `count` is `10`
+    /// let scale = ScaleTime::default().domain(domain).nice(None);
+    /// assert_eq!(scale.invert(0.).unwrap(), datetime(2011, 2, 1, 0, 0, 0));
+    /// assert_eq!(scale.invert(1.).unwrap(), datetime(2011, 9, 1, 0, 0, 0));
+    /// ```
+    pub fn nice(self, count: Option<usize>) -> ScaleTime<Utc> {
+        let [mut start, mut stop] = [self.domain[0].to_utc(), self.domain[1].to_utc()];
+        let reverse = stop < start;
+        if reverse {
+            std::mem::swap(&mut start, &mut stop);
+        }
+        let tick_interval = TickInterval::new(start, stop, count);
+        let [mut nice_start, mut nice_stop] = tick_interval.nice(start, stop);
+        if reverse {
+            std::mem::swap(&mut nice_start, &mut nice_stop);
+        }
+        ScaleTime {
+            domain: [nice_start, nice_stop],
+            range: self.range,
+            clamp: self.clamp,
+        }
+    }
 }
 
 // Tick spec with double precision
@@ -228,54 +378,13 @@ impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
     type Tick = DateTime<Utc>;
 
     fn ticks(&self, count: Option<usize>) -> Vec<Self::Tick> {
-        let count = count.unwrap_or(10);
         let [mut start, mut stop] = [self.domain[0].to_utc(), self.domain[1].to_utc()];
         let reverse = stop < start;
         if reverse {
             std::mem::swap(&mut start, &mut stop);
         }
-        let duration = stop - start;
-        let target = duration.abs() / count as i32;
-
-        if target < TICK_DELTAS.first().unwrap().delta {
-            let step = tick_step(start.timestamp() as f64, stop.timestamp() as f64, count) * 1e3;
-            return IntervalStrategy::Millisecond.create_range(start, stop, step.max(1.) as u32);
-        }
-
-        if target > TICK_DELTAS.last().unwrap().delta {
-            let step = tick_step(
-                start.timestamp() as f64 / DURATION_YEAR,
-                stop.timestamp() as f64 / DURATION_YEAR,
-                count,
-            ) * 1e3;
-            let mut dates = IntervalStrategy::Year.create_range(start, stop, step as u32);
-            if reverse {
-                dates.reverse();
-            }
-            return dates;
-        }
-
-        let deltas: Vec<_> = TICK_DELTAS
-            .iter()
-            .map(|tick_delta| tick_delta.delta)
-            .collect();
-        let idx = match deltas.binary_search(&target) {
-            Ok(i) => i,
-            Err(i) => {
-                let current = deltas[i].num_milliseconds() as f64;
-                let previous = deltas[i - 1].num_milliseconds() as f64;
-                let target = target.num_milliseconds() as f64;
-                if (target / previous) < (current / target) {
-                    i - 1
-                } else {
-                    i
-                }
-            }
-        };
-        let tick_delta = &TICK_DELTAS[idx];
-        let mut dates = tick_delta
-            .strategy
-            .create_range(start, stop, tick_delta.step);
+        let tick_interval = TickInterval::new(start, stop, count);
+        let mut dates = tick_interval.range(start, stop);
         if reverse {
             dates.reverse();
         }
@@ -411,13 +520,6 @@ mod tests {
         datetime(2011, 1, 7, 0, 0, 0),
         datetime(2011, 1, 9, 0, 0, 0),
     ])]
-    // // Week case
-    // #[case(datetime(2011, 1, 1, 16, 28, 27), datetime(2011, 1, 23, 21, 34, 12), 4, &[
-    //     datetime(2011, 1, 2, 0, 0, 0),
-    //     datetime(2011, 1, 9, 0, 0, 0),
-    //     datetime(2011, 1, 16, 0, 0, 0),
-    //     datetime(2011, 1, 23, 0, 0, 0),
-    // ])]
     #[case(datetime(2011, 1, 18, 0, 0, 0), datetime(2011, 5, 2, 0, 0, 0), 4, &[
         datetime(2011, 2, 1, 0, 0, 0),
         datetime(2011, 3, 1, 0, 0, 0),
@@ -461,5 +563,45 @@ mod tests {
                 .ticks(Some(count)),
             expect
         );
+    }
+
+    #[rstest]
+    #[case(
+        [datetime(2009, 1, 1, 0, 17, 0), datetime(2009, 1, 1, 23, 42, 0)],
+        None,
+        [datetime(2009, 1, 1, 0, 0, 0), datetime(2009, 1, 2, 0, 0, 0)]
+    )]
+    #[case(
+        [datetime(2013, 1, 1, 12, 0, 0), datetime(2013, 1, 1, 12, 0, 0).with_nanosecond(128000000).unwrap()],
+        None,
+        [datetime(2013, 1, 1, 12, 0, 0), datetime(2013, 1, 1, 12, 0, 0).with_nanosecond(130000000).unwrap()]
+    )]
+    #[case(
+        [datetime(2001, 1, 1, 0, 0, 0), datetime(2138, 1, 1, 0, 0, 0)],
+        None,
+        [datetime(2000, 1, 1, 0, 0, 0), datetime(2140, 1, 1, 0, 0, 0)],
+    )]
+    #[case(
+        [datetime(2009, 1, 1, 0, 12, 0), datetime(2009, 1, 1, 0, 12, 0)],
+        None,
+        [datetime(2009, 1, 1, 0, 12, 0), datetime(2009, 1, 1, 0, 12, 0)],
+    )]
+    #[case(
+        [datetime(2009, 1, 1, 0, 17, 0), datetime(2009, 1, 1, 23, 42, 0)],
+        Some(100),
+        [datetime(2009, 1, 1, 0, 15, 0), datetime(2009, 1, 1, 23, 45, 0)],
+    )]
+    #[case(
+        [datetime(2009, 1, 1, 0, 17, 0), datetime(2009, 1, 1, 23, 42, 0)],
+        Some(10),
+        [datetime(2009, 1, 1, 0, 0, 0), datetime(2009, 1, 2, 0, 0, 0)],
+    )]
+    fn test_scale_time_nice(
+        #[case] domain: [DateTime<Utc>; 2],
+        #[case] count: Option<usize>,
+        #[case] expected: [DateTime<Utc>; 2],
+    ) {
+        let scale_time = ScaleTime::default().domain(domain).nice(count);
+        assert_eq!(scale_time.domain, expected);
     }
 }
