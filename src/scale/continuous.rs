@@ -25,6 +25,8 @@ impl Normalizer {
             Self::Linear { a, b }
         }
     }
+
+    #[inline]
     fn normalize(&self, x: f32) -> f32 {
         match self {
             Normalizer::Constant { value } => *value,
@@ -39,6 +41,7 @@ struct Interpolate {
 }
 
 impl Interpolate {
+    #[inline]
     fn interpolate(&self, t: f32) -> f32 {
         self.a * (1. - t) + self.b * t
     }
@@ -67,6 +70,7 @@ impl BiMap {
         }
     }
 
+    #[inline]
     fn scale(&self, x: f32) -> f32 {
         self.r0.interpolate(self.d0.normalize(x))
     }

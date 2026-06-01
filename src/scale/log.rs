@@ -7,16 +7,19 @@ use super::{continuous::Transformer, ticks::Tick};
 #[derive(Clone, Copy)]
 pub struct Log10;
 impl Transformer for Log10 {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x.log10()
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         10_f32.powf(y)
     }
 }
 
 impl Log10 {
+    #[inline]
     fn base(&self) -> f32 {
         10.
     }
@@ -26,16 +29,19 @@ impl Log10 {
 #[derive(Clone, Copy)]
 pub struct Log2;
 impl Transformer for Log2 {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x.log2()
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         2_f32.powf(y)
     }
 }
 
 impl Log2 {
+    #[inline]
     fn base(&self) -> f32 {
         2.
     }
@@ -45,16 +51,19 @@ impl Log2 {
 #[derive(Clone, Copy)]
 pub struct Ln;
 impl Transformer for Ln {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x.ln()
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         y.exp()
     }
 }
 
 impl Ln {
+    #[inline]
     fn base(&self) -> f32 {
         f32::consts::E
     }
@@ -66,16 +75,19 @@ pub struct Log {
     pub base: f32,
 }
 impl Transformer for Log {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x.log(self.base)
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         self.base.powf(y)
     }
 }
 
 impl Log {
+    #[inline]
     fn base(&self) -> f32 {
         self.base
     }

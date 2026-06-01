@@ -9,10 +9,12 @@ use super::{
 #[derive(Clone, Copy)]
 pub struct Linear;
 impl Transformer for Linear {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         y
     }

@@ -12,10 +12,12 @@ pub struct Power {
 }
 
 impl Transformer for Power {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x.powf(self.exponent)
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         y.powf(1. / self.exponent)
     }
@@ -26,10 +28,12 @@ impl Transformer for Power {
 pub struct Sqrt;
 
 impl Transformer for Sqrt {
+    #[inline]
     fn transform(&self, x: f32) -> f32 {
         x.sqrt()
     }
 
+    #[inline]
     fn untransform(&self, y: f32) -> f32 {
         y * y
     }
