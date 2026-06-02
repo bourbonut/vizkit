@@ -63,6 +63,7 @@ enum Orientation {
 }
 
 impl Orientation {
+    #[inline]
     fn apply(&self, x: f32, y: f32) -> [f32; 2] {
         match self {
             Orientation::Same => [x, y],

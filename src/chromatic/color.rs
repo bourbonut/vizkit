@@ -170,7 +170,8 @@ pub enum Interpolator {
 }
 
 impl Interpolator {
-    pub fn interpolate(&self, t: f32) -> f32 {
+    #[inline]
+    pub(crate) fn interpolate(&self, t: f32) -> f32 {
         match self {
             Self::Linear { a, d } => a + t * d,
             Self::Constant { value } => *value,
@@ -178,6 +179,7 @@ impl Interpolator {
     }
 }
 
+#[inline]
 pub fn color(a: f32, b: f32) -> Interpolator {
     let d = b - a;
     if !d.is_nan() && d != 0. {
