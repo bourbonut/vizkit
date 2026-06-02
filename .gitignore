@@ -2,3 +2,4 @@
 *.json
 *.csv
 examples/**/*.svg
+.ignore
