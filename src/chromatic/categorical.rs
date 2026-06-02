@@ -3,152 +3,37 @@ use super::common::{Scheme, split_colors};
 /// Color space used for categorical schemes.
 #[derive(Debug, Clone)]
 pub enum CategoricalSpace {
-    /// <svg height="30" viewBox="0 0 240 30" width="240" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#7fc97f" height="30" width="30" x="0"/>
-    /// <rect fill="#beaed4" height="30" width="30" x="30"/>
-    /// <rect fill="#fdc086" height="30" width="30" x="60"/>
-    /// <rect fill="#ffff99" height="30" width="30" x="90"/>
-    /// <rect fill="#386cb0" height="30" width="30" x="120"/>
-    /// <rect fill="#f0027f" height="30" width="30" x="150"/>
-    /// <rect fill="#bf5b17" height="30" width="30" x="180"/>
-    /// <rect fill="#666666" height="30" width="30" x="210"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/accent.svg")]
     Accent,
 
-    /// <svg height="30" viewBox="0 0 300 30" width="300" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#1f77b4" height="30" width="30" x="0"/>
-    /// <rect fill="#ff7f0e" height="30" width="30" x="30"/>
-    /// <rect fill="#2ca02c" height="30" width="30" x="60"/>
-    /// <rect fill="#d62728" height="30" width="30" x="90"/>
-    /// <rect fill="#9467bd" height="30" width="30" x="120"/>
-    /// <rect fill="#8c564b" height="30" width="30" x="150"/>
-    /// <rect fill="#e377c2" height="30" width="30" x="180"/>
-    /// <rect fill="#7f7f7f" height="30" width="30" x="210"/>
-    /// <rect fill="#bcbd22" height="30" width="30" x="240"/>
-    /// <rect fill="#17becf" height="30" width="30" x="270"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/category10.svg")]
     Category10,
 
-    /// <svg height="30" viewBox="0 0 240 30" width="240" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#1b9e77" height="30" width="30" x="0"/>
-    /// <rect fill="#d95f02" height="30" width="30" x="30"/>
-    /// <rect fill="#7570b3" height="30" width="30" x="60"/>
-    /// <rect fill="#e7298a" height="30" width="30" x="90"/>
-    /// <rect fill="#66a61e" height="30" width="30" x="120"/>
-    /// <rect fill="#e6ab02" height="30" width="30" x="150"/>
-    /// <rect fill="#a6761d" height="30" width="30" x="180"/>
-    /// <rect fill="#666666" height="30" width="30" x="210"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/dark2.svg")]
     Dark2,
 
-    /// <svg height="30" viewBox="0 0 300 30" width="300" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#4269d0" height="30" width="30" x="0"/>
-    /// <rect fill="#efb118" height="30" width="30" x="30"/>
-    /// <rect fill="#ff725c" height="30" width="30" x="60"/>
-    /// <rect fill="#6cc5b0" height="30" width="30" x="90"/>
-    /// <rect fill="#3ca951" height="30" width="30" x="120"/>
-    /// <rect fill="#ff8ab7" height="30" width="30" x="150"/>
-    /// <rect fill="#a463f2" height="30" width="30" x="180"/>
-    /// <rect fill="#97bbf5" height="30" width="30" x="210"/>
-    /// <rect fill="#9c6b4e" height="30" width="30" x="240"/>
-    /// <rect fill="#9498a0" height="30" width="30" x="270"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/observable10.svg")]
     Observable10,
 
-    /// <svg height="30" viewBox="0 0 360 30" width="360" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#a6cee3" height="30" width="30" x="0"/>
-    /// <rect fill="#1f78b4" height="30" width="30" x="30"/>
-    /// <rect fill="#b2df8a" height="30" width="30" x="60"/>
-    /// <rect fill="#33a02c" height="30" width="30" x="90"/>
-    /// <rect fill="#fb9a99" height="30" width="30" x="120"/>
-    /// <rect fill="#e31a1c" height="30" width="30" x="150"/>
-    /// <rect fill="#fdbf6f" height="30" width="30" x="180"/>
-    /// <rect fill="#ff7f00" height="30" width="30" x="210"/>
-    /// <rect fill="#cab2d6" height="30" width="30" x="240"/>
-    /// <rect fill="#6a3d9a" height="30" width="30" x="270"/>
-    /// <rect fill="#ffff99" height="30" width="30" x="300"/>
-    /// <rect fill="#b15928" height="30" width="30" x="330"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/paired.svg")]
     Paired,
 
-    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#fbb4ae" height="30" width="30" x="0"/>
-    /// <rect fill="#b3cde3" height="30" width="30" x="30"/>
-    /// <rect fill="#ccebc5" height="30" width="30" x="60"/>
-    /// <rect fill="#decbe4" height="30" width="30" x="90"/>
-    /// <rect fill="#fed9a6" height="30" width="30" x="120"/>
-    /// <rect fill="#ffffcc" height="30" width="30" x="150"/>
-    /// <rect fill="#e5d8bd" height="30" width="30" x="180"/>
-    /// <rect fill="#fddaec" height="30" width="30" x="210"/>
-    /// <rect fill="#f2f2f2" height="30" width="30" x="240"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/pastel1.svg")]
     Pastel1,
 
-    /// <svg height="30" viewBox="0 0 240 30" width="240" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#b3e2cd" height="30" width="30" x="0"/>
-    /// <rect fill="#fdcdac" height="30" width="30" x="30"/>
-    /// <rect fill="#cbd5e8" height="30" width="30" x="60"/>
-    /// <rect fill="#f4cae4" height="30" width="30" x="90"/>
-    /// <rect fill="#e6f5c9" height="30" width="30" x="120"/>
-    /// <rect fill="#fff2ae" height="30" width="30" x="150"/>
-    /// <rect fill="#f1e2cc" height="30" width="30" x="180"/>
-    /// <rect fill="#cccccc" height="30" width="30" x="210"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/pastel2.svg")]
     Pastel2,
 
-    /// <svg height="30" viewBox="0 0 270 30" width="270" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#e41a1c" height="30" width="30" x="0"/>
-    /// <rect fill="#377eb8" height="30" width="30" x="30"/>
-    /// <rect fill="#4daf4a" height="30" width="30" x="60"/>
-    /// <rect fill="#984ea3" height="30" width="30" x="90"/>
-    /// <rect fill="#ff7f00" height="30" width="30" x="120"/>
-    /// <rect fill="#ffff33" height="30" width="30" x="150"/>
-    /// <rect fill="#a65628" height="30" width="30" x="180"/>
-    /// <rect fill="#f781bf" height="30" width="30" x="210"/>
-    /// <rect fill="#999999" height="30" width="30" x="240"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/set1.svg")]
     Set1,
 
-    /// <svg height="30" viewBox="0 0 240 30" width="240" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#66c2a5" height="30" width="30" x="0"/>
-    /// <rect fill="#fc8d62" height="30" width="30" x="30"/>
-    /// <rect fill="#8da0cb" height="30" width="30" x="60"/>
-    /// <rect fill="#e78ac3" height="30" width="30" x="90"/>
-    /// <rect fill="#a6d854" height="30" width="30" x="120"/>
-    /// <rect fill="#ffd92f" height="30" width="30" x="150"/>
-    /// <rect fill="#e5c494" height="30" width="30" x="180"/>
-    /// <rect fill="#b3b3b3" height="30" width="30" x="210"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/set2.svg")]
     Set2,
 
-    /// <svg height="30" viewBox="0 0 360 30" width="360" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#8dd3c7" height="30" width="30" x="0"/>
-    /// <rect fill="#ffffb3" height="30" width="30" x="30"/>
-    /// <rect fill="#bebada" height="30" width="30" x="60"/>
-    /// <rect fill="#fb8072" height="30" width="30" x="90"/>
-    /// <rect fill="#80b1d3" height="30" width="30" x="120"/>
-    /// <rect fill="#fdb462" height="30" width="30" x="150"/>
-    /// <rect fill="#b3de69" height="30" width="30" x="180"/>
-    /// <rect fill="#fccde5" height="30" width="30" x="210"/>
-    /// <rect fill="#d9d9d9" height="30" width="30" x="240"/>
-    /// <rect fill="#bc80bd" height="30" width="30" x="270"/>
-    /// <rect fill="#ccebc5" height="30" width="30" x="300"/>
-    /// <rect fill="#ffed6f" height="30" width="30" x="330"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/set3.svg")]
     Set3,
 
-    /// <svg height="30" viewBox="0 0 300 30" width="300" xmlns="http://www.w3.org/2000/svg">
-    /// <rect fill="#4e79a7" height="30" width="30" x="0"/>
-    /// <rect fill="#f28e2c" height="30" width="30" x="30"/>
-    /// <rect fill="#e15759" height="30" width="30" x="60"/>
-    /// <rect fill="#76b7b2" height="30" width="30" x="90"/>
-    /// <rect fill="#59a14f" height="30" width="30" x="120"/>
-    /// <rect fill="#edc949" height="30" width="30" x="150"/>
-    /// <rect fill="#af7aa1" height="30" width="30" x="180"/>
-    /// <rect fill="#ff9da7" height="30" width="30" x="210"/>
-    /// <rect fill="#9c755f" height="30" width="30" x="240"/>
-    /// <rect fill="#bab0ab" height="30" width="30" x="270"/>
-    /// </svg>
+    #[doc = include_str!("../../docs/tableau10.svg")]
     Tableau10,
 }
 

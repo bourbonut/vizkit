@@ -1,0 +1,28 @@
+<svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
+<g class="axis">
+<line stroke="currentColor" x1="20" x2="20" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(20, 47.5)" y="0.71em">a</text>
+<line stroke="currentColor" x1="146.66666" x2="146.66666" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(146.66666, 47.5)" y="0.71em">b</text>
+<line stroke="currentColor" x1="273.3333" x2="273.3333" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(273.3333, 47.5)" y="0.71em">c</text>
+<line stroke="currentColor" x1="400" x2="400" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(400, 47.5)" y="0.71em">d</text>
+<line stroke="currentColor" x1="526.6666" x2="526.6666" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(526.6666, 47.5)" y="0.71em">e</text>
+<line stroke="currentColor" x1="653.3333" x2="653.3333" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(653.3333, 47.5)" y="0.71em">f</text>
+<line stroke="currentColor" x1="780" x2="780" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(780, 47.5)" y="0.71em">g</text>
+</g>
+<g class="grid">
+<line stroke="currentColor" x1="20" x2="20" y1="2" y2="38"/>
+<line stroke="currentColor" x1="146.66666" x2="146.66666" y1="2" y2="38"/>
+<line stroke="currentColor" x1="273.3333" x2="273.3333" y1="2" y2="38"/>
+<line stroke="currentColor" x1="400" x2="400" y1="2" y2="38"/>
+<line stroke="currentColor" x1="526.6666" x2="526.6666" y1="2" y2="38"/>
+<line stroke="currentColor" x1="653.3333" x2="653.3333" y1="2" y2="38"/>
+<line stroke="currentColor" x1="780" x2="780" y1="2" y2="38"/>
+</g>
+<rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
+</svg>

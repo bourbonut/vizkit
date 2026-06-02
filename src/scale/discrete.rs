@@ -163,37 +163,11 @@ impl<D> ScaleDiscrete<D>
 where
     D: Hash + Eq,
 {
-    /// Returns a default [`ScaleDiscrete`] with uniform bands. You should use this default settings
-    /// when you want ticks centered on the bandwidth.
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="74.28571" x2="74.28571" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(74.28571, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="182.85715" x2="182.85715" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(182.85715, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="291.42856" x2="291.42856" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(291.42856, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="400" x2="400" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(400, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="508.5714" x2="508.5714" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(508.5714, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="617.1428" x2="617.1428" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(617.1428, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="725.7143" x2="725.7143" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(725.7143, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="rects">
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="20" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="128.57143" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="237.14285" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="345.7143" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="454.2857" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="562.8571" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="108.57143" x="671.4286" y="2"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
+    #[doc = concat!(
+        "Returns a default [`ScaleDiscrete`] with uniform bands. You should use this default",
+        " settings when you want ticks centered on the bandwidth.\n\n",
+        include_str!("../../docs/band.svg"),
+    )]
     pub fn band() -> Self
     where
         D: Default,
@@ -211,36 +185,10 @@ where
         .rescale()
     }
 
-    /// Returns a default [`ScaleDiscrete`] where the bandwidth is null.
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="20" x2="20" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(20, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="146.66666" x2="146.66666" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(146.66666, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="273.3333" x2="273.3333" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(273.3333, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="400" x2="400" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(400, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="526.6666" x2="526.6666" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(526.6666, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="653.3333" x2="653.3333" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(653.3333, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="780" x2="780" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(780, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="grid">
-    /// <line stroke="currentColor" x1="20" x2="20" y1="2" y2="38"/>
-    /// <line stroke="currentColor" x1="146.66666" x2="146.66666" y1="2" y2="38"/>
-    /// <line stroke="currentColor" x1="273.3333" x2="273.3333" y1="2" y2="38"/>
-    /// <line stroke="currentColor" x1="400" x2="400" y1="2" y2="38"/>
-    /// <line stroke="currentColor" x1="526.6666" x2="526.6666" y1="2" y2="38"/>
-    /// <line stroke="currentColor" x1="653.3333" x2="653.3333" y1="2" y2="38"/>
-    /// <line stroke="currentColor" x1="780" x2="780" y1="2" y2="38"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
+    #[doc = concat!(
+        "Returns a default [`ScaleDiscrete`] where the bandwidth is null.\n\n",
+        include_str!("../../docs/point.svg"),
+    )]
     pub fn point() -> Self
     where
         D: Default,
@@ -276,41 +224,13 @@ where
         Self { r0, r1, ..self }.rescale()
     }
 
-    /// Returns a new [`ScaleDiscrete`] in which inner and outer paddings are set to the same
-    /// padding value. The inner and outer padding values range from 0.0 to 1.0.
-    ///
-    /// # Example
-    ///
-    /// padding: 0.4
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="91.89192" x2="91.89192" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(91.89192, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="194.59462" x2="194.59462" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(194.59462, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="297.29733" x2="297.29733" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(297.29733, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="400.00003" x2="400.00003" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(400.00003, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="502.70273" x2="502.70273" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(502.70273, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="605.4054" x2="605.4054" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(605.4054, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="708.1081" x2="708.1081" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(708.1081, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="rects">
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="61.081116" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="163.78381" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="266.4865" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="369.1892" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="471.8919" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="574.5946" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="677.2973" y="2"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
+    #[doc = concat!(
+        "Returns a new [`ScaleDiscrete`] in which inner and outer paddings are set to the same",
+        " padding value. The inner and outer padding values range from 0.0 to 1.0.\n",
+        "# Example\n",
+        "padding: 0.4\n\n",
+        include_str!("../../docs/band_padding.svg"),
+    )]
     pub fn padding(self, padding: f32) -> Self {
         Self {
             padding_outer: padding.clamp(0., 1.),
@@ -320,41 +240,13 @@ where
         .rescale()
     }
 
-    /// Returns a new [`ScaleDiscrete`] in which inner padding is set to the padding value. The
-    /// inner padding value ranges from 0.0 to 1.0;
-    ///
-    /// # Example
-    ///
-    /// padding_inner: 0.4
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="54.545456" x2="54.545456" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(54.545456, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="169.69698" x2="169.69698" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(169.69698, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="284.8485" x2="284.8485" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(284.8485, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="400" x2="400" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(400, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="515.15155" x2="515.15155" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(515.15155, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="630.30304" x2="630.30304" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(630.30304, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="745.4546" x2="745.4546" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(745.4546, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="rects">
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="20" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="135.15152" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="250.30304" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="365.45456" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="480.60608" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="595.75757" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="69.09091" x="710.9091" y="2"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
+    #[doc = concat!(
+        "Returns a new [`ScaleDiscrete`] in which inner padding is set to the padding value. The",
+        " inner padding value ranges from 0.0 to 1.0.\n",
+        "# Example\n",
+        "padding_inner: 0.4\n\n",
+        include_str!("../../docs/band_padding_inner.svg"),
+    )]
     pub fn padding_inner(self, padding_inner: f32) -> Self {
         Self {
             padding_inner: padding_inner.clamp(0., 1.),
@@ -363,41 +255,13 @@ where
         .rescale()
     }
 
-    /// Returns a new [`ScaleDiscrete`] with a new outer padding value. The outer padding value
-    /// ranges from 0.0 to 1.0.
-    ///
-    /// # Example
-    ///
-    /// padding_outer: 0.4
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="107.692314" x2="107.692314" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(107.692314, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="205.1282" x2="205.1282" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(205.1282, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="302.56412" x2="302.56412" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(302.56412, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="400" x2="400" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(400, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="497.4359" x2="497.4359" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(497.4359, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="594.8718" x2="594.8718" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(594.8718, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="692.3077" x2="692.3077" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(692.3077, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="rects">
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="58.974365" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="156.41026" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="253.84616" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="351.28204" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="448.71796" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="546.1539" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="97.4359" x="643.5897" y="2"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
+    #[doc = concat!(
+        "Returns a new [`ScaleDiscrete`] with a new outer padding value. The outer padding value",
+        " ranges from 0.0 to 1.0.\n",
+        "# Example\n",
+        "padding_outer: 0.4\n\n",
+        include_str!("../../docs/band_padding_outer.svg"),
+    )]
     pub fn padding_outer(self, padding_outer: f32) -> Self {
         Self {
             padding_outer: padding_outer.clamp(0., 1.),
@@ -406,72 +270,15 @@ where
         .rescale()
     }
 
-    /// Returns a new [`ScaleDiscrete`] in which align is set to the specified value. The align
-    /// value ranges from 0.0 to 1.0.
-    ///
-    /// # Example
-    ///
-    /// padding: 0.4; align: 0.1
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="59.027035" x2="59.027035" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(59.027035, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="161.72972" x2="161.72972" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(161.72972, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="264.43243" x2="264.43243" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(264.43243, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="367.13513" x2="367.13513" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(367.13513, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="469.83783" x2="469.83783" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(469.83783, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="572.5405" x2="572.5405" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(572.5405, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="675.2432" x2="675.2432" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(675.2432, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="rects">
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="28.216225" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="130.91891" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="233.62161" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="336.3243" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="439.027" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="541.72974" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="644.43243" y="2"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
-    ///
-    /// padding: 0.4; align: 0.9
-    ///
-    /// <svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
-    /// <g class="axis">
-    /// <line stroke="currentColor" x1="124.75682" x2="124.75682" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(124.75682, 47.5)" y="0.71em">a</text>
-    /// <line stroke="currentColor" x1="227.45952" x2="227.45952" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(227.45952, 47.5)" y="0.71em">b</text>
-    /// <line stroke="currentColor" x1="330.16223" x2="330.16223" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(330.16223, 47.5)" y="0.71em">c</text>
-    /// <line stroke="currentColor" x1="432.86493" x2="432.86493" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(432.86493, 47.5)" y="0.71em">d</text>
-    /// <line stroke="currentColor" x1="535.5676" x2="535.5676" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(535.5676, 47.5)" y="0.71em">e</text>
-    /// <line stroke="currentColor" x1="638.27026" x2="638.27026" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(638.27026, 47.5)" y="0.71em">f</text>
-    /// <line stroke="currentColor" x1="740.97296" x2="740.97296" y1="38" y2="45.5"/>
-    /// <text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(740.97296, 47.5)" y="0.71em">g</text>
-    /// </g>
-    /// <g class="rects">
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="93.94601" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="196.64871" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="299.3514" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="402.0541" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="504.7568" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="607.4595" y="2"/>
-    /// <rect fill="none" height="36" stroke="currentColor" width="61.62162" x="710.1622" y="2"/>
-    /// </g>
-    /// <rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
-    /// </svg>
+    #[doc = concat!(
+        "Returns a new [`ScaleDiscrete`] in which align is set to the specified value. The align",
+        " value ranges from 0.0 to 1.0.\n",
+        "# Example\n",
+        "padding: 0.4; align: 0.1\n\n",
+        include_str!("../../docs/band_align_1.svg"),
+        "\npadding: 0.4; align: 0.9\n\n",
+        include_str!("../../docs/band_align_2.svg"),
+    )]
     pub fn align(self, align: f32) -> Self {
         Self {
             align: align.clamp(0., 1.),

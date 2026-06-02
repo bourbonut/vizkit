@@ -1,0 +1,28 @@
+<svg height="60" viewBox="0 0 800 60" width="800" xmlns="http://www.w3.org/2000/svg">
+<g class="axis">
+<line stroke="currentColor" x1="124.75682" x2="124.75682" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(124.75682, 47.5)" y="0.71em">a</text>
+<line stroke="currentColor" x1="227.45952" x2="227.45952" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(227.45952, 47.5)" y="0.71em">b</text>
+<line stroke="currentColor" x1="330.16223" x2="330.16223" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(330.16223, 47.5)" y="0.71em">c</text>
+<line stroke="currentColor" x1="432.86493" x2="432.86493" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(432.86493, 47.5)" y="0.71em">d</text>
+<line stroke="currentColor" x1="535.5676" x2="535.5676" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(535.5676, 47.5)" y="0.71em">e</text>
+<line stroke="currentColor" x1="638.27026" x2="638.27026" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(638.27026, 47.5)" y="0.71em">f</text>
+<line stroke="currentColor" x1="740.97296" x2="740.97296" y1="38" y2="45.5"/>
+<text fill="currentColor" font-size="12" text-anchor="middle" transform="translate(740.97296, 47.5)" y="0.71em">g</text>
+</g>
+<g class="rects">
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="93.94601" y="2"/>
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="196.64871" y="2"/>
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="299.3514" y="2"/>
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="402.0541" y="2"/>
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="504.7568" y="2"/>
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="607.4595" y="2"/>
+<rect fill="none" height="36" stroke="currentColor" width="61.62162" x="710.1622" y="2"/>
+</g>
+<rect fill="none" height="36" stroke="currentColor" stroke-opacity="0.2" width="760" x="20" y="2"/>
+</svg>
