@@ -10,6 +10,18 @@ Optional features:
 
 - `time`: Enable time operations and scales with a temporal domain using [chrono](https://docs.rs/chrono/latest/chrono/).
 
+## Features TODO
+
+Interaction
+
+- `Zoom` for zoom in/out and panning (maybe two different structs ?)
+- `Drag` for dragging spatial elements
+
+Data manipulation
+
+- `group_by` for grouping values associated to an unique ID
+- `Stack` for making stacked series
+
 ## Alternatives
 
 These alternatives are plotting libraries, meaning they are ready to use but do not offer as much freedom as positioning your elements yourself (text information, color gradients, arrows, ...).
