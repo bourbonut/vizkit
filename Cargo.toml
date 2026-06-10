@@ -1,8 +1,17 @@
 [package]
 name = "vizkit"
 description = "A rendering-agnostic kit for data visualization"
+homepage = "https://github.com/bourbonut/vizkit"
+documentation = "https://docs.rs/vizkit"
+repository = "https://github.com/bourbonut/vizkit"
 version = "0.1.0"
 edition = "2024"
+keywords = ["visualization"]
+license = "MIT"
+readme = "README.md"
+
+[lib]
+name = "vizkit"
 
 [dependencies]
 chrono = { version = "0.4.40", optional = true }
