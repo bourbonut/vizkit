@@ -79,7 +79,7 @@ mod tests {
         let y_scale = ScaleContinuous::linear()
             .domain([0., 200.])
             .range([height - margin_bottom, margin_top]);
-        let color_scale = ScaleColor::linear(Rainbow::default()).domain([0., 200.]);
+        let color_scale = ScaleColor::linear(Rainbow).domain([0., 200.]);
 
         let x_values = x_scale.ticks(Some(10));
         let y_values = y_scale.ticks(Some(10));

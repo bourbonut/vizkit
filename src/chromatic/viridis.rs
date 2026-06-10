@@ -86,17 +86,17 @@ mod tests {
             for color in colors {
                 let [r, g, b] = color;
                 assert!(
-                    0. <= r && r <= 1.,
+                    (0. ..=1.).contains(&r),
                     "red must be between [0, 1] (variant: {:?})",
                     space
                 );
                 assert!(
-                    0. <= g && g <= 1.,
+                    (0. ..=1.).contains(&g),
                     "green must be between [0, 1] (variant: {:?})",
                     space
                 );
                 assert!(
-                    0. <= b && b <= 1.,
+                    (0. ..=1.).contains(&b),
                     "blue must be between [0, 1] (variant: {:?})",
                     space
                 );

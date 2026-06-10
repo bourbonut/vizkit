@@ -313,14 +313,14 @@ impl<Tz: TimeZone> ScaleTime<Tz> {
 
 // Tick spec with double precision
 fn tick_spec(start: f64, stop: f64, count: usize) -> f64 {
-    let step = (stop - start) / (1 as f64).max(count as f64);
+    let step = (stop - start) / (1_f64).max(count as f64);
     let power = step.log10().floor();
-    let error = step / (10 as f64).powf(power);
-    let factor = if error >= (50 as f64).sqrt() {
+    let error = step / (10_f64).powf(power);
+    let factor = if error >= (50_f64).sqrt() {
         10
-    } else if error >= (10 as f64).sqrt() {
+    } else if error >= (10_f64).sqrt() {
         5
-    } else if error >= (2 as f64).sqrt() {
+    } else if error >= (2_f64).sqrt() {
         2
     } else {
         1
@@ -330,7 +330,7 @@ fn tick_spec(start: f64, stop: f64, count: usize) -> f64 {
     let mut i1;
     let mut i2;
     if power < 0. {
-        inc = (10 as f64).powf(-power) / factor as f64;
+        inc = (10_f64).powf(-power) / factor as f64;
         i1 = (start * inc).round();
         i2 = (stop * inc).round();
         if i1 / inc < start {
@@ -341,7 +341,7 @@ fn tick_spec(start: f64, stop: f64, count: usize) -> f64 {
         }
         inc = -inc;
     } else {
-        inc = (10 as f64).powf(power) * factor as f64;
+        inc = (10_f64).powf(power) * factor as f64;
         i1 = (start / inc).round();
         i2 = (stop / inc).round();
         if i1 * inc < start {
@@ -388,7 +388,7 @@ impl<Tz: TimeZone> Axis for ScaleTime<Tz> {
         if reverse {
             dates.reverse();
         }
-        return dates;
+        dates
     }
 
     fn tick_position(&self, x: Self::Tick) -> f32 {

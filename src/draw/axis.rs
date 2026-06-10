@@ -305,21 +305,64 @@ mod tests {
     const XMAX: f32 = 50.;
     const YMAX: f32 = 50.;
 
+    struct Expected {
+        at: f32,
+        start: f32,
+        end: f32,
+        position: f32,
+    }
+
+    impl Expected {
+        fn new(at: f32, start: f32, end: f32, position: f32) -> Self {
+            Self {
+                at,
+                start,
+                end,
+                position,
+            }
+        }
+    }
+
     #[rstest]
-    #[case("bottom", 0, [0., XMAX], [0., WIDTH], HEIGHT, HEIGHT, HEIGHT + 7.5, HEIGHT + 7.5 + 0.5)]
-    #[case("top", 0, [0., XMAX], [0., WIDTH], MARGIN_TOP, MARGIN_TOP, MARGIN_TOP - 7.5, MARGIN_TOP - 7.5 - 0.5)]
-    #[case("left", 1, [0., YMAX], [HEIGHT, 0.], MARGIN_LEFT, MARGIN_LEFT, MARGIN_LEFT - 7.5, MARGIN_LEFT - 7.5 - 0.5)]
-    #[case("right", 1, [0., YMAX], [HEIGHT, 0.], WIDTH, WIDTH, WIDTH + 7.5, WIDTH + 7.5 + 0.5)]
+    #[case(
+        "bottom",
+        0,
+        [0., XMAX],
+        [0., WIDTH],
+        Expected::new(HEIGHT, HEIGHT, HEIGHT + 7.5, HEIGHT + 7.5 + 0.5)
+    )]
+    #[case(
+        "top",
+        0,
+        [0., XMAX],
+        [0., WIDTH],
+        Expected::new(MARGIN_TOP, MARGIN_TOP, MARGIN_TOP - 7.5, MARGIN_TOP - 7.5 - 0.5)
+    )]
+    #[case(
+        "left",
+        1,
+        [0., YMAX],
+        [HEIGHT, 0.],
+        Expected::new(MARGIN_LEFT, MARGIN_LEFT, MARGIN_LEFT - 7.5, MARGIN_LEFT - 7.5 - 0.5)
+    )]
+    #[case(
+        "right",
+        1,
+        [0., YMAX],
+        [HEIGHT, 0.],
+        Expected::new(WIDTH, WIDTH, WIDTH + 7.5, WIDTH + 7.5 + 0.5)
+    )]
     fn test_axis(
         #[case] title: &str,
         #[case] index: usize,
         #[case] domain: [f32; 2],
         #[case] range: [f32; 2],
-        #[case] at: f32,
-        #[case] start: f32,
-        #[case] end: f32,
-        #[case] position: f32,
+        #[case] expected: Expected,
     ) {
+        let at = expected.at;
+        let start = expected.start;
+        let end = expected.end;
+        let position = expected.position;
         let scale = ScaleContinuous::linear().domain(domain).range(range);
 
         let formatter = |x: &f32| x.to_string();
