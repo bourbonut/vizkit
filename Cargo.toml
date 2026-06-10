@@ -14,7 +14,7 @@ readme = "README.md"
 name = "vizkit"
 
 [dependencies]
-chrono = { version = "0.4.40", optional = true }
+chrono = { version = "0.4.45", optional = true }
 
 [features]
 time = ["dep:chrono"]
