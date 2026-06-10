@@ -4,10 +4,6 @@ It aims to provide basic functionalities for making easier data visualization in
 
 ![iced-job-projections](./examples/iced-job-projections/iced-job-projections.png)
 
-|                           Iced                                  |                               Egui                              |
-| --------------------------------------------------------------- | --------------------------------------------------------------- |
-| ![iced-colormaps](./examples/iced-colormaps/iced-colormaps.png) | ![egui-colormaps](./examples/egui-colormaps/egui-colormaps.png) |
-
 ## Crate features
 
 Optional features:
