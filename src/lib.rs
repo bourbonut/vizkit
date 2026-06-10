@@ -9,7 +9,7 @@
 //! Optional features:
 //!
 //! - `time`: Enable time operations and scales with a temporal domain using
-//! [chrono](https://docs.rs/chrono/latest/chrono/).
+//!   [chrono](https://docs.rs/chrono/latest/chrono/).
 //!
 //! # Overview
 //!
@@ -44,16 +44,16 @@
 //! - an x-axis where `hour` values represent the ticks.
 //! - an y-axis where `location` values represent the ticks.
 //! - rectangles positioned at `[hour, location]` coordinates and filled with a color based  on the
-//! row's associated `vehicles` value.
+//!   row's associated `vehicles` value.
 //!
 //! We are going to use different scalers (see [`scale`][`crate::scale`] for more information):
 //!
 //! - a first [`ScaleDiscrete`][`crate::scale::ScaleDiscrete`] for mapping `hour` values to a range defined
-//! by the region's width.
+//!   by the region's width.
 //! - a second [`ScaleDiscrete`][`crate::scale::ScaleDiscrete`] for mapping `location` values to a range
-//! defined by the region's height.
+//!   defined by the region's height.
 //! - a [`ScaleColor`][`crate::scale::ScaleColor`] for mapping `vehicles` values to a range of
-//! colors.
+//!   colors.
 //!
 //! ```
 //! use std::collections::HashSet;
