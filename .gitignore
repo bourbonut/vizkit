@@ -3,3 +3,4 @@
 *.csv
 examples/**/*.svg
 .ignore
+Cargo.lock
