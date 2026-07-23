@@ -4,7 +4,7 @@ description = "A rendering-agnostic kit for data visualization"
 homepage = "https://github.com/bourbonut/vizkit"
 documentation = "https://docs.rs/vizkit"
 repository = "https://github.com/bourbonut/vizkit"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 keywords = ["visualization"]
 license = "MIT"
@@ -24,3 +24,7 @@ members = ["examples/*"]
 
 [dev-dependencies]
 rstest = "0.26.1"
+
+[package.metadata.docs.rs]
+features = ["time"]
+rustdoc-args = ["--cfg", "docsrs"]
