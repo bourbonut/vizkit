@@ -144,9 +144,9 @@
 //! like paths, areas, or arrows, `T` represents a sequence of
 //! [`PathCommand`][`crate::draw::PathCommand`] used to draw the curve.
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
 pub mod chromatic;
 pub mod draw;
 pub mod scale;
 #[cfg(feature = "time")]
-#[cfg_attr(docsrs, doc(cfg(feature = "time")))]
 pub mod time;

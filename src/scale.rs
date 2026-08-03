@@ -33,11 +33,9 @@ mod log;
 mod pow;
 mod ticks;
 #[cfg(feature = "time")]
-#[cfg_attr(docsrs, doc(cfg(feature = "time")))]
 mod time;
 
 #[cfg(feature = "time")]
-#[cfg_attr(docsrs, doc(cfg(feature = "time")))]
 pub use self::time::ScaleTime;
 
 pub use self::{
