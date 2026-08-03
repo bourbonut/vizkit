@@ -148,4 +148,5 @@ pub mod chromatic;
 pub mod draw;
 pub mod scale;
 #[cfg(feature = "time")]
+#[cfg_attr(docsrs, doc(cfg(feature = "time")))]
 pub mod time;
